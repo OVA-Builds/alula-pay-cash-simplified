@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Phone, Lock, ShieldCheck } from "lucide-react";
+import { Phone, Lock, ShieldCheck, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,10 +12,11 @@ export const Route = createFileRoute("/signup")({ component: SignUp });
 function SignUp() {
   const navigate = useNavigate();
   const { signIn } = useApp();
+  const [firstName, setFirstName] = useState("");
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
 
-  const canSubmit = phone.replace(/\D/g, "").length >= 9 && pin.length === 4;
+  const canSubmit = firstName.trim().length >= 2 && phone.replace(/\D/g, "").length >= 9 && pin.length === 4;
 
   return (
     <PhoneFrame>
@@ -31,6 +32,18 @@ function SignUp() {
         </div>
 
         <div className="mt-10 space-y-6 flex-1">
+          <div className="space-y-2">
+            <Label htmlFor="firstName">First name</Label>
+            <div className="relative">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="firstName" autoComplete="given-name" placeholder="e.g. Thandi"
+                value={firstName} onChange={(e) => setFirstName(e.target.value)}
+                className="h-14 rounded-2xl pl-11 text-base"
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="phone">Mobile number</Label>
             <div className="relative">
@@ -59,7 +72,7 @@ function SignUp() {
 
         <Button
           size="lg" disabled={!canSubmit}
-          onClick={() => { signIn(phone); navigate({ to: "/setup-pin" }); }}
+          onClick={() => { signIn(phone, firstName); navigate({ to: "/setup-pin" }); }}
           className="h-14 rounded-2xl text-base shadow-button"
         >
           Continue
