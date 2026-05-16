@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Ticket, Send, Bell, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight } from "lucide-react";
+import { Ticket, Send, Bell, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Users } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { AlulaGuide } from "@/components/AlulaGuide";
 import { useApp, formatZAR } from "@/lib/app-state";
 
 export const Route = createFileRoute("/home")({ component: Home });
 
 function Home() {
-  const { balance, transactions, verified, phone } = useApp();
+  const { balance, transactions, verified, plan, phone } = useApp();
   const recent = transactions.slice(0, 3);
 
   return (
@@ -26,15 +27,23 @@ function Home() {
       <div className="px-6">
         <div className="bg-gradient-wallet rounded-3xl p-7 text-white shadow-card relative overflow-hidden">
           <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/5" />
-          <div className="absolute -right-20 bottom-0 h-32 w-32 rounded-full bg-gold/20" />
-          <p className="text-white/70 text-sm">Your balance</p>
+          <div className="absolute -right-20 bottom-0 h-32 w-32 rounded-full bg-gold/25" />
+          <div className="flex justify-between items-start">
+            <p className="text-white/70 text-sm">Your balance</p>
+            <span className="text-[10px] font-bold tracking-wider bg-gold text-gold-foreground px-2 py-0.5 rounded-full uppercase">
+              {plan === "pro" ? "Pro" : "Basic"}
+            </span>
+          </div>
           <p className="text-4xl font-bold mt-2 tracking-tight">{formatZAR(balance)}</p>
-          <p className="text-white/60 text-xs mt-3">Tier 1 — daily limit R 3,000</p>
+          <p className="text-white/60 text-xs mt-3">
+            Daily limit {plan === "pro" ? "R 25,000" : "R 3,000"}
+          </p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 px-6 mt-5">
         <Link
+          id="guide-redeem"
           to="/redeem"
           className="bg-card rounded-2xl p-5 shadow-soft border border-border flex flex-col gap-3 active:scale-[0.98] transition-transform"
         >
@@ -43,14 +52,15 @@ function Home() {
           </div>
           <div>
             <p className="font-semibold">Redeem Voucher</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Load your wallet</p>
+            <p className="text-xs text-muted-foreground mt-0.5">OTT · Blu · 1Voucher</p>
           </div>
         </Link>
         <Link
+          id="guide-send"
           to="/send"
           className="bg-card rounded-2xl p-5 shadow-soft border border-border flex flex-col gap-3 active:scale-[0.98] transition-transform"
         >
-          <div className="h-11 w-11 rounded-xl bg-gold/15 flex items-center justify-center">
+          <div className="h-11 w-11 rounded-xl bg-gold/30 flex items-center justify-center">
             <Send className="h-5 w-5 text-gold-foreground" />
           </div>
           <div>
@@ -60,27 +70,43 @@ function Home() {
         </Link>
       </div>
 
+      <div className="px-6 mt-3">
+        <Link
+          to="/beneficiaries"
+          className="bg-card rounded-2xl p-4 shadow-soft border border-border flex items-center gap-3 active:scale-[0.99]"
+        >
+          <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center">
+            <Users className="h-4 w-4 text-secondary-foreground" />
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-sm">Beneficiaries</p>
+            <p className="text-xs text-muted-foreground">Manage saved recipients</p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        </Link>
+      </div>
+
       {!verified && (
-        <div className="px-6 mt-5">
+        <div className="px-6 mt-3">
           <Link
             to="/verify"
-            className="block rounded-2xl border border-primary/20 bg-primary/5 p-4 active:scale-[0.99] transition-transform"
+            className="block rounded-2xl border border-gold/40 bg-gold/10 p-4 active:scale-[0.99] transition-transform"
           >
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
-                <ShieldCheck className="h-5 w-5 text-primary" />
+              <div className="h-10 w-10 rounded-xl bg-gold/30 flex items-center justify-center shrink-0">
+                <ShieldCheck className="h-5 w-5 text-gold-foreground" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm">Verify your account</p>
-                <p className="text-xs text-muted-foreground">Unlock higher limits and lower fees.</p>
+                <p className="font-semibold text-sm">Upgrade to Pro</p>
+                <p className="text-xs text-muted-foreground">One selfie. Higher limits, lower fees.</p>
               </div>
-              <ChevronRight className="h-4 w-4 text-primary" />
+              <ChevronRight className="h-4 w-4 text-gold-foreground" />
             </div>
           </Link>
         </div>
       )}
 
-      <div className="px-6 mt-7 pb-6">
+      <div className="px-6 mt-6 pb-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold">Recent activity</h2>
           <Link to="/history" className="text-xs text-primary font-medium">See all</Link>
@@ -106,6 +132,8 @@ function Home() {
           ))}
         </div>
       </div>
+
+      <AlulaGuide />
     </AppShell>
   );
 }

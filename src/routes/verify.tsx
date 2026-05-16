@@ -1,24 +1,26 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ShieldCheck, IdCard, Camera, Check } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Camera, ShieldCheck, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/AppShell";
 import { useApp } from "@/lib/app-state";
 
 export const Route = createFileRoute("/verify")({ component: Verify });
 
-const benefits = [
-  "Daily limit increases to R 25,000",
-  "Lower fees on every transfer",
-  "Faster settlement to your bank",
-];
-
 function Verify() {
   const navigate = useNavigate();
   const { setVerified } = useApp();
+  const [stage, setStage] = useState<"intro" | "capturing" | "checking">("intro");
+
+  const start = () => {
+    setStage("capturing");
+    setTimeout(() => setStage("checking"), 1400);
+    setTimeout(() => { setVerified(true); navigate({ to: "/home" }); }, 2800);
+  };
 
   return (
     <AppShell hideNav>
-      <div className="p-6">
+      <div className="p-6 min-h-screen sm:min-h-[860px] flex flex-col">
         <button onClick={() => navigate({ to: "/home" })} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
           <ArrowLeft className="h-4 w-4" />
         </button>
@@ -27,42 +29,56 @@ function Verify() {
           <div className="mx-auto w-20 h-20 rounded-3xl bg-gradient-brand flex items-center justify-center shadow-button">
             <ShieldCheck className="h-10 w-10 text-white" strokeWidth={1.8} />
           </div>
-          <h1 className="mt-6 text-2xl font-bold tracking-tight">Verify my account</h1>
+          <h1 className="mt-6 text-2xl font-bold tracking-tight">Upgrade to Pro</h1>
           <p className="mt-2 text-muted-foreground text-sm max-w-xs mx-auto">
-            Upgrade to Tier 2 in a couple of minutes to unlock the full Alula Pay experience.
+            One quick selfie is all we need. We'll verify it instantly.
           </p>
         </div>
 
-        <ul className="mt-8 space-y-3">
-          {benefits.map((b) => (
-            <li key={b} className="flex items-start gap-3 bg-card border border-border rounded-2xl p-4">
-              <div className="h-8 w-8 rounded-full bg-success/15 flex items-center justify-center shrink-0">
-                <Check className="h-4 w-4 text-success" strokeWidth={3} />
+        <ul className="mt-7 space-y-2.5">
+          {[
+            "Daily limit increases to R 25,000",
+            "Reduced EFT fee — 1% (min R5)",
+            "Reduced RTC fee — 1.5% (min R10)",
+            "Priority support",
+          ].map((b) => (
+            <li key={b} className="flex items-start gap-3 bg-card border border-border rounded-2xl p-3.5">
+              <div className="h-7 w-7 rounded-full bg-success/15 flex items-center justify-center shrink-0">
+                <Check className="h-3.5 w-3.5 text-success" strokeWidth={3} />
               </div>
-              <span className="text-sm font-medium pt-1">{b}</span>
+              <span className="text-sm font-medium pt-0.5">{b}</span>
             </li>
           ))}
         </ul>
 
-        <div className="mt-6 grid grid-cols-2 gap-3">
-          <div className="rounded-2xl border-2 border-dashed border-border bg-muted/40 p-5 flex flex-col items-center text-center">
-            <IdCard className="h-7 w-7 text-muted-foreground" />
-            <p className="mt-2 text-xs font-medium">Upload ID</p>
+        <div className="mt-7">
+          <div className="relative mx-auto h-48 w-48 rounded-full overflow-hidden border-4 border-dashed border-primary/40 bg-muted/40 flex items-center justify-center">
+            {stage === "intro" && <Camera className="h-12 w-12 text-muted-foreground" />}
+            {stage === "capturing" && (
+              <>
+                <span className="absolute inset-0 rounded-full bg-primary/10 animate-ripple" />
+                <Camera className="h-12 w-12 text-primary" />
+              </>
+            )}
+            {stage === "checking" && <Loader2 className="h-12 w-12 text-primary animate-spin" />}
           </div>
-          <div className="rounded-2xl border-2 border-dashed border-border bg-muted/40 p-5 flex flex-col items-center text-center">
-            <Camera className="h-7 w-7 text-muted-foreground" />
-            <p className="mt-2 text-xs font-medium">Take selfie</p>
-          </div>
+          <p className="text-center text-sm font-medium mt-4">
+            {stage === "intro" && "Tap below to take your selfie"}
+            {stage === "capturing" && "Hold still…"}
+            {stage === "checking" && "Verifying with Home Affairs…"}
+          </p>
+          <p className="text-center text-xs text-muted-foreground mt-1.5">
+            🔒 Powered by Home Affairs · No ID document required
+          </p>
         </div>
 
-        <Button
-          size="lg"
-          onClick={() => { setVerified(true); navigate({ to: "/home" }); }}
-          className="mt-8 h-14 w-full rounded-2xl text-base shadow-button"
-        >
-          Start Verification
-        </Button>
-        <p className="text-xs text-muted-foreground text-center mt-3">Your details are encrypted and never shared.</p>
+        <div className="flex-1" />
+
+        {stage === "intro" && (
+          <Button size="lg" onClick={start} className="h-14 w-full rounded-2xl text-base shadow-button">
+            Take selfie
+          </Button>
+        )}
       </div>
     </AppShell>
   );
