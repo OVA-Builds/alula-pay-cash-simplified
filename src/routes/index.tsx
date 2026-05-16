@@ -1,26 +1,35 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import logo from "@/assets/alula-logo.png";
+import { useApp } from "@/lib/app-state";
 
-export const Route = createFileRoute("/")({
-  component: Index,
-});
+export const Route = createFileRoute("/")({ component: Splash });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
+function Splash() {
+  const navigate = useNavigate();
+  const { signedIn, onboarded } = useApp();
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (signedIn) navigate({ to: "/home" });
+      else if (onboarded) navigate({ to: "/signup" });
+      else navigate({ to: "/onboarding" });
+    }, 2200);
+    return () => clearTimeout(t);
+  }, [navigate, signedIn, onboarded]);
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen w-full bg-gradient-splash flex items-center justify-center relative overflow-hidden">
+      <div className="flex flex-col items-center gap-6 animate-logo-entrance">
+        <div className="animate-logo-shimmer">
+          <img src={logo} alt="Alula Pay" className="w-32 h-32 rounded-3xl shadow-2xl" />
+        </div>
+        <div className="text-center">
+          <h1 className="text-white text-3xl font-bold tracking-tight">Alula Pay</h1>
+          <p className="text-white/70 text-sm mt-2">Cash to bank, simply.</p>
+        </div>
+      </div>
+      <div className="absolute bottom-10 text-white/40 text-xs">South Africa</div>
     </div>
   );
-}
-
-function Index() {
-  return <PlaceholderIndex />;
 }
