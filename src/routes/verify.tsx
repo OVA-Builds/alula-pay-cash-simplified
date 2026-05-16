@@ -29,18 +29,18 @@ function Verify() {
           <div className="mx-auto w-20 h-20 rounded-3xl bg-gradient-brand flex items-center justify-center shadow-button">
             <ShieldCheck className="h-10 w-10 text-white" strokeWidth={1.8} />
           </div>
-          <h1 className="mt-6 text-2xl font-bold tracking-tight">Upgrade to Pro</h1>
+          <h1 className="mt-6 text-2xl font-bold tracking-tight">Become a Pro member</h1>
           <p className="mt-2 text-muted-foreground text-sm max-w-xs mx-auto">
-            One quick selfie is all we need. We'll verify it instantly.
+            Take one quick selfie and we'll unlock more for you. It takes seconds — no paperwork.
           </p>
         </div>
 
         <ul className="mt-7 space-y-2.5">
           {[
-            "Daily limit increases to R 25,000",
-            "Reduced EFT fee — 1% (min R5)",
-            "Reduced RTC fee — 1.5% (min R10)",
-            "Priority support",
+            "Send up to R25,000 a day (instead of R3,000)",
+            "Pay less on every transfer",
+            "Money lands in bank accounts faster",
+            "Get help first when you need it",
           ].map((b) => (
             <li key={b} className="flex items-start gap-3 bg-card border border-border rounded-2xl p-3.5">
               <div className="h-7 w-7 rounded-full bg-success/15 flex items-center justify-center shrink-0">
@@ -63,12 +63,12 @@ function Verify() {
             {stage === "checking" && <Loader2 className="h-12 w-12 text-primary animate-spin" />}
           </div>
           <p className="text-center text-sm font-medium mt-4">
-            {stage === "intro" && "Tap below to take your selfie"}
+            {stage === "intro" && "Tap below to take a selfie"}
             {stage === "capturing" && "Hold still…"}
-            {stage === "checking" && "Verifying with Home Affairs…"}
+            {stage === "checking" && "Just checking it's really you…"}
           </p>
           <p className="text-center text-xs text-muted-foreground mt-1.5">
-            🔒 Powered by Home Affairs · No ID document required
+            🔒 Your photo is safe with us · No ID document needed
           </p>
         </div>
 
