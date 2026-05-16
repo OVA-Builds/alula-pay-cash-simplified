@@ -24,6 +24,7 @@ type Ctx = {
   onboarded: boolean;
   signedIn: boolean;
   phone: string;
+  firstName: string;
   balance: number;
   verified: boolean;
   plan: Plan;
@@ -33,7 +34,7 @@ type Ctx = {
   transactions: Transaction[];
   beneficiaries: Beneficiary[];
   setOnboarded: (v: boolean) => void;
-  signIn: (phone: string) => void;
+  signIn: (phone: string, firstName?: string) => void;
   addTransaction: (t: Transaction) => void;
   adjustBalance: (delta: number) => void;
   setVerified: (v: boolean) => void;
@@ -62,7 +63,7 @@ const sampleBenes: Beneficiary[] = [
 const STORAGE_KEY = "alula-pay-state-v1";
 
 type Persisted = {
-  onboarded: boolean; signedIn: boolean; phone: string; balance: number;
+  onboarded: boolean; signedIn: boolean; phone: string; firstName: string; balance: number;
   verified: boolean; plan: Plan; approvalPin: string | null; alulaOn: boolean;
   theme: "light" | "dark"; transactions: Transaction[]; beneficiaries: Beneficiary[];
 };
@@ -72,6 +73,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [onboarded, setOnboarded] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [phone, setPhone] = useState("");
+  const [firstName, setFirstName] = useState("");
   const [balance, setBalance] = useState(550);
   const [verified, setVerified] = useState(false);
   const [plan, setPlan] = useState<Plan>("basic");
@@ -90,6 +92,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (s.onboarded !== undefined) setOnboarded(s.onboarded);
         if (s.signedIn !== undefined) setSignedIn(s.signedIn);
         if (s.phone !== undefined) setPhone(s.phone);
+        if (s.firstName !== undefined) setFirstName(s.firstName);
         if (s.balance !== undefined) setBalance(s.balance);
         if (s.verified !== undefined) setVerified(s.verified);
         if (s.plan !== undefined) setPlan(s.plan);
@@ -108,19 +111,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!hydrated) return;
     try {
       const data: Persisted = {
-        onboarded, signedIn, phone, balance, verified, plan,
+        onboarded, signedIn, phone, firstName, balance, verified, plan,
         approvalPin, alulaOn, theme, transactions, beneficiaries,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch {}
-  }, [hydrated, onboarded, signedIn, phone, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries]);
+  }, [hydrated, onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
 
-  const signIn = useCallback((p: string) => { setPhone(p); setSignedIn(true); }, []);
+  const signIn = useCallback((p: string, name?: string) => {
+    setPhone(p);
+    if (name !== undefined) setFirstName(name.trim());
+    setSignedIn(true);
+  }, []);
   const addTransaction = useCallback((t: Transaction) => setTransactions((prev) => [t, ...prev]), []);
   const adjustBalance = useCallback((delta: number) => setBalance((b) => Math.max(0, +(b + delta).toFixed(2))), []);
   const setApprovalPin = useCallback((p: string) => setApprovalPinState(p), []);
@@ -135,7 +142,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <AppContext.Provider
       value={{
-        onboarded, signedIn, phone, balance, verified, plan, approvalPin, alulaOn, theme,
+        onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme,
         transactions, beneficiaries,
         setOnboarded, signIn, addTransaction, adjustBalance,
         setVerified: setVerifiedWithPlan,

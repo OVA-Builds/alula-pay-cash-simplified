@@ -7,16 +7,17 @@ import { useApp, formatZAR } from "@/lib/app-state";
 export const Route = createFileRoute("/home")({ component: Home });
 
 function Home() {
-  const { balance, transactions, verified, plan, phone } = useApp();
+  const { balance, transactions, verified, plan, firstName } = useApp();
   const recent = transactions.slice(0, 3);
+  const displayName = firstName?.trim() ? firstName.trim().split(/\s+/)[0] : "there";
 
   return (
     <AppShell>
       <div className="px-6 pt-8 pb-6">
         <div className="flex justify-between items-start">
           <div>
-            <p className="text-sm text-muted-foreground">Hello</p>
-            <p className="font-semibold text-lg">{phone ? `+27 ${phone.slice(-9)}` : "Welcome back"}</p>
+            <p className="text-sm text-muted-foreground">Hello,</p>
+            <p className="font-semibold text-lg">{displayName}</p>
           </div>
           <button className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
             <Bell className="h-4 w-4 text-muted-foreground" />

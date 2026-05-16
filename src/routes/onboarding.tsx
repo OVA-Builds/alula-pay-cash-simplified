@@ -34,7 +34,8 @@ function Onboarding() {
       <div className="flex flex-col min-h-screen sm:min-h-[860px]">
         <div className="relative h-[55%] sm:h-[480px] overflow-hidden">
           <img src={step.image} alt="" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary-deep/30 to-primary-deep" />
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-background" />
           <div className="absolute top-6 left-6 right-6 flex justify-between items-center">
             <div className="flex gap-1.5">
               {steps.map((_, idx) => (
