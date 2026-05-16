@@ -77,14 +77,25 @@ function GuideOverlay({ mode, onClose }: { mode: "deposit" | "withdraw"; onClose
   const rect = target?.getBoundingClientRect();
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex flex-col">
-      {rect && (
+    <div className="fixed inset-0 z-50 flex flex-col pointer-events-none">
+      {/* Dimmer with cut-out hole around target, achieved via inset box-shadow */}
+      {rect ? (
         <div
-          className="absolute pointer-events-none border-2 border-gold rounded-2xl shadow-gold animate-pulse-arrow"
-          style={{ left: rect.left - 4, top: rect.top - 4, width: rect.width + 8, height: rect.height + 8 }}
+          className="absolute rounded-2xl pointer-events-auto"
+          style={{
+            left: rect.left - 6,
+            top: rect.top - 6,
+            width: rect.width + 12,
+            height: rect.height + 12,
+            boxShadow: "0 0 0 9999px rgba(0,0,0,0.65)",
+            outline: "2px solid var(--gold)",
+            outlineOffset: 0,
+          }}
         />
+      ) : (
+        <div className="absolute inset-0 bg-black/60 pointer-events-auto" />
       )}
-      <div className="mt-auto bg-card text-card-foreground rounded-t-3xl p-6 shadow-card">
+      <div className="mt-auto bg-card text-card-foreground rounded-t-3xl p-6 shadow-card pointer-events-auto relative">
         <div className="flex items-start gap-3 mb-3">
           <div className="h-9 w-9 rounded-xl bg-gradient-gold flex items-center justify-center shrink-0">
             <Sparkles className="h-4 w-4 text-gold-foreground" />
