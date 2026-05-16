@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SetupPinRouteImport } from './routes/setup-pin'
 import { Route as SendRouteImport } from './routes/send'
 import { Route as RedeemRouteImport } from './routes/redeem'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -27,6 +28,11 @@ const VerifyRoute = VerifyRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SetupPinRoute = SetupPinRouteImport.update({
+  id: '/setup-pin',
+  path: '/setup-pin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SendRoute = SendRouteImport.update({
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
   '/send': typeof SendRoute
+  '/setup-pin': typeof SetupPinRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
 }
@@ -84,6 +91,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
   '/send': typeof SendRoute
+  '/setup-pin': typeof SetupPinRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
 }
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
   '/send': typeof SendRoute
+  '/setup-pin': typeof SetupPinRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
 }
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/redeem'
     | '/send'
+    | '/setup-pin'
     | '/signup'
     | '/verify'
   fileRoutesByTo: FileRoutesByTo
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/redeem'
     | '/send'
+    | '/setup-pin'
     | '/signup'
     | '/verify'
   id:
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/redeem'
     | '/send'
+    | '/setup-pin'
     | '/signup'
     | '/verify'
   fileRoutesById: FileRoutesById
@@ -143,6 +155,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   RedeemRoute: typeof RedeemRoute
   SendRoute: typeof SendRoute
+  SetupPinRoute: typeof SetupPinRoute
   SignupRoute: typeof SignupRoute
   VerifyRoute: typeof VerifyRoute
 }
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/setup-pin': {
+      id: '/setup-pin'
+      path: '/setup-pin'
+      fullPath: '/setup-pin'
+      preLoaderRoute: typeof SetupPinRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/send': {
@@ -223,6 +243,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   RedeemRoute: RedeemRoute,
   SendRoute: SendRoute,
+  SetupPinRoute: SetupPinRoute,
   SignupRoute: SignupRoute,
   VerifyRoute: VerifyRoute,
 }
