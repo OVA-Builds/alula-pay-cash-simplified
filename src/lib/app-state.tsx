@@ -59,7 +59,16 @@ const sampleBenes: Beneficiary[] = [
   { id: "b5", name: "Nomvula Khumalo", bank: "Nedbank", branch: "198765", account: "1098765432", reference: "Sister" },
 ];
 
+const STORAGE_KEY = "alula-pay-state-v1";
+
+type Persisted = {
+  onboarded: boolean; signedIn: boolean; phone: string; balance: number;
+  verified: boolean; plan: Plan; approvalPin: string | null; alulaOn: boolean;
+  theme: "light" | "dark"; transactions: Transaction[]; beneficiaries: Beneficiary[];
+};
+
 export function AppProvider({ children }: { children: ReactNode }) {
+  const [hydrated, setHydrated] = useState(false);
   const [onboarded, setOnboarded] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [phone, setPhone] = useState("");
@@ -71,6 +80,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<"light" | "dark">("light");
   const [transactions, setTransactions] = useState<Transaction[]>(sampleTx);
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>(sampleBenes);
+
+  // Rehydrate from localStorage on first client mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const s = JSON.parse(raw) as Partial<Persisted>;
+        if (s.onboarded !== undefined) setOnboarded(s.onboarded);
+        if (s.signedIn !== undefined) setSignedIn(s.signedIn);
+        if (s.phone !== undefined) setPhone(s.phone);
+        if (s.balance !== undefined) setBalance(s.balance);
+        if (s.verified !== undefined) setVerified(s.verified);
+        if (s.plan !== undefined) setPlan(s.plan);
+        if (s.approvalPin !== undefined) setApprovalPinState(s.approvalPin);
+        if (s.alulaOn !== undefined) setAlulaOn(s.alulaOn);
+        if (s.theme !== undefined) setThemeState(s.theme);
+        if (s.transactions !== undefined) setTransactions(s.transactions);
+        if (s.beneficiaries !== undefined) setBeneficiaries(s.beneficiaries);
+      }
+    } catch {}
+    setHydrated(true);
+  }, []);
+
+  // Persist whenever state changes (after hydration)
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      const data: Persisted = {
+        onboarded, signedIn, phone, balance, verified, plan,
+        approvalPin, alulaOn, theme, transactions, beneficiaries,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch {}
+  }, [hydrated, onboarded, signedIn, phone, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -110,8 +153,14 @@ export function useApp() {
   return ctx;
 }
 
-export const formatZAR = (n: number) =>
-  new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR", minimumFractionDigits: 2 }).format(n);
+// Format as R1,234.50 (no space, dot decimal, comma thousands) per founder preference.
+export const formatZAR = (n: number) => {
+  const neg = n < 0;
+  const abs = Math.abs(n);
+  const [intPart, decPart] = abs.toFixed(2).split(".");
+  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return `${neg ? "-" : ""}R${withCommas}.${decPart}`;
+};
 
 // Fee logic from Alula Pay business plan:
 // - EFT rail for transfers ≤ R3,000 (lower cost, slower)
