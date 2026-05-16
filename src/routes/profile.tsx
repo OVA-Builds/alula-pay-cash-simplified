@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ShieldCheck, ChevronRight, HelpCircle, Settings, LogOut, BadgeCheck } from "lucide-react";
+import { ShieldCheck, ChevronRight, HelpCircle, LogOut, BadgeCheck, Moon, Sparkles, Lock } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { useApp } from "@/lib/app-state";
+import { Switch } from "@/components/ui/switch";
+import { useApp, MONTHLY_FEE, formatZAR } from "@/lib/app-state";
 
 export const Route = createFileRoute("/profile")({ component: Profile });
 
 function Profile() {
-  const { phone, verified } = useApp();
+  const { phone, verified, plan, alulaOn, setAlulaOn, theme, setTheme } = useApp();
+  const planLabel = plan === "pro" ? "Pro" : "Basic";
 
   return (
     <AppShell>
@@ -21,9 +23,7 @@ function Profile() {
             <p className="font-semibold">{phone ? `+27 ${phone.slice(-9)}` : "Alula user"}</p>
             <div className="flex items-center gap-1.5 mt-1">
               <BadgeCheck className={`h-3.5 w-3.5 ${verified ? "text-success" : "text-muted-foreground"}`} />
-              <span className="text-xs text-muted-foreground">
-                {verified ? "Tier 2 — Verified" : "Tier 1 — Basic access"}
-              </span>
+              <span className="text-xs text-muted-foreground">{planLabel} plan · {formatZAR(MONTHLY_FEE[plan])} / month</span>
             </div>
           </div>
         </div>
@@ -33,32 +33,56 @@ function Profile() {
             <div className="flex items-center gap-3">
               <ShieldCheck className="h-5 w-5" />
               <div className="flex-1">
-                <p className="text-sm font-semibold">Verify my account</p>
-                <p className="text-xs opacity-80">Unlock higher limits.</p>
+                <p className="text-sm font-semibold">Upgrade to Pro</p>
+                <p className="text-xs opacity-80">Higher limits, lower fees.</p>
               </div>
               <ChevronRight className="h-4 w-4" />
             </div>
           </Link>
         )}
 
-        <div className="mt-6 bg-card rounded-2xl border border-border divide-y divide-border">
-          <Item icon={Settings} label="Settings" />
-          <Item icon={HelpCircle} label="Help & Support" />
-          <Item icon={LogOut} label="Sign out" danger />
+        <h2 className="mt-7 mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">Preferences</h2>
+        <div className="bg-card rounded-2xl border border-border divide-y divide-border">
+          <ToggleRow icon={Sparkles} label="Alula guide" hint="Step-by-step help when sending or redeeming" checked={alulaOn} onChange={setAlulaOn} />
+          <ToggleRow icon={Moon} label="Dark mode" hint="Easier on the eyes at night" checked={theme === "dark"} onChange={(v) => setTheme(v ? "dark" : "light")} />
         </div>
 
-        <p className="text-center text-xs text-muted-foreground mt-8">Alula Pay v0.1 • Made for South Africa</p>
+        <h2 className="mt-7 mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">Account</h2>
+        <div className="bg-card rounded-2xl border border-border divide-y divide-border">
+          <LinkRow icon={Lock} label="Change approval PIN" to="/setup-pin" />
+          <LinkRow icon={HelpCircle} label="Help & Support" />
+          <LinkRow icon={LogOut} label="Sign out" danger />
+        </div>
+
+        <p className="text-center text-xs text-muted-foreground mt-8">Alula Pay v0.2 · Made for South Africa 🇿🇦</p>
       </div>
     </AppShell>
   );
 }
 
-function Item({ icon: Icon, label, danger }: { icon: typeof Settings; label: string; danger?: boolean }) {
+function ToggleRow({ icon: Icon, label, hint, checked, onChange }: {
+  icon: typeof Moon; label: string; hint: string; checked: boolean; onChange: (v: boolean) => void;
+}) {
   return (
-    <button className="w-full flex items-center gap-3 p-4 text-left">
-      <Icon className={`h-5 w-5 ${danger ? "text-destructive" : "text-muted-foreground"}`} />
-      <span className={`flex-1 text-sm font-medium ${danger ? "text-destructive" : ""}`}>{label}</span>
-      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-    </button>
+    <label className="flex items-center gap-3 p-4 cursor-pointer">
+      <Icon className="h-5 w-5 text-muted-foreground" />
+      <div className="flex-1">
+        <p className="text-sm font-medium">{label}</p>
+        <p className="text-xs text-muted-foreground">{hint}</p>
+      </div>
+      <Switch checked={checked} onCheckedChange={onChange} />
+    </label>
   );
+}
+
+function LinkRow({ icon: Icon, label, to, danger }: { icon: typeof Moon; label: string; to?: string; danger?: boolean }) {
+  const cls = `w-full flex items-center gap-3 p-4 text-left ${danger ? "text-destructive" : ""}`;
+  const inner = (
+    <>
+      <Icon className={`h-5 w-5 ${danger ? "text-destructive" : "text-muted-foreground"}`} />
+      <span className="flex-1 text-sm font-medium">{label}</span>
+      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+    </>
+  );
+  return to ? <Link to={to} className={cls}>{inner}</Link> : <button className={cls}>{inner}</button>;
 }

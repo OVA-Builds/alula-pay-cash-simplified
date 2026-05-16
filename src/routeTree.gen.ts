@@ -11,13 +11,17 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SetupPinRouteImport } from './routes/setup-pin'
+import { Route as SendOnceOffRouteImport } from './routes/send-once-off'
 import { Route as SendRouteImport } from './routes/send'
 import { Route as RedeemRouteImport } from './routes/redeem'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as BeneficiariesRouteImport } from './routes/beneficiaries'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PayBeneficiaryIdRouteImport } from './routes/pay-beneficiary.$id'
 
 const VerifyRoute = VerifyRouteImport.update({
   id: '/verify',
@@ -27,6 +31,16 @@ const VerifyRoute = VerifyRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SetupPinRoute = SetupPinRouteImport.update({
+  id: '/setup-pin',
+  path: '/setup-pin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SendOnceOffRoute = SendOnceOffRouteImport.update({
+  id: '/send-once-off',
+  path: '/send-once-off',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SendRoute = SendRouteImport.update({
@@ -59,92 +73,130 @@ const HistoryRoute = HistoryRouteImport.update({
   path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BeneficiariesRoute = BeneficiariesRouteImport.update({
+  id: '/beneficiaries',
+  path: '/beneficiaries',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PayBeneficiaryIdRoute = PayBeneficiaryIdRouteImport.update({
+  id: '/pay-beneficiary/$id',
+  path: '/pay-beneficiary/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/beneficiaries': typeof BeneficiariesRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
   '/send': typeof SendRoute
+  '/send-once-off': typeof SendOnceOffRoute
+  '/setup-pin': typeof SetupPinRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
+  '/pay-beneficiary/$id': typeof PayBeneficiaryIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/beneficiaries': typeof BeneficiariesRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
   '/send': typeof SendRoute
+  '/send-once-off': typeof SendOnceOffRoute
+  '/setup-pin': typeof SetupPinRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
+  '/pay-beneficiary/$id': typeof PayBeneficiaryIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/beneficiaries': typeof BeneficiariesRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
   '/send': typeof SendRoute
+  '/send-once-off': typeof SendOnceOffRoute
+  '/setup-pin': typeof SetupPinRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
+  '/pay-beneficiary/$id': typeof PayBeneficiaryIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/beneficiaries'
     | '/history'
     | '/home'
     | '/onboarding'
     | '/profile'
     | '/redeem'
     | '/send'
+    | '/send-once-off'
+    | '/setup-pin'
     | '/signup'
     | '/verify'
+    | '/pay-beneficiary/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/beneficiaries'
     | '/history'
     | '/home'
     | '/onboarding'
     | '/profile'
     | '/redeem'
     | '/send'
+    | '/send-once-off'
+    | '/setup-pin'
     | '/signup'
     | '/verify'
+    | '/pay-beneficiary/$id'
   id:
     | '__root__'
     | '/'
+    | '/beneficiaries'
     | '/history'
     | '/home'
     | '/onboarding'
     | '/profile'
     | '/redeem'
     | '/send'
+    | '/send-once-off'
+    | '/setup-pin'
     | '/signup'
     | '/verify'
+    | '/pay-beneficiary/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BeneficiariesRoute: typeof BeneficiariesRoute
   HistoryRoute: typeof HistoryRoute
   HomeRoute: typeof HomeRoute
   OnboardingRoute: typeof OnboardingRoute
   ProfileRoute: typeof ProfileRoute
   RedeemRoute: typeof RedeemRoute
   SendRoute: typeof SendRoute
+  SendOnceOffRoute: typeof SendOnceOffRoute
+  SetupPinRoute: typeof SetupPinRoute
   SignupRoute: typeof SignupRoute
   VerifyRoute: typeof VerifyRoute
+  PayBeneficiaryIdRoute: typeof PayBeneficiaryIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -161,6 +213,20 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/setup-pin': {
+      id: '/setup-pin'
+      path: '/setup-pin'
+      fullPath: '/setup-pin'
+      preLoaderRoute: typeof SetupPinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/send-once-off': {
+      id: '/send-once-off'
+      path: '/send-once-off'
+      fullPath: '/send-once-off'
+      preLoaderRoute: typeof SendOnceOffRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/send': {
@@ -205,6 +271,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/beneficiaries': {
+      id: '/beneficiaries'
+      path: '/beneficiaries'
+      fullPath: '/beneficiaries'
+      preLoaderRoute: typeof BeneficiariesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -212,19 +285,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pay-beneficiary/$id': {
+      id: '/pay-beneficiary/$id'
+      path: '/pay-beneficiary/$id'
+      fullPath: '/pay-beneficiary/$id'
+      preLoaderRoute: typeof PayBeneficiaryIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BeneficiariesRoute: BeneficiariesRoute,
   HistoryRoute: HistoryRoute,
   HomeRoute: HomeRoute,
   OnboardingRoute: OnboardingRoute,
   ProfileRoute: ProfileRoute,
   RedeemRoute: RedeemRoute,
   SendRoute: SendRoute,
+  SendOnceOffRoute: SendOnceOffRoute,
+  SetupPinRoute: SetupPinRoute,
   SignupRoute: SignupRoute,
   VerifyRoute: VerifyRoute,
+  PayBeneficiaryIdRoute: PayBeneficiaryIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
