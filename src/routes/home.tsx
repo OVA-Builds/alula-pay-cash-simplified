@@ -126,7 +126,7 @@ function Home() {
                 <p className="text-sm font-medium truncate">{t.label}</p>
                 <p className="text-xs text-muted-foreground">{t.date}</p>
               </div>
-              <p className={`text-sm font-semibold ${t.amount > 0 ? "text-success" : "text-foreground"}`}>
+              <p className={`text-sm font-semibold ${t.amount > 0 ? "text-success" : "text-destructive"}`}>
                 {t.amount > 0 ? "+" : ""}{formatZAR(t.amount)}
               </p>
             </div>
