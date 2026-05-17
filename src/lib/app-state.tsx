@@ -176,6 +176,12 @@ export const formatZAR = (n: number) => {
 // Pro plan unlocks reduced rates.
 export type FeeBreakdown = { rail: "EFT" | "RTC"; rate: number; fee: number; min: number };
 
+// Plain-English names used everywhere in the UI instead of "EFT" / "RTC".
+export const railLabel = (rail: "EFT" | "RTC") =>
+  rail === "RTC" ? "Instant payment" : "1–2 day transfer";
+export const railSettleCopy = (rail: "EFT" | "RTC") =>
+  rail === "RTC" ? "Lands in their bank instantly" : "Lands in their bank in 1–2 working days";
+
 export function calcTransferFee(amount: number, plan: Plan = "basic"): FeeBreakdown {
   if (amount <= 0) return { rail: "EFT", rate: 0, fee: 0, min: 0 };
   const isRTC = amount > 3000;
