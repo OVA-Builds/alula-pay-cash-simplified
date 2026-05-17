@@ -60,7 +60,7 @@ const sampleBenes: Beneficiary[] = [
   { id: "b5", name: "Nomvula Khumalo", bank: "Nedbank", branch: "198765", account: "1098765432", reference: "Sister" },
 ];
 
-const STORAGE_KEY = "alula-pay-state-v1";
+const STORAGE_KEY = "alula-pay-state-v2";
 
 type Persisted = {
   onboarded: boolean; signedIn: boolean; phone: string; firstName: string; balance: number;
