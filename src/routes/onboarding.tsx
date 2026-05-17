@@ -72,14 +72,24 @@ function FeePreview({ onContinue, onBack }: { onContinue: () => void; onBack: ()
             price={MONTHLY_FEE.basic}
             tag="Start here"
             highlight={false}
-            features={["No ID needed", "EFT transfers from 1.5% (min R5)", "Real-time RTC from 2% (min R10)", "Daily limit R3,000"]}
+            features={[
+              "No ID needed — sign up in minutes",
+              "Money lands in 1–2 working days",
+              "Small fee: 1.5% per send (minimum R5)",
+              "Monthly limit R5,000",
+            ]}
           />
           <PlanCard
             name="Pro"
             price={MONTHLY_FEE.pro}
             tag="Verified users"
             highlight
-            features={["Reduced EFT — 1% (min R5)", "Reduced RTC — 1.5% (min R10)", "Daily limit R25,000", "Priority support"]}
+            features={[
+              "Instant payments — money arrives in seconds",
+              "Lower fees: 1% per send (minimum R5)",
+              "Daily limit R5,000",
+              "Priority help when you need it",
+            ]}
           />
         </div>
 
