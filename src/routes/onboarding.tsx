@@ -109,8 +109,8 @@ function PlanCard({ name, price, tag, features, highlight }: {
   name: string; price: number; tag: string; features: string[]; highlight: boolean;
 }) {
   return (
-    <div className={`relative rounded-2xl p-5 border ${highlight ? "border-gold bg-gradient-to-br from-gold/10 to-transparent" : "border-border bg-card"}`}>
-      {highlight && <span className="absolute -top-2 right-4 text-[10px] font-bold tracking-wider bg-gold text-gold-foreground px-2 py-0.5 rounded-full uppercase">Best value</span>}
+    <div className={`relative rounded-2xl p-5 border ${highlight ? "border-primary bg-gradient-to-br from-primary/15 to-transparent" : "border-border bg-card"}`}>
+      {highlight && <span className="absolute -top-2 right-4 text-[10px] font-bold tracking-wider bg-primary text-primary-foreground px-2 py-0.5 rounded-full uppercase">Best value</span>}
       <div className="flex justify-between items-baseline">
         <div>
           <p className="text-xs text-muted-foreground uppercase tracking-wider">{tag}</p>
@@ -124,7 +124,7 @@ function PlanCard({ name, price, tag, features, highlight }: {
       <ul className="mt-4 space-y-1.5">
         {features.map((f) => (
           <li key={f} className="flex items-start gap-2 text-sm">
-            <Check className={`h-4 w-4 mt-0.5 shrink-0 ${highlight ? "text-gold-foreground" : "text-primary"}`} strokeWidth={3} />
+            <Check className="h-4 w-4 mt-0.5 shrink-0 text-primary" strokeWidth={3} />
             <span>{f}</span>
           </li>
         ))}
