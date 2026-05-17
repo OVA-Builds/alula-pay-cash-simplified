@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AppShell } from "@/components/AppShell";
 import { ApprovalPinDialog } from "@/components/ApprovalPinDialog";
-import { useApp, formatZAR, calcTransferFee } from "@/lib/app-state";
+import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy } from "@/lib/app-state";
 import { SA_BANKS, type Bank } from "@/lib/banks";
 
 export const Route = createFileRoute("/send-once-off")({ component: OnceOff });
@@ -63,8 +63,8 @@ function OnceOff() {
           <div className="mt-6 w-full rounded-2xl bg-card border border-border p-4 flex items-center gap-3 text-left">
             <Clock className="h-5 w-5 text-muted-foreground" />
             <div>
-              <p className="text-sm font-medium">{fee?.rail === "RTC" ? "Settled instantly" : "Settles within 1 business day"}</p>
-              <p className="text-xs text-muted-foreground">{fee?.rail} via {bank?.name}</p>
+              <p className="text-sm font-medium">{fee ? railSettleCopy(fee.rail) : ""}</p>
+              <p className="text-xs text-muted-foreground">{fee ? railLabel(fee.rail) : ""} · {bank?.name}</p>
             </div>
           </div>
           <Button size="lg" onClick={() => navigate({ to: "/home" })} className="mt-8 h-14 w-full rounded-2xl shadow-button">
@@ -151,7 +151,7 @@ function OnceOff() {
 
         {amt > 0 && fee && (
           <div className="mt-5 rounded-2xl bg-card border border-border p-4 space-y-2 animate-float-up">
-            <Row label={`Fee (${fee.rail})`} value={formatZAR(fee.fee)} muted />
+            <Row label={`Fee (${railLabel(fee.rail)})`} value={formatZAR(fee.fee)} muted />
             <Row label="Total" value={formatZAR(total)} bold />
             <div className="border-t border-border pt-2 mt-2 flex justify-between text-sm">
               <span className="text-muted-foreground">New balance after payment</span>
