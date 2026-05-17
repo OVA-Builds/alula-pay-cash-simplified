@@ -35,7 +35,7 @@ function History() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className={`text-sm font-semibold ${positive ? "text-success" : "text-foreground"}`}>
+                  <p className={`text-sm font-semibold ${positive ? "text-success" : "text-destructive"}`}>
                     {positive ? "+" : ""}{formatZAR(t.amount)}
                   </p>
                   <p className={`text-[11px] mt-0.5 ${t.status === "Completed" ? "text-success" : "text-gold-foreground"}`}>

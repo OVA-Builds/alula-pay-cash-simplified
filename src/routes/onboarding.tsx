@@ -31,27 +31,25 @@ function Onboarding() {
 
   return (
     <PhoneFrame>
-      <div className="flex flex-col min-h-screen sm:min-h-[860px]">
+      <div className="flex flex-col min-h-screen sm:min-h-[860px] bg-gold text-gold-foreground">
         <div className="relative h-[55%] sm:h-[480px] overflow-hidden">
           <img src={step.image} alt="" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary-deep/30 to-primary-deep" />
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-background" />
           <div className="absolute top-6 left-6 right-6 flex justify-between items-center">
             <div className="flex gap-1.5">
               {steps.map((_, idx) => (
-                <span key={idx} className={`h-1.5 rounded-full transition-all ${idx === i ? "w-8 bg-gold" : "w-1.5 bg-white/50"}`} />
+                <span key={idx} className={`h-1.5 rounded-full transition-all ${idx === i ? "w-8 bg-gold-foreground" : "w-1.5 bg-white/70"}`} />
               ))}
             </div>
-            <button onClick={() => setShowFees(true)} className="text-sm text-white/90 font-medium">Skip</button>
+            <button onClick={() => setShowFees(true)} className="text-sm text-white font-medium drop-shadow">Skip</button>
           </div>
         </div>
 
-        <div key={i} className="flex-1 px-7 pt-2 pb-8 flex flex-col animate-float-up">
-          <span className="text-xs font-semibold tracking-widest text-gold-foreground bg-gold/40 self-start px-2.5 py-1 rounded-full uppercase">{step.eyebrow}</span>
-          <h1 className="mt-4 text-3xl font-bold tracking-tight">{step.title}</h1>
-          <p className="mt-3 text-muted-foreground leading-relaxed">{step.body}</p>
+        <div key={i} className="flex-1 px-7 pt-6 pb-8 flex flex-col animate-float-up">
+          <span className="text-xs font-semibold tracking-widest text-gold-foreground bg-gold-foreground/15 self-start px-2.5 py-1 rounded-full uppercase">{step.eyebrow}</span>
+          <h1 className="mt-4 text-3xl font-bold tracking-tight text-gold-foreground">{step.title}</h1>
+          <p className="mt-3 text-gold-foreground/80 leading-relaxed">{step.body}</p>
           <div className="flex-1" />
-          <Button size="lg" onClick={next} className="h-14 rounded-2xl text-base shadow-button">
+          <Button size="lg" onClick={next} className="h-14 rounded-2xl text-base shadow-button bg-gold-foreground text-gold hover:bg-gold-foreground/90">
             {last ? "See our pricing" : "Next"}
           </Button>
         </div>
@@ -74,14 +72,24 @@ function FeePreview({ onContinue, onBack }: { onContinue: () => void; onBack: ()
             price={MONTHLY_FEE.basic}
             tag="Start here"
             highlight={false}
-            features={["No ID needed", "EFT transfers from 1.5% (min R5)", "Real-time RTC from 2% (min R10)", "Daily limit R3,000"]}
+            features={[
+              "No ID needed — sign up in minutes",
+              "Money lands in 1–2 working days",
+              "Small fee: 1.5% per send (minimum R5)",
+              "Monthly limit R5,000",
+            ]}
           />
           <PlanCard
             name="Pro"
             price={MONTHLY_FEE.pro}
             tag="Verified users"
             highlight
-            features={["Reduced EFT — 1% (min R5)", "Reduced RTC — 1.5% (min R10)", "Daily limit R25,000", "Priority support"]}
+            features={[
+              "Instant payments — money arrives in seconds",
+              "Lower fees: 1% per send (minimum R5)",
+              "Daily limit R5,000",
+              "Priority help when you need it",
+            ]}
           />
         </div>
 

@@ -64,9 +64,10 @@ function GuideOverlay({ mode, onClose }: { mode: "deposit" | "withdraw"; onClose
         { title: "Step 3 — Done!", body: "Your balance updates instantly. You can now send to any SA bank." },
       ]
     : [
-        { title: "Step 1 — Tap Send to Bank", body: "Pick a saved beneficiary or do a once-off payment to any SA bank." },
-        { title: "Step 2 — Enter amount", body: "We'll show the fee and your new balance as soon as you type." },
-        { title: "Step 3 — Approve with your PIN", body: "Enter your 5-digit approval PIN and we'll send it instantly." },
+        { title: "Step 1 — Tap Send to Bank", body: "Open the Send to Bank card on your home screen to start a payment." },
+        { title: "Step 2 — Once-off or beneficiary", body: "Pay someone new (once-off) or pick a saved person from your beneficiaries." },
+        { title: "Step 3 — Select the bank", body: "Choose the South African bank the money is going to from the list." },
+        { title: "Step 4 — Enter details and send", body: "Type the account, amount and reference, then approve with your 5-digit PIN." },
       ];
   const [i, setI] = useState(0);
   const last = i === steps.length - 1;

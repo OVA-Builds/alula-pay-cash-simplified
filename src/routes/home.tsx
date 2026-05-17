@@ -37,7 +37,7 @@ function Home() {
           </div>
           <p className="text-4xl font-bold mt-2 tracking-tight">{formatZAR(balance)}</p>
           <p className="text-white/60 text-xs mt-3">
-            Daily limit {plan === "pro" ? "R 25,000" : "R 3,000"}
+            {plan === "pro" ? "Daily limit R5,000.00" : "Monthly limit R5,000.00"}
           </p>
         </div>
       </div>
@@ -126,7 +126,7 @@ function Home() {
                 <p className="text-sm font-medium truncate">{t.label}</p>
                 <p className="text-xs text-muted-foreground">{t.date}</p>
               </div>
-              <p className={`text-sm font-semibold ${t.amount > 0 ? "text-success" : "text-foreground"}`}>
+              <p className={`text-sm font-semibold ${t.amount > 0 ? "text-success" : "text-destructive"}`}>
                 {t.amount > 0 ? "+" : ""}{formatZAR(t.amount)}
               </p>
             </div>
