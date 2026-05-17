@@ -60,7 +60,7 @@ const sampleBenes: Beneficiary[] = [
   { id: "b5", name: "Nomvula Khumalo", bank: "Nedbank", branch: "198765", account: "1098765432", reference: "Sister" },
 ];
 
-const STORAGE_KEY = "alula-pay-state-v2";
+export const STORAGE_KEY = "alula-pay-state-v2";
 
 type Persisted = {
   onboarded: boolean; signedIn: boolean; phone: string; firstName: string; balance: number;
@@ -68,41 +68,34 @@ type Persisted = {
   theme: "light" | "dark"; transactions: Transaction[]; beneficiaries: Beneficiary[];
 };
 
-export function AppProvider({ children }: { children: ReactNode }) {
-  const [hydrated, setHydrated] = useState(false);
-  const [onboarded, setOnboarded] = useState(false);
-  const [signedIn, setSignedIn] = useState(false);
-  const [phone, setPhone] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [balance, setBalance] = useState(550);
-  const [verified, setVerified] = useState(false);
-  const [plan, setPlan] = useState<Plan>("basic");
-  const [approvalPin, setApprovalPinState] = useState<string | null>(null);
-  const [alulaOn, setAlulaOn] = useState(true);
-  const [theme, setThemeState] = useState<"light" | "dark">("light");
-  const [transactions, setTransactions] = useState<Transaction[]>(sampleTx);
-  const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>(sampleBenes);
+function readStoredState(): Partial<Persisted> | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Partial<Persisted>) : null;
+  } catch {
+    return null;
+  }
+}
 
-  // Rehydrate from localStorage on first client mount
+export function AppProvider({ children }: { children: ReactNode }) {
+  const [initial] = useState<Partial<Persisted> | null>(() => readStoredState());
+  const [hydrated, setHydrated] = useState(false);
+  const [onboarded, setOnboarded] = useState(() => initial?.onboarded ?? false);
+  const [signedIn, setSignedIn] = useState(() => initial?.signedIn ?? false);
+  const [phone, setPhone] = useState(() => initial?.phone ?? "");
+  const [firstName, setFirstName] = useState(() => initial?.firstName ?? "");
+  const [balance, setBalance] = useState(() => initial?.balance ?? 550);
+  const [verified, setVerified] = useState(() => initial?.verified ?? false);
+  const [plan, setPlan] = useState<Plan>(() => initial?.plan ?? "basic");
+  const [approvalPin, setApprovalPinState] = useState<string | null>(() => initial?.approvalPin ?? null);
+  const [alulaOn, setAlulaOn] = useState(() => initial?.alulaOn ?? true);
+  const [theme, setThemeState] = useState<"light" | "dark">(() => initial?.theme ?? "light");
+  const [transactions, setTransactions] = useState<Transaction[]>(() => initial?.transactions ?? sampleTx);
+  const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>(() => initial?.beneficiaries ?? sampleBenes);
+
+  // Unlock persistence only after the first browser render, so saved state never gets overwritten by defaults.
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const s = JSON.parse(raw) as Partial<Persisted>;
-        if (s.onboarded !== undefined) setOnboarded(s.onboarded);
-        if (s.signedIn !== undefined) setSignedIn(s.signedIn);
-        if (s.phone !== undefined) setPhone(s.phone);
-        if (s.firstName !== undefined) setFirstName(s.firstName);
-        if (s.balance !== undefined) setBalance(s.balance);
-        if (s.verified !== undefined) setVerified(s.verified);
-        if (s.plan !== undefined) setPlan(s.plan);
-        if (s.approvalPin !== undefined) setApprovalPinState(s.approvalPin);
-        if (s.alulaOn !== undefined) setAlulaOn(s.alulaOn);
-        if (s.theme !== undefined) setThemeState(s.theme);
-        if (s.transactions !== undefined) setTransactions(s.transactions);
-        if (s.beneficiaries !== undefined) setBeneficiaries(s.beneficiaries);
-      }
-    } catch {}
     setHydrated(true);
   }, []);
 

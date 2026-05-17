@@ -31,25 +31,26 @@ function Onboarding() {
 
   return (
     <PhoneFrame>
-      <div className="flex flex-col min-h-screen sm:min-h-[860px] bg-gold text-gold-foreground">
+      <div className="flex flex-col min-h-screen sm:min-h-[860px] bg-primary-deep text-primary-foreground">
         <div className="relative h-[55%] sm:h-[480px] overflow-hidden">
           <img src={step.image} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-primary-deep to-transparent" />
           <div className="absolute top-6 left-6 right-6 flex justify-between items-center">
             <div className="flex gap-1.5">
               {steps.map((_, idx) => (
-                <span key={idx} className={`h-1.5 rounded-full transition-all ${idx === i ? "w-8 bg-gold-foreground" : "w-1.5 bg-white/70"}`} />
+                <span key={idx} className={`h-1.5 rounded-full transition-all ${idx === i ? "w-8 bg-primary-foreground" : "w-1.5 bg-primary-foreground/45"}`} />
               ))}
             </div>
-            <button onClick={() => setShowFees(true)} className="text-sm text-white font-medium drop-shadow">Skip</button>
+            <button onClick={() => setShowFees(true)} className="text-sm text-primary-foreground/90 font-medium">Skip</button>
           </div>
         </div>
 
         <div key={i} className="flex-1 px-7 pt-6 pb-8 flex flex-col animate-float-up">
-          <span className="text-xs font-semibold tracking-widest text-gold-foreground bg-gold-foreground/15 self-start px-2.5 py-1 rounded-full uppercase">{step.eyebrow}</span>
-          <h1 className="mt-4 text-3xl font-bold tracking-tight text-gold-foreground">{step.title}</h1>
-          <p className="mt-3 text-gold-foreground/80 leading-relaxed">{step.body}</p>
+          <span className="text-xs font-semibold tracking-widest text-primary-foreground bg-primary-foreground/15 self-start px-2.5 py-1 rounded-full uppercase">{step.eyebrow}</span>
+          <h1 className="mt-4 text-3xl font-bold tracking-tight text-primary-foreground">{step.title}</h1>
+          <p className="mt-3 text-primary-foreground/78 leading-relaxed">{step.body}</p>
           <div className="flex-1" />
-          <Button size="lg" onClick={next} className="h-14 rounded-2xl text-base shadow-button bg-gold-foreground text-gold hover:bg-gold-foreground/90">
+          <Button size="lg" onClick={next} className="h-14 rounded-2xl text-base shadow-button bg-primary-foreground text-primary-deep hover:bg-primary-foreground/90">
             {last ? "See our pricing" : "Next"}
           </Button>
         </div>
@@ -108,8 +109,8 @@ function PlanCard({ name, price, tag, features, highlight }: {
   name: string; price: number; tag: string; features: string[]; highlight: boolean;
 }) {
   return (
-    <div className={`relative rounded-2xl p-5 border ${highlight ? "border-gold bg-gradient-to-br from-gold/10 to-transparent" : "border-border bg-card"}`}>
-      {highlight && <span className="absolute -top-2 right-4 text-[10px] font-bold tracking-wider bg-gold text-gold-foreground px-2 py-0.5 rounded-full uppercase">Best value</span>}
+    <div className={`relative rounded-2xl p-5 border ${highlight ? "border-primary bg-gradient-to-br from-primary/15 to-transparent" : "border-border bg-card"}`}>
+      {highlight && <span className="absolute -top-2 right-4 text-[10px] font-bold tracking-wider bg-primary text-primary-foreground px-2 py-0.5 rounded-full uppercase">Best value</span>}
       <div className="flex justify-between items-baseline">
         <div>
           <p className="text-xs text-muted-foreground uppercase tracking-wider">{tag}</p>
@@ -123,7 +124,7 @@ function PlanCard({ name, price, tag, features, highlight }: {
       <ul className="mt-4 space-y-1.5">
         {features.map((f) => (
           <li key={f} className="flex items-start gap-2 text-sm">
-            <Check className={`h-4 w-4 mt-0.5 shrink-0 ${highlight ? "text-gold-foreground" : "text-primary"}`} strokeWidth={3} />
+            <Check className="h-4 w-4 mt-0.5 shrink-0 text-primary" strokeWidth={3} />
             <span>{f}</span>
           </li>
         ))}

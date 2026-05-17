@@ -9,7 +9,15 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
-import { AppProvider } from "@/lib/app-state";
+import { AppProvider, STORAGE_KEY } from "@/lib/app-state";
+
+const themeBootScript = `
+try {
+  var raw = localStorage.getItem('${STORAGE_KEY}');
+  var theme = raw ? JSON.parse(raw).theme : null;
+  document.documentElement.classList.toggle('dark', theme === 'dark');
+} catch (_) {}
+`;
 
 function NotFoundComponent() {
   return (
@@ -100,6 +108,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>
       <body>
         {children}
