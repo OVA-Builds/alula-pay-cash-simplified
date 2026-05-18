@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ShieldCheck, ChevronRight, HelpCircle, LogOut, BadgeCheck, Moon, Sparkles, Lock } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Switch } from "@/components/ui/switch";
@@ -7,8 +7,10 @@ import { useApp, MONTHLY_FEE, formatZAR } from "@/lib/app-state";
 export const Route = createFileRoute("/profile")({ component: Profile });
 
 function Profile() {
-  const { phone, verified, plan, alulaOn, setAlulaOn, theme, setTheme } = useApp();
+  const navigate = useNavigate();
+  const { phone, verified, plan, alulaOn, setAlulaOn, theme, setTheme, signOut } = useApp();
   const planLabel = plan === "pro" ? "Pro" : "Basic";
+  const handleSignOut = () => { signOut(); navigate({ to: "/login" }); };
 
   return (
     <AppShell>
@@ -51,7 +53,7 @@ function Profile() {
         <div className="bg-card rounded-2xl border border-border divide-y divide-border">
           <LinkRow icon={Lock} label="Change approval PIN" to="/setup-pin" />
           <LinkRow icon={HelpCircle} label="Help & Support" />
-          <LinkRow icon={LogOut} label="Sign out" danger />
+          <LinkRow icon={LogOut} label="Sign out" danger onClick={handleSignOut} />
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-8">Alula Pay v0.2 · Made for South Africa 🇿🇦</p>
@@ -75,7 +77,7 @@ function ToggleRow({ icon: Icon, label, hint, checked, onChange }: {
   );
 }
 
-function LinkRow({ icon: Icon, label, to, danger }: { icon: typeof Moon; label: string; to?: string; danger?: boolean }) {
+function LinkRow({ icon: Icon, label, to, danger, onClick }: { icon: typeof Moon; label: string; to?: string; danger?: boolean; onClick?: () => void }) {
   const cls = `w-full flex items-center gap-3 p-4 text-left ${danger ? "text-destructive" : ""}`;
   const inner = (
     <>
@@ -84,5 +86,5 @@ function LinkRow({ icon: Icon, label, to, danger }: { icon: typeof Moon; label: 
       <ChevronRight className="h-4 w-4 text-muted-foreground" />
     </>
   );
-  return to ? <Link to={to} className={cls}>{inner}</Link> : <button className={cls}>{inner}</button>;
+  return to ? <Link to={to} className={cls}>{inner}</Link> : <button type="button" onClick={onClick} className={cls}>{inner}</button>;
 }
