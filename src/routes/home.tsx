@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Ticket, Send, Bell, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Users } from "lucide-react";
+import { Ticket, Send, Bell, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Users, TrendingUp, TrendingDown } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { AlulaGuide } from "@/components/AlulaGuide";
 import { useApp, formatZAR } from "@/lib/app-state";
@@ -10,6 +10,17 @@ function Home() {
   const { balance, transactions, verified, plan, firstName } = useApp();
   const recent = transactions.slice(0, 3);
   const displayName = firstName?.trim() ? firstName.trim().split(/\s+/)[0] : "there";
+
+  // Monthly tracker — sum of money in (positive) and money out (negative).
+  // Basic users hit a R5,000 monthly cap on outflows; Pro users a R5,000 daily cap.
+  const moneyIn = transactions.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0);
+  const moneyOut = transactions.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+  const limitTotal = 5000;
+  const isPro = plan === "pro";
+  const usedPct = Math.min(100, Math.round((moneyOut / limitTotal) * 100));
+  const remaining = Math.max(0, limitTotal - moneyOut);
+  const warn = usedPct >= 75;
+  const periodLabel = isPro ? "today" : "this month";
 
   return (
     <AppShell>
