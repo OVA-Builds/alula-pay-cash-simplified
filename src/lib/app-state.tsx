@@ -35,6 +35,7 @@ type Ctx = {
   beneficiaries: Beneficiary[];
   setOnboarded: (v: boolean) => void;
   signIn: (phone: string, firstName?: string) => void;
+  signOut: () => void;
   addTransaction: (t: Transaction) => void;
   adjustBalance: (delta: number) => void;
   setVerified: (v: boolean) => void;
@@ -121,6 +122,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (name !== undefined) setFirstName(name.trim());
     setSignedIn(true);
   }, []);
+  const signOut = useCallback(() => {
+    setSignedIn(false);
+    setApprovalPinState(null);
+  }, []);
   const addTransaction = useCallback((t: Transaction) => setTransactions((prev) => [t, ...prev]), []);
   const adjustBalance = useCallback((delta: number) => setBalance((b) => Math.max(0, +(b + delta).toFixed(2))), []);
   const setApprovalPin = useCallback((p: string) => setApprovalPinState(p), []);
@@ -137,7 +142,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       value={{
         onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme,
         transactions, beneficiaries,
-        setOnboarded, signIn, addTransaction, adjustBalance,
+        setOnboarded, signIn, signOut, addTransaction, adjustBalance,
         setVerified: setVerifiedWithPlan,
         setApprovalPin, setAlulaOn, setTheme, addBeneficiary,
       }}

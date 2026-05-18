@@ -17,6 +17,7 @@ import { Route as SendRouteImport } from './routes/send'
 import { Route as RedeemRouteImport } from './routes/redeem'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as BeneficiariesRouteImport } from './routes/beneficiaries'
@@ -63,6 +64,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HomeRoute = HomeRouteImport.update({
   id: '/home',
   path: '/home',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/beneficiaries': typeof BeneficiariesRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
+  '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/beneficiaries': typeof BeneficiariesRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
+  '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/beneficiaries': typeof BeneficiariesRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
+  '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/beneficiaries'
     | '/history'
     | '/home'
+    | '/login'
     | '/onboarding'
     | '/profile'
     | '/redeem'
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/beneficiaries'
     | '/history'
     | '/home'
+    | '/login'
     | '/onboarding'
     | '/profile'
     | '/redeem'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/beneficiaries'
     | '/history'
     | '/home'
+    | '/login'
     | '/onboarding'
     | '/profile'
     | '/redeem'
@@ -188,6 +200,7 @@ export interface RootRouteChildren {
   BeneficiariesRoute: typeof BeneficiariesRoute
   HistoryRoute: typeof HistoryRoute
   HomeRoute: typeof HomeRoute
+  LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   ProfileRoute: typeof ProfileRoute
   RedeemRoute: typeof RedeemRoute
@@ -257,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/home': {
       id: '/home'
       path: '/home'
@@ -300,6 +320,7 @@ const rootRouteChildren: RootRouteChildren = {
   BeneficiariesRoute: BeneficiariesRoute,
   HistoryRoute: HistoryRoute,
   HomeRoute: HomeRoute,
+  LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   ProfileRoute: ProfileRoute,
   RedeemRoute: RedeemRoute,

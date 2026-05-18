@@ -1,23 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import logo from "@/assets/alula-logo.png";
-import { useApp } from "@/lib/app-state";
 
 export const Route = createFileRoute("/")({ component: Splash });
 
 function Splash() {
   const navigate = useNavigate();
-  const { signedIn, onboarded, approvalPin } = useApp();
 
   useEffect(() => {
-    const t = setTimeout(() => {
-      if (signedIn && !approvalPin) navigate({ to: "/setup-pin" });
-      else if (signedIn) navigate({ to: "/home" });
-      else if (onboarded) navigate({ to: "/signup" });
-      else navigate({ to: "/onboarding" });
-    }, 2400);
+    // Prototype always starts on onboarding.
+    const t = setTimeout(() => navigate({ to: "/onboarding" }), 2400);
     return () => clearTimeout(t);
-  }, [navigate, signedIn, onboarded, approvalPin]);
+  }, [navigate]);
 
   return (
     <div className="min-h-screen w-full bg-gradient-splash flex items-center justify-center relative overflow-hidden">
@@ -38,10 +32,7 @@ function Splash() {
 
       <div className="relative flex flex-col items-center animate-logo-entrance">
         <div className="animate-logo-glow relative">
-          <img src={logo} alt="Alula Pay" className="w-32 h-32 rounded-3xl shadow-2xl relative z-10" />
-          <div className="absolute inset-0 rounded-3xl overflow-hidden">
-            <span className="absolute inset-y-0 w-1/3 bg-white/30 animate-shine" />
-          </div>
+          <img src={logo} alt="Alula Pay" className="w-40 h-40 relative z-10 drop-shadow-2xl" />
         </div>
       </div>
     </div>
