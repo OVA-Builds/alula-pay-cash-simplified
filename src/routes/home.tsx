@@ -53,6 +53,57 @@ function Home() {
         </div>
       </div>
 
+      {/* Monthly / daily spend tracker */}
+      <div className="px-6 mt-4">
+        <div className="bg-card rounded-2xl border border-border p-5 shadow-soft">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                {isPro ? "Daily limit" : "Monthly limit"}
+              </p>
+              <p className="text-base font-semibold mt-0.5">
+                {formatZAR(moneyOut)} <span className="text-muted-foreground font-normal">of {formatZAR(limitTotal)}</span>
+              </p>
+            </div>
+            <span className={`text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full uppercase ${warn ? "bg-destructive/15 text-destructive" : "bg-success/15 text-success"}`}>
+              {warn ? "Almost there" : "On track"}
+            </span>
+          </div>
+
+          <div className="mt-3 h-2.5 w-full rounded-full bg-muted overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-[width] duration-700 ease-out ${warn ? "bg-destructive" : "bg-gradient-brand"}`}
+              style={{ width: `${usedPct}%` }}
+            />
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className="rounded-xl bg-success/10 p-3">
+              <div className="flex items-center gap-1.5 text-success">
+                <TrendingUp className="h-3.5 w-3.5" />
+                <span className="text-[10px] font-semibold uppercase tracking-wider">In {periodLabel}</span>
+              </div>
+              <p className="text-sm font-bold mt-1 text-foreground">{formatZAR(moneyIn)}</p>
+            </div>
+            <div className="rounded-xl bg-destructive/10 p-3">
+              <div className="flex items-center gap-1.5 text-destructive">
+                <TrendingDown className="h-3.5 w-3.5" />
+                <span className="text-[10px] font-semibold uppercase tracking-wider">Out {periodLabel}</span>
+              </div>
+              <p className="text-sm font-bold mt-1 text-foreground">{formatZAR(moneyOut)}</p>
+            </div>
+          </div>
+
+          <p className={`text-xs mt-3 ${warn ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+            {remaining > 0
+              ? `${formatZAR(remaining)} left to send ${periodLabel}.`
+              : `You've reached your ${isPro ? "daily" : "monthly"} limit.`}
+          </p>
+        </div>
+      </div>
+
+
+
       <div className="grid grid-cols-2 gap-3 px-6 mt-5">
         <Link
           id="guide-redeem"
