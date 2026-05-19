@@ -41,7 +41,7 @@ function Home() {
         <div className="bg-gradient-wallet rounded-3xl p-7 text-white shadow-card relative overflow-hidden">
           <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/5" />
           <div className="absolute -right-20 bottom-0 h-32 w-32 rounded-full bg-gold/25" />
-          <img src={logo} alt="" className="absolute right-5 bottom-5 h-12 w-12 opacity-90 drop-shadow-lg" />
+          
           <div className="flex justify-between items-start">
             <div className="flex items-center gap-2">
               <img src={logo} alt="" className="h-6 w-6" />
