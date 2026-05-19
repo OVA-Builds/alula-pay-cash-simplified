@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { useApp, formatZAR, MONTHLY_FEE } from "@/lib/app-state";
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkles, ShieldCheck, Zap, Landmark, ArrowRight } from "lucide-react";
 import logo from "@/assets/alula-logo.png";
 import onb1 from "@/assets/onb-1.jpg";
 import onb2 from "@/assets/onb-2.jpg";
@@ -12,9 +12,30 @@ import onb3 from "@/assets/onb-3.jpg";
 export const Route = createFileRoute("/onboarding")({ component: Onboarding });
 
 const steps = [
-  { image: onb1, eyebrow: "Cash in", title: "Buy an Alula voucher", body: "Pick up an OTT, Blu or 1Voucher with cash at any participating retailer near you." },
-  { image: onb2, eyebrow: "Redeem", title: "Load your wallet in seconds", body: "Scan or type the code from your voucher slip — your balance updates instantly." },
-  { image: onb3, eyebrow: "Cash out", title: "Send straight to any SA bank", body: "Move your money to any South African bank account — no queues, no waiting." },
+  {
+    image: onb1,
+    headline: "Buy an Alula voucher",
+    accent: "with cash",
+    body: "Pick up an OTT, Blu or 1Voucher at any participating retailer near you.",
+  },
+  {
+    image: onb2,
+    headline: "Load your wallet",
+    accent: "in seconds",
+    body: "Scan or type the code from your voucher slip — your balance updates instantly.",
+  },
+  {
+    image: onb3,
+    headline: "Send money to any SA bank",
+    accent: "in seconds",
+    body: "Move your money to any South African bank account — no queues, no waiting.",
+  },
+];
+
+const features = [
+  { icon: ShieldCheck, title: "Secure", body: "Bank-level protection" },
+  { icon: Zap, title: "Fast", body: "Money moves in seconds" },
+  { icon: Landmark, title: "Any SA Bank", body: "Send to over 100 local banks" },
 ];
 
 function Onboarding() {
@@ -32,64 +53,96 @@ function Onboarding() {
 
   return (
     <PhoneFrame>
-      <div className="flex flex-col min-h-screen sm:min-h-[860px] bg-primary-deep text-primary-foreground relative overflow-hidden">
-        {/* Decorative gold accents */}
-        <span className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-gold/25 blur-2xl" />
-        <span className="pointer-events-none absolute top-1/2 -left-20 h-40 w-40 rounded-full bg-primary/40 blur-3xl" />
-
-        <div className="relative h-[52%] sm:h-[460px] overflow-hidden">
-          <img src={step.image} alt="" className="w-full h-full object-cover" />
-          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-primary-deep to-transparent" />
-
-          <div className="absolute top-6 left-6 right-6 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <img src={logo} alt="" className="h-8 w-8 drop-shadow" />
-              <span className="text-sm font-bold tracking-tight">Alula Pay</span>
-            </div>
-            <button onClick={() => setShowFees(true)} className="text-sm text-primary-foreground/90 font-medium">Skip</button>
+      <div
+        className="flex flex-col min-h-screen sm:min-h-[860px] relative overflow-hidden text-[oklch(0.18_0.08_265)]"
+        style={{ backgroundColor: "oklch(0.96 0.018 85)" }}
+      >
+        {/* Header */}
+        <div className="flex justify-between items-center px-6 pt-7">
+          <div className="flex items-center gap-2.5">
+            <img src={logo} alt="" className="h-9 w-9 drop-shadow-sm" />
+            <span className="text-lg font-bold tracking-tight">Alula Pay</span>
           </div>
+          <button onClick={() => setShowFees(true)} className="text-base text-primary font-semibold">Skip</button>
+        </div>
 
-          {/* Progress dots */}
-          <div className="absolute bottom-5 left-6 flex gap-1.5">
+        {/* Hero text */}
+        <div key={i} className="px-6 pt-6 animate-float-up">
+          <h1 className="text-[34px] leading-[1.05] font-bold tracking-tight">
+            <span>{step.headline}</span>{" "}
+            <span className="text-primary">{step.accent}</span>
+          </h1>
+          <p className="mt-4 text-[15px] text-[oklch(0.35_0.04_265)] leading-relaxed max-w-[60%]">
+            {step.body}
+          </p>
+        </div>
+
+        {/* Blob image */}
+        <div className="relative flex-1 mt-2">
+          <div
+            className="absolute right-0 top-0 bottom-2 w-[88%] overflow-hidden shadow-card"
+            style={{ borderRadius: "55% 45% 38% 62% / 48% 55% 45% 52%" }}
+          >
+            <img src={step.image} alt="" className="w-full h-full object-cover" />
+          </div>
+        </div>
+
+        {/* R5 pill card */}
+        <div className="px-6 mt-4">
+          <div className="bg-card rounded-2xl shadow-soft px-4 py-3 flex items-center gap-3">
+            <div className="h-11 w-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <Sparkles className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[15px] font-semibold">
+                From just <span className="text-primary font-bold">R5</span> a month
+              </p>
+              <p className="text-xs text-muted-foreground">No hidden fees, ever.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="px-6 mt-4">
+          <Button
+            size="lg"
+            onClick={next}
+            className="h-14 w-full rounded-full text-base font-semibold shadow-button bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center gap-2"
+          >
+            {last ? "See our pricing" : "Next"}
+            <ArrowRight className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Features row */}
+        <div className="px-6 mt-5 grid grid-cols-3 gap-2">
+          {features.map((f) => (
+            <div key={f.title} className="flex flex-col items-start gap-1 px-1">
+              <f.icon className="h-5 w-5 text-primary" strokeWidth={2.2} />
+              <p className="text-[13px] font-bold text-primary leading-tight">{f.title}</p>
+              <p className="text-[11px] text-[oklch(0.4_0.04_265)] leading-snug">{f.body}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Dots */}
+        <div className="flex justify-center py-5">
+          <div className="flex gap-2 bg-card rounded-full px-4 py-2 shadow-soft">
             {steps.map((_, idx) => (
-              <span key={idx} className={`h-1.5 rounded-full transition-all ${idx === i ? "w-8 bg-gold" : "w-1.5 bg-primary-foreground/45"}`} />
+              <button
+                key={idx}
+                onClick={() => setI(idx)}
+                className={`h-2 rounded-full transition-all ${idx === i ? "w-6 bg-primary" : "w-2 bg-muted"}`}
+                aria-label={`Go to slide ${idx + 1}`}
+              />
             ))}
           </div>
         </div>
 
-        <div key={i} className="flex-1 px-7 pt-6 pb-8 flex flex-col animate-float-up relative">
-          <span className="text-xs font-semibold tracking-widest text-gold-foreground bg-gold self-start px-2.5 py-1 rounded-full uppercase shadow-gold">
-            {step.eyebrow}
-          </span>
-          <h1 className="mt-4 text-3xl font-bold tracking-tight text-primary-foreground">{step.title}</h1>
-          <p className="mt-3 text-primary-foreground/80 leading-relaxed">{step.body}</p>
-
-          {last && (
-            <div className="mt-5 flex items-center gap-2 rounded-xl bg-gold/15 border border-gold/30 px-3 py-2.5">
-              <Sparkles className="h-4 w-4 text-gold shrink-0" />
-              <p className="text-xs text-primary-foreground/90">
-                Just <span className="font-bold text-gold">R5 a month</span> — no hidden fees, ever.
-              </p>
-            </div>
-          )}
-
-          <div className="flex-1" />
-
-          <Button
-            size="lg"
-            onClick={next}
-            className="h-14 rounded-2xl text-base shadow-button bg-gold text-gold-foreground hover:bg-gold/90 font-semibold"
-          >
-            {last ? "See our pricing" : "Next"}
-          </Button>
-
-          <p className="mt-4 text-center text-xs text-primary-foreground/70">
-            Already have an account?{" "}
-            <Link to="/login" className="font-semibold text-gold underline-offset-2 hover:underline">
-              Sign in
-            </Link>
-          </p>
-        </div>
+        <p className="text-center text-xs text-muted-foreground pb-5">
+          Already have an account?{" "}
+          <Link to="/login" className="font-semibold text-primary">Sign in</Link>
+        </p>
       </div>
     </PhoneFrame>
   );

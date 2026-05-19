@@ -3,6 +3,7 @@ import { Ticket, Send, Bell, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRi
 import { AppShell } from "@/components/AppShell";
 import { AlulaGuide } from "@/components/AlulaGuide";
 import { useApp, formatZAR } from "@/lib/app-state";
+import logo from "@/assets/alula-logo.png";
 
 export const Route = createFileRoute("/home")({ component: Home });
 
@@ -40,13 +41,18 @@ function Home() {
         <div className="bg-gradient-wallet rounded-3xl p-7 text-white shadow-card relative overflow-hidden">
           <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/5" />
           <div className="absolute -right-20 bottom-0 h-32 w-32 rounded-full bg-gold/25" />
+          <img src={logo} alt="" className="absolute right-5 bottom-5 h-12 w-12 opacity-90 drop-shadow-lg" />
           <div className="flex justify-between items-start">
-            <p className="text-white/70 text-sm">Your balance</p>
+            <div className="flex items-center gap-2">
+              <img src={logo} alt="" className="h-6 w-6" />
+              <p className="text-white/80 text-sm font-medium">Alula Pay</p>
+            </div>
             <span className="text-[10px] font-bold tracking-wider bg-gold text-gold-foreground px-2 py-0.5 rounded-full uppercase">
               {plan === "pro" ? "Pro" : "Basic"}
             </span>
           </div>
-          <p className="text-4xl font-bold mt-2 tracking-tight">{formatZAR(balance)}</p>
+          <p className="text-white/60 text-xs mt-5">Your balance</p>
+          <p className="text-4xl font-bold mt-1 tracking-tight">{formatZAR(balance)}</p>
           <p className="text-white/60 text-xs mt-3">
             {plan === "pro" ? "Daily limit R5,000.00" : "Monthly limit R5,000.00"}
           </p>
