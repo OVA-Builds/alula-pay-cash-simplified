@@ -21,10 +21,11 @@ export function AlulaGuide() {
     <>
       <button
         onClick={() => { setMode("menu"); setOpen(true); }}
-        className="fixed bottom-24 right-5 z-40 h-14 w-14 rounded-full bg-gradient-gold shadow-gold flex items-center justify-center active:scale-95 transition-transform"
-        aria-label="Alula assistant"
+        className="fixed bottom-24 right-5 z-40 h-14 pl-3 pr-4 rounded-full bg-gradient-gold shadow-gold flex items-center gap-2 active:scale-95 transition-transform"
+        aria-label="Alula assistant — Help"
       >
-        <Sparkles className="h-6 w-6 text-gold-foreground" strokeWidth={2.4} />
+        <Sparkles className="h-5 w-5 text-gold-foreground" strokeWidth={2.4} />
+        <span className="text-sm font-bold text-gold-foreground">Help</span>
       </button>
 
       <Dialog open={open && mode === "menu"} onOpenChange={setOpen}>
