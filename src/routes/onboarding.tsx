@@ -54,60 +54,67 @@ function Onboarding() {
   return (
     <PhoneFrame>
       <div
-        className="flex flex-col min-h-screen sm:min-h-[860px] relative overflow-hidden text-[oklch(0.18_0.08_265)]"
-        style={{ backgroundColor: "oklch(0.96 0.018 85)" }}
+        className="flex flex-col min-h-screen sm:min-h-[860px] relative overflow-hidden"
+        style={{ backgroundColor: "#F5EFE4", color: "#0B1F4D" }}
       >
+        {/* Large blob image extending to top-right edge */}
+        <div
+          className="absolute right-[-8%] top-[14%] w-[78%] h-[52%] overflow-hidden"
+          style={{
+            borderRadius: "62% 38% 50% 50% / 55% 45% 55% 45%",
+            boxShadow: "0 20px 40px -20px rgba(11,31,77,0.25)",
+          }}
+        >
+          <img key={i} src={step.image} alt="" className="w-full h-full object-cover animate-float-up" />
+        </div>
+
         {/* Header */}
-        <div className="flex justify-between items-center px-6 pt-7">
+        <div className="relative flex justify-between items-center px-6 pt-7 z-10">
           <div className="flex items-center gap-2.5">
             <img src={logo} alt="" className="h-9 w-9 drop-shadow-sm" />
-            <span className="text-lg font-bold tracking-tight">Alula Pay</span>
+            <span className="text-lg font-bold tracking-tight" style={{ color: "#0B1F4D" }}>Alula Pay</span>
           </div>
-          <button onClick={() => setShowFees(true)} className="text-base text-primary font-semibold">Skip</button>
+          <button onClick={() => setShowFees(true)} className="text-base font-semibold" style={{ color: "#3B6FE0" }}>Skip</button>
         </div>
 
         {/* Hero text */}
-        <div key={i} className="px-6 pt-6 animate-float-up">
-          <h1 className="text-[34px] leading-[1.05] font-bold tracking-tight">
+        <div key={i} className="relative px-6 pt-6 animate-float-up z-10 max-w-[62%]">
+          <h1 className="text-[34px] leading-[1.05] font-bold tracking-tight" style={{ color: "#0B1F4D" }}>
             <span>{step.headline}</span>{" "}
-            <span className="text-primary">{step.accent}</span>
+            <span style={{ color: "#3B6FE0" }}>{step.accent}</span>
           </h1>
-          <p className="mt-4 text-[15px] text-[oklch(0.35_0.04_265)] leading-relaxed max-w-[60%]">
+          <p className="mt-4 text-[15px] leading-relaxed" style={{ color: "#4A5878" }}>
             {step.body}
           </p>
         </div>
 
-        {/* Blob image */}
-        <div className="relative flex-1 mt-2">
-          <div
-            className="absolute right-0 top-0 bottom-2 w-[88%] overflow-hidden shadow-card"
-            style={{ borderRadius: "55% 45% 38% 62% / 48% 55% 45% 52%" }}
-          >
-            <img src={step.image} alt="" className="w-full h-full object-cover" />
-          </div>
-        </div>
+        <div className="flex-1" />
 
-        {/* R5 pill card */}
-        <div className="px-6 mt-4">
-          <div className="bg-card rounded-2xl shadow-soft px-4 py-3 flex items-center gap-3">
-            <div className="h-11 w-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <Sparkles className="h-5 w-5 text-primary" />
+        {/* White R5 pill card */}
+        <div className="relative px-6 mt-4 z-10">
+          <div
+            className="rounded-2xl px-4 py-3 flex items-center gap-3"
+            style={{ backgroundColor: "#FFFFFF", boxShadow: "0 8px 24px -10px rgba(11,31,77,0.18)" }}
+          >
+            <div className="h-11 w-11 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: "#EAF0FF" }}>
+              <Sparkles className="h-5 w-5" style={{ color: "#3B6FE0" }} />
             </div>
             <div className="flex-1">
-              <p className="text-[15px] font-semibold">
-                From just <span className="text-primary font-bold">R5</span> a month
+              <p className="text-[15px] font-semibold" style={{ color: "#0B1F4D" }}>
+                From just <span style={{ color: "#3B6FE0" }} className="font-bold">R5</span> a month
               </p>
-              <p className="text-xs text-muted-foreground">No hidden fees, ever.</p>
+              <p className="text-xs" style={{ color: "#6B7790" }}>No hidden fees, ever.</p>
             </div>
           </div>
         </div>
 
         {/* CTA */}
-        <div className="px-6 mt-4">
+        <div className="relative px-6 mt-4 z-10">
           <Button
             size="lg"
             onClick={next}
-            className="h-14 w-full rounded-full text-base font-semibold shadow-button bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center gap-2"
+            className="h-14 w-full rounded-full text-base font-semibold flex items-center justify-center gap-2 border-0"
+            style={{ backgroundColor: "#3B6FE0", color: "#FFFFFF", boxShadow: "0 10px 24px -8px rgba(59,111,224,0.5)" }}
           >
             {last ? "See our pricing" : "Next"}
             <ArrowRight className="h-5 w-5" />
@@ -115,33 +122,37 @@ function Onboarding() {
         </div>
 
         {/* Features row */}
-        <div className="px-6 mt-5 grid grid-cols-3 gap-2">
+        <div className="relative px-6 mt-5 grid grid-cols-3 gap-2 z-10">
           {features.map((f) => (
             <div key={f.title} className="flex flex-col items-start gap-1 px-1">
-              <f.icon className="h-5 w-5 text-primary" strokeWidth={2.2} />
-              <p className="text-[13px] font-bold text-primary leading-tight">{f.title}</p>
-              <p className="text-[11px] text-[oklch(0.4_0.04_265)] leading-snug">{f.body}</p>
+              <f.icon className="h-5 w-5" style={{ color: "#3B6FE0" }} strokeWidth={2.2} />
+              <p className="text-[13px] font-bold leading-tight" style={{ color: "#3B6FE0" }}>{f.title}</p>
+              <p className="text-[11px] leading-snug" style={{ color: "#4A5878" }}>{f.body}</p>
             </div>
           ))}
         </div>
 
         {/* Dots */}
-        <div className="flex justify-center py-5">
-          <div className="flex gap-2 bg-card rounded-full px-4 py-2 shadow-soft">
+        <div className="relative flex justify-center py-5 z-10">
+          <div className="flex gap-2 rounded-full px-4 py-2" style={{ backgroundColor: "#FFFFFF", boxShadow: "0 6px 18px -10px rgba(11,31,77,0.2)" }}>
             {steps.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setI(idx)}
-                className={`h-2 rounded-full transition-all ${idx === i ? "w-6 bg-primary" : "w-2 bg-muted"}`}
+                className="h-2 rounded-full transition-all"
+                style={{
+                  width: idx === i ? 24 : 8,
+                  backgroundColor: idx === i ? "#3B6FE0" : "#D6DCE8",
+                }}
                 aria-label={`Go to slide ${idx + 1}`}
               />
             ))}
           </div>
         </div>
 
-        <p className="text-center text-xs text-muted-foreground pb-5">
+        <p className="relative text-center text-xs pb-5 z-10" style={{ color: "#6B7790" }}>
           Already have an account?{" "}
-          <Link to="/login" className="font-semibold text-primary">Sign in</Link>
+          <Link to="/login" className="font-semibold" style={{ color: "#3B6FE0" }}>Sign in</Link>
         </p>
       </div>
     </PhoneFrame>
