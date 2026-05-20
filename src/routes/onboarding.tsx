@@ -57,17 +57,6 @@ function Onboarding() {
         className="flex flex-col min-h-screen sm:min-h-[860px] relative overflow-hidden"
         style={{ backgroundColor: "#F5EFE4", color: "#0B1F4D" }}
       >
-        {/* Large blob image extending to top-right edge */}
-        <div
-          className="absolute right-[-8%] top-[14%] w-[78%] h-[52%] overflow-hidden"
-          style={{
-            borderRadius: "62% 38% 50% 50% / 55% 45% 55% 45%",
-            boxShadow: "0 20px 40px -20px rgba(11,31,77,0.25)",
-          }}
-        >
-          <img key={i} src={step.image} alt="" className="w-full h-full object-cover animate-float-up" />
-        </div>
-
         {/* Header */}
         <div className="relative flex justify-between items-center px-6 pt-7 z-10">
           <div className="flex items-center gap-2.5">
@@ -77,13 +66,27 @@ function Onboarding() {
           <button onClick={() => setShowFees(true)} className="text-base font-semibold" style={{ color: "#3B6FE0" }}>Skip</button>
         </div>
 
+        {/* Hero image — clean rounded card, no crop weirdness */}
+        <div className="relative px-6 mt-5 z-10">
+          <div
+            className="relative w-full h-[280px] overflow-hidden rounded-[28px]"
+            style={{ boxShadow: "0 20px 40px -20px rgba(11,31,77,0.25)" }}
+          >
+            <img key={i} src={step.image} alt="" className="w-full h-full object-cover animate-float-up" />
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: "linear-gradient(180deg, transparent 55%, rgba(11,31,77,0.35) 100%)" }}
+            />
+          </div>
+        </div>
+
         {/* Hero text */}
-        <div key={i} className="relative px-6 pt-6 animate-float-up z-10 max-w-[62%]">
-          <h1 className="text-[34px] leading-[1.05] font-bold tracking-tight" style={{ color: "#0B1F4D" }}>
+        <div key={`t-${i}`} className="relative px-6 pt-6 animate-float-up z-10">
+          <h1 className="text-[30px] leading-[1.1] font-bold tracking-tight" style={{ color: "#0B1F4D" }}>
             <span>{step.headline}</span>{" "}
             <span style={{ color: "#3B6FE0" }}>{step.accent}</span>
           </h1>
-          <p className="mt-4 text-[15px] leading-relaxed" style={{ color: "#4A5878" }}>
+          <p className="mt-3 text-[15px] leading-relaxed" style={{ color: "#4A5878" }}>
             {step.body}
           </p>
         </div>
