@@ -178,14 +178,16 @@ export type FeeBreakdown = { rail: "EFT" | "RTC"; rate: number; fee: number; min
 export const railLabel = (rail: "EFT" | "RTC") =>
   rail === "RTC" ? "Instant payment" : "1–2 day transfer";
 export const railSettleCopy = (rail: "EFT" | "RTC") =>
-  rail === "RTC" ? "Lands in their bank instantly" : "Lands in their bank in 1–2 working days";
+  rail === "RTC" ? "Lands in their bank within 10 minutes" : "Lands in their bank in 1–2 working days";
 
 export function calcTransferFee(amount: number, plan: Plan = "basic"): FeeBreakdown {
   if (amount <= 0) return { rail: "EFT", rate: 0, fee: 0, min: 0 };
-  const isRTC = amount > 3000;
+  // Pro members always use the instant rail (lands within 10 minutes).
+  // Basic uses the slower 1–2 day rail unless the amount is above R3,000.
+  const isRTC = plan === "pro" ? true : amount > 3000;
   const rate = isRTC
     ? (plan === "pro" ? 0.015 : 0.02)
-    : (plan === "pro" ? 0.01 : 0.015);
+    : 0.015;
   const min = isRTC ? 10 : 5;
   const fee = Math.max(min, +(amount * rate).toFixed(2));
   return { rail: isRTC ? "RTC" : "EFT", rate, fee, min };
