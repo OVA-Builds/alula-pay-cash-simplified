@@ -1,17 +1,32 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import logo from "@/assets/alula-logo.png";
+import { useApp } from "@/lib/app-state";
 
 export const Route = createFileRoute("/")({ component: Splash });
 
 function Splash() {
   const navigate = useNavigate();
+  const { setTheme } = useApp();
 
   useEffect(() => {
-    // Prototype always starts on onboarding.
+    // Prototype demo: always start fresh on light mode + basic plan.
+    setTheme("light");
+    try {
+      const raw = localStorage.getItem("alula-pay-state-v2");
+      if (raw) {
+        const s = JSON.parse(raw);
+        s.theme = "light";
+        s.plan = "basic";
+        s.verified = false;
+        s.signedIn = false;
+        s.onboarded = false;
+        localStorage.setItem("alula-pay-state-v2", JSON.stringify(s));
+      }
+    } catch {}
     const t = setTimeout(() => navigate({ to: "/onboarding" }), 2400);
     return () => clearTimeout(t);
-  }, [navigate]);
+  }, [navigate, setTheme]);
 
   return (
     <div className="min-h-screen w-full bg-gradient-splash flex items-center justify-center relative overflow-hidden">
