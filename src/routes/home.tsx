@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Ticket, Send, Bell, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Users, TrendingUp, TrendingDown } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { AlulaGuide } from "@/components/AlulaGuide";
-import { useApp, formatZAR } from "@/lib/app-state";
+import { useApp, formatZAR, TIER_LIMITS } from "@/lib/app-state";
 import logo from "@/assets/alula-logo.png";
 
 export const Route = createFileRoute("/home")({ component: Home });
@@ -13,15 +13,16 @@ function Home() {
   const displayName = firstName?.trim() ? firstName.trim().split(/\s+/)[0] : "there";
 
   // Monthly tracker — sum of money in (positive) and money out (negative).
-  // Basic users hit a R5,000 monthly cap on outflows; Pro users a R5,000 daily cap.
+  // Basic monthly cap R2,000 · Pro monthly cap R25,000 (per Alula Pay business plan).
   const moneyIn = transactions.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0);
   const moneyOut = transactions.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
-  const limitTotal = 5000;
   const isPro = plan === "pro";
+  const limitTotal = TIER_LIMITS[plan].monthly;
   const usedPct = Math.min(100, Math.round((moneyOut / limitTotal) * 100));
   const remaining = Math.max(0, limitTotal - moneyOut);
   const warn = usedPct >= 75;
-  const periodLabel = isPro ? "today" : "this month";
+  const periodLabel = "this month";
+
 
   return (
     <AppShell>
