@@ -67,8 +67,9 @@ function Home() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-                {isPro ? "Daily limit" : "Monthly limit"}
+                Monthly limit
               </p>
+
               <p className="text-base font-semibold mt-0.5">
                 {formatZAR(moneyOut)} <span className="text-muted-foreground font-normal">of {formatZAR(limitTotal)}</span>
               </p>
