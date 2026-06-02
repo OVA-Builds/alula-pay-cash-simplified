@@ -106,8 +106,9 @@ function Home() {
           <p className={`text-xs mt-3 ${warn ? "text-destructive font-medium" : "text-muted-foreground"}`}>
             {remaining > 0
               ? `${formatZAR(remaining)} left to send ${periodLabel}.`
-              : `You've reached your ${isPro ? "daily" : "monthly"} limit.`}
+              : `You've reached your monthly limit.`}
           </p>
+
         </div>
       </div>
 
