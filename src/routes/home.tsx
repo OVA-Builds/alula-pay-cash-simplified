@@ -55,8 +55,9 @@ function Home() {
           <p className="text-white/60 text-xs mt-5">Your balance</p>
           <p className="text-4xl font-bold mt-1 tracking-tight">{formatZAR(balance)}</p>
           <p className="text-white/60 text-xs mt-3">
-            {plan === "pro" ? "Daily limit R5,000.00" : "Monthly limit R5,000.00"}
+            Monthly limit {formatZAR(limitTotal)}
           </p>
+
         </div>
       </div>
 
