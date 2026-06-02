@@ -167,11 +167,9 @@ export const formatZAR = (n: number) => {
   return `${neg ? "-" : ""}R${withCommas}.${decPart}`;
 };
 
-// Fee logic from Alula Pay business plan:
-// - EFT rail for transfers ≤ R3,000 (lower cost, slower)
-// - RTC rail for transfers > R3,000 (immediate, higher cost)
-// - Minimum fee protection on every transfer.
-// Pro plan unlocks reduced rates.
+// Fee logic from Alula Pay business plan (2025):
+// - Basic: EFT only (1–2 days), 1.5% per transfer, R5 minimum
+// - Pro:   EFT + RTC, 1% per transfer, R8 minimum (we show RTC by default — lands within 10 minutes)
 export type FeeBreakdown = { rail: "EFT" | "RTC"; rate: number; fee: number; min: number };
 
 // Plain-English names used everywhere in the UI instead of "EFT" / "RTC".
@@ -182,15 +180,18 @@ export const railSettleCopy = (rail: "EFT" | "RTC") =>
 
 export function calcTransferFee(amount: number, plan: Plan = "basic"): FeeBreakdown {
   if (amount <= 0) return { rail: "EFT", rate: 0, fee: 0, min: 0 };
-  // Pro members always use the instant rail (lands within 10 minutes).
-  // Basic uses the slower 1–2 day rail unless the amount is above R3,000.
-  const isRTC = plan === "pro" ? true : amount > 3000;
-  const rate = isRTC
-    ? (plan === "pro" ? 0.015 : 0.02)
-    : 0.015;
-  const min = isRTC ? 10 : 5;
+  // Basic is EFT only per the business plan. Pro uses RTC by default (instant).
+  const isRTC = plan === "pro";
+  const rate = plan === "pro" ? 0.01 : 0.015;
+  const min = plan === "pro" ? 8 : 5;
   const fee = Math.max(min, +(amount * rate).toFixed(2));
   return { rail: isRTC ? "RTC" : "EFT", rate, fee, min };
 }
 
 export const MONTHLY_FEE = { basic: 5, pro: 10 } as const;
+
+// Tier limits per business plan (Section 03 — Tiered Access Model).
+export const TIER_LIMITS = {
+  basic: { wallet: 1000, singleTx: 500, monthly: 2000 },
+  pro:   { wallet: 10000, singleTx: 5000, monthly: 25000 },
+} as const;
