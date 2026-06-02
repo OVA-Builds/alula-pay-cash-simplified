@@ -180,7 +180,7 @@ function FeePreview({ onContinue, onBack }: { onContinue: () => void; onBack: ()
               "No ID needed — sign up in minutes",
               "Money lands in 1–2 working days",
               "Small fee: 1.5% per send (minimum R5)",
-              "Monthly limit R5,000",
+              "Monthly limit R2,000",
             ]}
           />
           <PlanCard
@@ -189,9 +189,9 @@ function FeePreview({ onContinue, onBack }: { onContinue: () => void; onBack: ()
             tag="Verified users"
             highlight
             features={[
-              "Instant payments — money arrives in seconds",
-              "Lower fees: 1% per send (minimum R5)",
-              "Daily limit R5,000",
+              "Instant payments — money arrives within 10 minutes",
+              "Lower fees: 1% per send (minimum R8)",
+              "Monthly limit R25,000",
               "Priority help when you need it",
             ]}
           />
