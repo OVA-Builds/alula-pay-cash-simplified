@@ -16,8 +16,8 @@ function Home() {
   // Basic monthly cap R2,000 · Pro monthly cap R25,000 (per Alula Pay business plan).
   const moneyIn = transactions.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0);
   const moneyOut = transactions.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
-  const isPro = plan === "pro";
   const limitTotal = TIER_LIMITS[plan].monthly;
+
   const usedPct = Math.min(100, Math.round((moneyOut / limitTotal) * 100));
   const remaining = Math.max(0, limitTotal - moneyOut);
   const warn = usedPct >= 75;
