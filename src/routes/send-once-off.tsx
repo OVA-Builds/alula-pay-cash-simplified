@@ -31,7 +31,7 @@ function OnceOff() {
   const fee = amt > 0 ? calcTransferFee(amt, plan) : null;
   const total = amt + (fee?.fee ?? 0);
   const newBalance = balance - total;
-  const canPay = !!bank && name.trim().length >= 2 && account.length >= 6 && amt > 0 && total <= balance;
+  const canPay = !!bank && name.trim().length >= 2 && account.length >= 6 && amt >= MIN_SEND && total <= balance;
 
   const banks = SA_BANKS.filter((b) => b.name.toLowerCase().includes(bankQuery.trim().toLowerCase()));
 
