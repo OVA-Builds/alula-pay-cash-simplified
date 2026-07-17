@@ -123,7 +123,10 @@ function PayBeneficiary() {
           </div>
         )}
 
-        {amt > 0 && total > balance && (
+        {amt > 0 && amt < MIN_SEND && (
+          <p className="mt-3 text-xs text-destructive text-center">Minimum send amount is {formatZAR(MIN_SEND)}.</p>
+        )}
+        {amt >= MIN_SEND && total > balance && (
           <p className="mt-3 text-xs text-destructive text-center">Insufficient balance for this transfer.</p>
         )}
 
