@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowDownLeft, ArrowUpRight, FileText, Download, Mail, MessageCircle, Check, Lock } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, FileText, Download, Mail, MessageCircle, Check, Lock, ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ export const Route = createFileRoute("/history")({ component: History });
 type SendVia = "download" | "email" | "whatsapp" | null;
 
 function History() {
+  const router = useRouter();
   const { transactions, firstName, plan } = useApp();
   const [via, setVia] = useState<SendVia>(null);
   const [dest, setDest] = useState("");
@@ -32,6 +33,15 @@ function History() {
   return (
     <AppShell>
       <div className="p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <button
+            onClick={() => (router.history.canGoBack() ? router.history.back() : router.navigate({ to: "/home" }))}
+            aria-label="Back"
+            className="h-10 w-10 rounded-full border border-border bg-card flex items-center justify-center active:scale-95 transition-transform"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+        </div>
         <h1 className="text-2xl font-bold tracking-tight">Transaction history</h1>
         <p className="text-sm text-muted-foreground mt-1">Everything that has moved in and out.</p>
 
