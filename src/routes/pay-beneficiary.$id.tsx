@@ -35,7 +35,7 @@ function PayBeneficiary() {
   const fee = amt > 0 ? calcTransferFee(amt, plan) : null;
   const total = amt + (fee?.fee ?? 0);
   const newBalance = balance - total;
-  const canPay = amt > 0 && total <= balance;
+  const canPay = amt >= MIN_SEND && total <= balance;
 
   const confirm = () => {
     adjustBalance(-total);
