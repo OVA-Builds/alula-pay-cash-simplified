@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AppShell } from "@/components/AppShell";
 import { ApprovalPinDialog } from "@/components/ApprovalPinDialog";
-import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy } from "@/lib/app-state";
+import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy, MIN_SEND } from "@/lib/app-state";
 
 export const Route = createFileRoute("/pay-beneficiary/$id")({ component: PayBeneficiary });
 
