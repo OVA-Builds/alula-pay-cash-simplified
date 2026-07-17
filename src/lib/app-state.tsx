@@ -167,9 +167,10 @@ export const formatZAR = (n: number) => {
   return `${neg ? "-" : ""}R${withCommas}.${decPart}`;
 };
 
-// Fee logic from Alula Pay business plan (2025):
-// - Basic: EFT only (1–2 days), 1.5% per transfer, R5 minimum
-// - Pro:   EFT + RTC, 1% per transfer, R8 minimum (we show RTC by default — lands within 10 minutes)
+// Fee logic from Alula Pay business plan (2025 v2):
+// - Both tiers: 5% per send, R20 minimum send amount.
+// - Basic delivery: 1–2 working days.
+// - Pro delivery: instant (within 10 minutes).
 export type FeeBreakdown = { rail: "EFT" | "RTC"; rate: number; fee: number; min: number };
 
 // Plain-English names used everywhere in the UI instead of "EFT" / "RTC".
@@ -178,20 +179,21 @@ export const railLabel = (rail: "EFT" | "RTC") =>
 export const railSettleCopy = (rail: "EFT" | "RTC") =>
   rail === "RTC" ? "Lands in their bank within 10 minutes" : "Lands in their bank in 1–2 working days";
 
+// Minimum single send amount (ZAR) — enforced across all payment flows.
+export const MIN_SEND = 20;
+
 export function calcTransferFee(amount: number, plan: Plan = "basic"): FeeBreakdown {
   if (amount <= 0) return { rail: "EFT", rate: 0, fee: 0, min: 0 };
-  // Basic is EFT only per the business plan. Pro uses RTC by default (instant).
   const isRTC = plan === "pro";
-  const rate = plan === "pro" ? 0.01 : 0.015;
-  const min = plan === "pro" ? 8 : 5;
-  const fee = Math.max(min, +(amount * rate).toFixed(2));
-  return { rail: isRTC ? "RTC" : "EFT", rate, fee, min };
+  const rate = 0.05;
+  const fee = +(amount * rate).toFixed(2);
+  return { rail: isRTC ? "RTC" : "EFT", rate, fee, min: 0 };
 }
 
 export const MONTHLY_FEE = { basic: 5, pro: 10 } as const;
 
-// Tier limits per business plan (Section 03 — Tiered Access Model).
+// Tier limits per business plan v2 (2025).
 export const TIER_LIMITS = {
-  basic: { wallet: 1000, singleTx: 500, monthly: 2000 },
-  pro:   { wallet: 10000, singleTx: 5000, monthly: 25000 },
+  basic: { wallet: 2000, singleTx: 2000, monthly: 2000, daily: 2000 },
+  pro:   { wallet: 49999.99, singleTx: 10000, monthly: 49999.99, daily: 10000 },
 } as const;

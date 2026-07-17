@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AppShell } from "@/components/AppShell";
 import { ApprovalPinDialog } from "@/components/ApprovalPinDialog";
-import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy } from "@/lib/app-state";
+import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy, MIN_SEND } from "@/lib/app-state";
 import { SA_BANKS, type Bank } from "@/lib/banks";
 
 export const Route = createFileRoute("/send-once-off")({ component: OnceOff });
@@ -31,7 +31,7 @@ function OnceOff() {
   const fee = amt > 0 ? calcTransferFee(amt, plan) : null;
   const total = amt + (fee?.fee ?? 0);
   const newBalance = balance - total;
-  const canPay = !!bank && name.trim().length >= 2 && account.length >= 6 && amt > 0 && total <= balance;
+  const canPay = !!bank && name.trim().length >= 2 && account.length >= 6 && amt >= MIN_SEND && total <= balance;
 
   const banks = SA_BANKS.filter((b) => b.name.toLowerCase().includes(bankQuery.trim().toLowerCase()));
 
@@ -168,7 +168,10 @@ function OnceOff() {
           <Switch checked={save} onCheckedChange={setSave} />
         </label>
 
-        {amt > 0 && total > balance && (
+        {amt > 0 && amt < MIN_SEND && (
+          <p className="mt-3 text-xs text-destructive text-center">Minimum send amount is {formatZAR(MIN_SEND)}.</p>
+        )}
+        {amt >= MIN_SEND && total > balance && (
           <p className="mt-3 text-xs text-destructive text-center">Insufficient balance for this transfer.</p>
         )}
 

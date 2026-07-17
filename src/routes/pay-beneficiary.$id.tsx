@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AppShell } from "@/components/AppShell";
 import { ApprovalPinDialog } from "@/components/ApprovalPinDialog";
-import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy } from "@/lib/app-state";
+import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy, MIN_SEND } from "@/lib/app-state";
 
 export const Route = createFileRoute("/pay-beneficiary/$id")({ component: PayBeneficiary });
 
@@ -35,7 +35,7 @@ function PayBeneficiary() {
   const fee = amt > 0 ? calcTransferFee(amt, plan) : null;
   const total = amt + (fee?.fee ?? 0);
   const newBalance = balance - total;
-  const canPay = amt > 0 && total <= balance;
+  const canPay = amt >= MIN_SEND && total <= balance;
 
   const confirm = () => {
     adjustBalance(-total);
@@ -123,7 +123,10 @@ function PayBeneficiary() {
           </div>
         )}
 
-        {amt > 0 && total > balance && (
+        {amt > 0 && amt < MIN_SEND && (
+          <p className="mt-3 text-xs text-destructive text-center">Minimum send amount is {formatZAR(MIN_SEND)}.</p>
+        )}
+        {amt >= MIN_SEND && total > balance && (
           <p className="mt-3 text-xs text-destructive text-center">Insufficient balance for this transfer.</p>
         )}
 

@@ -179,7 +179,7 @@ function FeePreview({ onContinue, onBack }: { onContinue: () => void; onBack: ()
             features={[
               "No ID needed — sign up in minutes",
               "Money lands in 1–2 working days",
-              "Small fee: 1.5% per send (minimum R5)",
+              "5% per send · minimum send R20",
               "Monthly limit R2,000",
             ]}
           />
@@ -190,9 +190,9 @@ function FeePreview({ onContinue, onBack }: { onContinue: () => void; onBack: ()
             highlight
             features={[
               "Instant payments — money arrives within 10 minutes",
-              "Lower fees: 1% per send (minimum R8)",
-              "Monthly limit R25,000",
-              "Priority help when you need it",
+              "5% per send · minimum send R20",
+              "Daily limit R10,000 · Monthly limit R49,999.99",
+              "3-month deposit statement you can share",
             ]}
           />
         </div>
