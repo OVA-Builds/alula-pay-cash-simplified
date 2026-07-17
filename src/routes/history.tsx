@@ -13,6 +13,7 @@ export const Route = createFileRoute("/history")({ component: History });
 type SendVia = "download" | "email" | "whatsapp" | null;
 
 function History() {
+  const router = useRouter();
   const { transactions, firstName, plan } = useApp();
   const [via, setVia] = useState<SendVia>(null);
   const [dest, setDest] = useState("");
