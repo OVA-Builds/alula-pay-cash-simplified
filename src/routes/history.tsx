@@ -33,6 +33,15 @@ function History() {
   return (
     <AppShell>
       <div className="p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <button
+            onClick={() => (router.history.canGoBack() ? router.history.back() : router.navigate({ to: "/home" }))}
+            aria-label="Back"
+            className="h-10 w-10 rounded-full border border-border bg-card flex items-center justify-center active:scale-95 transition-transform"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+        </div>
         <h1 className="text-2xl font-bold tracking-tight">Transaction history</h1>
         <p className="text-sm text-muted-foreground mt-1">Everything that has moved in and out.</p>
 
