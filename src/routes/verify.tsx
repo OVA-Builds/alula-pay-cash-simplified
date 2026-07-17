@@ -38,9 +38,9 @@ function Verify() {
         <ul className="mt-7 space-y-2.5">
           {[
             "Instant payments — money lands within 10 minutes, not days",
-            "Monthly limit goes up to R25,000 (Basic is R2,000 per month)",
-            "Pay less on every send — only 1% (minimum R8)",
-            "Get help first when you need it",
+            "Daily limit R10,000 · Monthly limit R49,999.99",
+            "5% per send · minimum send R20 (same as Basic)",
+            "3-month deposit statement — download, email or WhatsApp",
           ].map((b) => (
             <li key={b} className="flex items-start gap-3 bg-card border border-border rounded-2xl p-3.5">
               <div className="h-7 w-7 rounded-full bg-success/15 flex items-center justify-center shrink-0">
