@@ -123,18 +123,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
 
+  const [pinAttemptsLeft, setPinAttemptsLeft] = useState(3);
+  const [pinLocked, setPinLocked] = useState(false);
+
   const signIn = useCallback((p: string, name?: string) => {
     setPhone(p);
     if (name !== undefined) setFirstName(name.trim());
     setSignedIn(true);
+    setPinAttemptsLeft(3);
+    setPinLocked(false);
+  }, []);
+  const signUp = useCallback((p: string, name: string) => {
+    // Always start a new signup on the Basic tier, unverified, with a fresh approval PIN flow.
+    setPhone(p);
+    setFirstName(name.trim());
+    setSignedIn(true);
+    setPlan("basic");
+    setVerified(false);
+    setApprovalPinState(null);
+    setPinAttemptsLeft(3);
+    setPinLocked(false);
   }, []);
   const signOut = useCallback(() => {
+    // Signing out returns the user to onboarding for the demo.
     setSignedIn(false);
-    setApprovalPinState(null);
+    setOnboarded(false);
   }, []);
   const addTransaction = useCallback((t: Transaction) => setTransactions((prev) => [t, ...prev]), []);
   const adjustBalance = useCallback((delta: number) => setBalance((b) => Math.max(0, +(b + delta).toFixed(2))), []);
-  const setApprovalPin = useCallback((p: string) => setApprovalPinState(p), []);
+  const setApprovalPin = useCallback((p: string | null) => {
+    setApprovalPinState(p);
+    setPinAttemptsLeft(3);
+    setPinLocked(false);
+  }, []);
   const setTheme = useCallback((t: "light" | "dark") => setThemeState(t), []);
   const setVerifiedWithPlan = useCallback((v: boolean) => { setVerified(v); if (v) setPlan("pro"); }, []);
   const addBeneficiary = useCallback((b: Omit<Beneficiary, "id">) => {
@@ -142,15 +163,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setBeneficiaries((prev) => [newB, ...prev]);
     return newB;
   }, []);
+  const registerPinAttempt = useCallback((correct: boolean) => {
+    if (correct) {
+      setPinAttemptsLeft(3);
+      return { locked: false, left: 3 };
+    }
+    let nextLeft = 0;
+    let locked = false;
+    setPinAttemptsLeft((prev) => {
+      nextLeft = Math.max(0, prev - 1);
+      if (nextLeft === 0) { locked = true; setPinLocked(true); }
+      return nextLeft;
+    });
+    return { locked, left: nextLeft };
+  }, []);
+  const resetPinLock = useCallback(() => {
+    setPinLocked(false);
+    setPinAttemptsLeft(3);
+    setApprovalPinState(null);
+  }, []);
 
   return (
     <AppContext.Provider
       value={{
         onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme,
         transactions, beneficiaries,
-        setOnboarded, signIn, signOut, addTransaction, adjustBalance,
+        setOnboarded, signIn, signUp, signOut, addTransaction, adjustBalance,
         setVerified: setVerifiedWithPlan,
         setApprovalPin, setAlulaOn, setTheme, addBeneficiary,
+        pinAttemptsLeft, pinLocked, registerPinAttempt, resetPinLock,
       }}
     >
       {children}
