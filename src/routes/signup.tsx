@@ -72,7 +72,7 @@ function SignUp() {
 
         <Button
           size="lg" disabled={!canSubmit}
-          onClick={() => { signIn(phone, firstName); navigate({ to: "/setup-pin" }); }}
+          onClick={() => { signUp(phone, firstName); navigate({ to: "/setup-pin" }); }}
           className="h-14 rounded-2xl text-base shadow-button"
         >
           Continue
