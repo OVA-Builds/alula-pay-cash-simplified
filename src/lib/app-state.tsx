@@ -35,14 +35,20 @@ type Ctx = {
   beneficiaries: Beneficiary[];
   setOnboarded: (v: boolean) => void;
   signIn: (phone: string, firstName?: string) => void;
+  signUp: (phone: string, firstName: string) => void;
   signOut: () => void;
   addTransaction: (t: Transaction) => void;
   adjustBalance: (delta: number) => void;
   setVerified: (v: boolean) => void;
-  setApprovalPin: (p: string) => void;
+  setApprovalPin: (p: string | null) => void;
   setAlulaOn: (v: boolean) => void;
   setTheme: (t: "light" | "dark") => void;
   addBeneficiary: (b: Omit<Beneficiary, "id">) => Beneficiary;
+  // Approval PIN attempts / lockout
+  pinAttemptsLeft: number;
+  pinLocked: boolean;
+  registerPinAttempt: (correct: boolean) => { locked: boolean; left: number };
+  resetPinLock: () => void;
 };
 
 const AppContext = createContext<Ctx | null>(null);
