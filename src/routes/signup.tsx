@@ -11,7 +11,7 @@ export const Route = createFileRoute("/signup")({ component: SignUp });
 
 function SignUp() {
   const navigate = useNavigate();
-  const { signIn } = useApp();
+  const { signUp } = useApp();
   const [firstName, setFirstName] = useState("");
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
