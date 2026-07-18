@@ -10,7 +10,7 @@ function Profile() {
   const navigate = useNavigate();
   const { phone, verified, plan, alulaOn, setAlulaOn, theme, setTheme, signOut } = useApp();
   const planLabel = plan === "pro" ? "Pro" : "Basic";
-  const handleSignOut = () => { signOut(); navigate({ to: "/login" }); };
+  const handleSignOut = () => { signOut(); navigate({ to: "/onboarding" }); };
 
   return (
     <AppShell>
