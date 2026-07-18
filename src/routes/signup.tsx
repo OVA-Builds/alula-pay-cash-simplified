@@ -11,7 +11,7 @@ export const Route = createFileRoute("/signup")({ component: SignUp });
 
 function SignUp() {
   const navigate = useNavigate();
-  const { signIn } = useApp();
+  const { signUp } = useApp();
   const [firstName, setFirstName] = useState("");
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
@@ -72,7 +72,7 @@ function SignUp() {
 
         <Button
           size="lg" disabled={!canSubmit}
-          onClick={() => { signIn(phone, firstName); navigate({ to: "/setup-pin" }); }}
+          onClick={() => { signUp(phone, firstName); navigate({ to: "/setup-pin" }); }}
           className="h-14 rounded-2xl text-base shadow-button"
         >
           Continue

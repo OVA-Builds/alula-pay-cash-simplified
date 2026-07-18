@@ -136,7 +136,12 @@ function PayBeneficiary() {
         </Button>
       </div>
 
-      <ApprovalPinDialog open={pinOpen} onOpenChange={setPinOpen} onApprove={confirm} />
+      <ApprovalPinDialog
+        open={pinOpen}
+        onOpenChange={setPinOpen}
+        onApprove={confirm}
+        summary={{ recipient: bene.name, amount: amt, fee: fee?.fee ?? 0, total }}
+      />
     </AppShell>
   );
 }

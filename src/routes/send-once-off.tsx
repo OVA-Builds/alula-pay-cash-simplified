@@ -181,7 +181,12 @@ function OnceOff() {
         </Button>
       </div>
 
-      <ApprovalPinDialog open={pinOpen} onOpenChange={setPinOpen} onApprove={confirm} />
+      <ApprovalPinDialog
+        open={pinOpen}
+        onOpenChange={setPinOpen}
+        onApprove={confirm}
+        summary={{ recipient: name || (bank?.name ?? "Recipient"), amount: amt, fee: fee?.fee ?? 0, total }}
+      />
     </AppShell>
   );
 }
