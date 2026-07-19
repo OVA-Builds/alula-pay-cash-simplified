@@ -129,6 +129,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const [pinAttemptsLeft, setPinAttemptsLeft] = useState(3);
   const [pinLocked, setPinLocked] = useState(false);
+  const [guideMode, setGuideMode] = useState<"deposit" | "withdraw" | null>(null);
+  const startGuide = useCallback((m: "deposit" | "withdraw") => setGuideMode(m), []);
+  const stopGuide = useCallback(() => setGuideMode(null), []);
 
   const signIn = useCallback((p: string, name?: string) => {
     setPhone(p);
