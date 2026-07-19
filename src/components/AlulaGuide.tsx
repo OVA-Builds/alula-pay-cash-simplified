@@ -1,6 +1,6 @@
 import { useEffect, useState, useLayoutEffect } from "react";
 import { Sparkles, X, ArrowDown, ArrowDownLeft } from "lucide-react";
-import { useLocation, useNavigate } from "@tanstack/react-router";
+import { useLocation } from "@tanstack/react-router";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/app-state";
