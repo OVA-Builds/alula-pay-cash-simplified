@@ -205,7 +205,7 @@ function Home() {
         </div>
       </div>
 
-      <AlulaGuide />
+      
     </AppShell>
   );
 }
