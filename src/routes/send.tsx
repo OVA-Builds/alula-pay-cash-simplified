@@ -7,7 +7,7 @@ export const Route = createFileRoute("/send")({ component: SendChoose });
 
 function SendChoose() {
   const navigate = useNavigate();
-  const { balance, beneficiaries } = useApp();
+  const { balance, beneficiaries, stopGuide } = useApp();
 
   return (
     <AppShell>
