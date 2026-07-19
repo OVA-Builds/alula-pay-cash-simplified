@@ -199,6 +199,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setVerified: setVerifiedWithPlan,
         setApprovalPin, setAlulaOn, setTheme, addBeneficiary,
         pinAttemptsLeft, pinLocked, registerPinAttempt, resetPinLock,
+        guideMode, startGuide, stopGuide,
       }}
     >
       {children}
