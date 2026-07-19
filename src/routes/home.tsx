@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Ticket, Send, Bell, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Users, TrendingUp, TrendingDown } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { AlulaGuide } from "@/components/AlulaGuide";
 import { useApp, formatZAR, TIER_LIMITS } from "@/lib/app-state";
 import logo from "@/assets/alula-logo.png";
 
