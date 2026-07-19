@@ -49,6 +49,10 @@ type Ctx = {
   pinLocked: boolean;
   registerPinAttempt: (correct: boolean) => { locked: boolean; left: number };
   resetPinLock: () => void;
+  // Alula in-app guided tour
+  guideMode: "deposit" | "withdraw" | null;
+  startGuide: (m: "deposit" | "withdraw") => void;
+  stopGuide: () => void;
 };
 
 const AppContext = createContext<Ctx | null>(null);
