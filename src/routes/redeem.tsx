@@ -18,7 +18,7 @@ const TYPES: VoucherType[] = [
 
 function Redeem() {
   const navigate = useNavigate();
-  const { addTransaction, adjustBalance } = useApp();
+  const { addTransaction, adjustBalance, stopGuide } = useApp();
   const [type, setType] = useState<VoucherType | null>(null);
   const [code, setCode] = useState("");
   const [done, setDone] = useState<number | null>(null);
