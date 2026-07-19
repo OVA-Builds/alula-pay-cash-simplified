@@ -18,9 +18,10 @@ function SendChoose() {
         <h1 className="mt-6 text-2xl font-bold tracking-tight">Send money</h1>
         <p className="mt-2 text-muted-foreground text-sm">Available: <span className="font-medium text-foreground">{formatZAR(balance)}</span></p>
 
-        <div className="mt-8 space-y-3">
+        <div id="guide-send-options" className="mt-8 space-y-3">
           <Link
             to="/beneficiaries"
+            onClick={() => stopGuide()}
             className="block bg-card rounded-2xl border border-border p-5 active:scale-[0.99] transition-transform"
           >
             <div className="flex items-center gap-4">
@@ -39,6 +40,7 @@ function SendChoose() {
 
           <Link
             to="/send-once-off"
+            onClick={() => stopGuide()}
             className="block bg-card rounded-2xl border border-border p-5 active:scale-[0.99] transition-transform"
           >
             <div className="flex items-center gap-4">
