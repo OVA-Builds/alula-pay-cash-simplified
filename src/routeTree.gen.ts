@@ -21,6 +21,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as DemoVouchersRouteImport } from './routes/demo-vouchers'
 import { Route as BeneficiariesRouteImport } from './routes/beneficiaries'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PayBeneficiaryIdRouteImport } from './routes/pay-beneficiary.$id'
@@ -85,6 +86,11 @@ const HistoryRoute = HistoryRouteImport.update({
   path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DemoVouchersRoute = DemoVouchersRouteImport.update({
+  id: '/demo-vouchers',
+  path: '/demo-vouchers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BeneficiariesRoute = BeneficiariesRouteImport.update({
   id: '/beneficiaries',
   path: '/beneficiaries',
@@ -104,6 +110,7 @@ const PayBeneficiaryIdRoute = PayBeneficiaryIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/beneficiaries': typeof BeneficiariesRoute
+  '/demo-vouchers': typeof DemoVouchersRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
@@ -121,6 +128,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/beneficiaries': typeof BeneficiariesRoute
+  '/demo-vouchers': typeof DemoVouchersRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/beneficiaries': typeof BeneficiariesRoute
+  '/demo-vouchers': typeof DemoVouchersRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/beneficiaries'
+    | '/demo-vouchers'
     | '/history'
     | '/home'
     | '/login'
@@ -175,6 +185,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/beneficiaries'
+    | '/demo-vouchers'
     | '/history'
     | '/home'
     | '/login'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/beneficiaries'
+    | '/demo-vouchers'
     | '/history'
     | '/home'
     | '/login'
@@ -210,6 +222,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BeneficiariesRoute: typeof BeneficiariesRoute
+  DemoVouchersRoute: typeof DemoVouchersRoute
   HistoryRoute: typeof HistoryRoute
   HomeRoute: typeof HomeRoute
   LoginRoute: typeof LoginRoute
@@ -311,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/demo-vouchers': {
+      id: '/demo-vouchers'
+      path: '/demo-vouchers'
+      fullPath: '/demo-vouchers'
+      preLoaderRoute: typeof DemoVouchersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/beneficiaries': {
       id: '/beneficiaries'
       path: '/beneficiaries'
@@ -338,6 +358,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BeneficiariesRoute: BeneficiariesRoute,
+  DemoVouchersRoute: DemoVouchersRoute,
   HistoryRoute: HistoryRoute,
   HomeRoute: HomeRoute,
   LoginRoute: LoginRoute,

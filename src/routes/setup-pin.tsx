@@ -25,7 +25,7 @@ function SetupPin() {
           setTimeout(() => { setFirst(next); setPin(""); setStage("confirm"); }, 150);
         } else {
           setTimeout(() => {
-            if (next === first) { setApprovalPin(next); navigate({ to: "/home" }); }
+            if (next === first) { setApprovalPin(next); navigate({ to: "/demo-vouchers" }); }
             else { setError("PINs don't match. Try again."); setPin(""); setStage("create"); setFirst(""); }
           }, 150);
         }
