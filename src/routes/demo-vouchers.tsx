@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Copy, Check, Sparkles, PartyPopper, Ticket } from "lucide-react";
+import { Copy, Check, Sparkles, Ticket } from "lucide-react";
 import { PhoneFrame } from "@/components/PhoneFrame";
 
 export const Route = createFileRoute("/demo-vouchers")({ component: DemoVouchers });
