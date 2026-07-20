@@ -18,6 +18,10 @@ function History() {
   const [via, setVia] = useState<SendVia>(null);
   const [dest, setDest] = useState("");
   const [sent, setSent] = useState(false);
+  const [filter, setFilter] = useState<"all" | "in" | "out">("all");
+  const filtered = transactions.filter((t) =>
+    filter === "all" ? true : filter === "in" ? t.amount > 0 : t.amount < 0
+  );
 
   const openStatement = (mode: Exclude<SendVia, null>) => {
     setSent(false);
@@ -73,8 +77,29 @@ function History() {
           )}
         </div>
 
-        <div className="mt-6 bg-card rounded-2xl border border-border divide-y divide-border">
-          {transactions.map((t) => {
+        <div className="mt-6 grid grid-cols-3 gap-2 p-1 bg-muted rounded-2xl">
+          {([
+            { k: "all", label: "All" },
+            { k: "in", label: "Money in" },
+            { k: "out", label: "Money out" },
+          ] as const).map((opt) => (
+            <button
+              key={opt.k}
+              onClick={() => setFilter(opt.k)}
+              className={`h-9 rounded-xl text-xs font-semibold transition-colors ${
+                filter === opt.k ? "bg-card text-foreground shadow-soft" : "text-muted-foreground"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-3 bg-card rounded-2xl border border-border divide-y divide-border">
+          {filtered.length === 0 && (
+            <p className="p-6 text-center text-xs text-muted-foreground">No {filter === "in" ? "incoming" : filter === "out" ? "outgoing" : ""} transactions yet.</p>
+          )}
+          {filtered.map((t) => {
             const positive = t.amount > 0;
             return (
               <div key={t.id} className="flex items-center gap-3 p-4">

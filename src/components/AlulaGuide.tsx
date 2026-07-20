@@ -71,17 +71,20 @@ export function AlulaGuide() {
   }, [guideMode, pathname, currentStep, steps.length, stopGuide]);
 
   if (!alulaOn) return null;
+  const onHome = pathname === "/home";
 
   return (
     <>
-      <button
-        onClick={() => setMenuOpen(true)}
-        className="fixed bottom-24 right-5 z-40 h-14 pl-3 pr-4 rounded-full bg-gradient-gold shadow-gold flex items-center gap-2 active:scale-95 transition-transform"
-        aria-label="Alula assistant — Help"
-      >
-        <Sparkles className="h-5 w-5 text-gold-foreground" strokeWidth={2.4} />
-        <span className="text-sm font-bold text-gold-foreground">Help</span>
-      </button>
+      {onHome && (
+        <button
+          onClick={() => setMenuOpen(true)}
+          className="fixed bottom-24 right-5 z-40 h-14 pl-3 pr-4 rounded-full bg-gradient-gold shadow-gold flex items-center gap-2 active:scale-95 transition-transform"
+          aria-label="Alula assistant — Help"
+        >
+          <Sparkles className="h-5 w-5 text-gold-foreground" strokeWidth={2.4} />
+          <span className="text-sm font-bold text-gold-foreground">Help</span>
+        </button>
+      )}
 
       <Dialog open={menuOpen} onOpenChange={setMenuOpen}>
         <DialogContent className="rounded-3xl max-w-sm">
