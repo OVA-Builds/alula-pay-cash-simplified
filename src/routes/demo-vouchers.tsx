@@ -9,9 +9,8 @@ type Voucher = {
   id: "ott" | "blu" | "1v";
   supplier: string;
   code: string;
-  gradient: string;   // tailwind classes for card background
-  accent: string;     // tailwind text color for supplier label
-  emoji: string;
+  gradient: string;
+  accent: string;
 };
 
 const VOUCHERS: Voucher[] = [
@@ -21,7 +20,6 @@ const VOUCHERS: Voucher[] = [
     code: "123456789012",
     gradient: "from-blue-500 via-blue-600 to-indigo-700",
     accent: "text-blue-100",
-    emoji: "🎫",
   },
   {
     id: "blu",
@@ -29,7 +27,6 @@ const VOUCHERS: Voucher[] = [
     code: "1234567890123456",
     gradient: "from-cyan-400 via-sky-500 to-blue-600",
     accent: "text-cyan-50",
-    emoji: "💎",
   },
   {
     id: "1v",
@@ -37,7 +34,6 @@ const VOUCHERS: Voucher[] = [
     code: "1234567890123456",
     gradient: "from-pink-500 via-rose-500 to-orange-500",
     accent: "text-pink-50",
-    emoji: "🎁",
   },
 ];
 
