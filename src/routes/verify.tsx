@@ -9,14 +9,23 @@ export const Route = createFileRoute("/verify")({ component: Verify });
 
 function Verify() {
   const navigate = useNavigate();
-  const { setVerified } = useApp();
+  const { setVerified, balance, adjustBalance } = useApp();
   const [stage, setStage] = useState<"intro" | "capturing" | "checking">("intro");
+  const PRO_FEE = 10;
+  const canUpgrade = balance >= PRO_FEE;
 
   const start = () => {
+    if (!canUpgrade) return;
     setStage("capturing");
     setTimeout(() => setStage("checking"), 1400);
-    setTimeout(() => { setVerified(true); navigate({ to: "/home" }); }, 2800);
+    setTimeout(() => {
+      // Charge first month's Pro subscription on upgrade.
+      adjustBalance(-PRO_FEE);
+      setVerified(true);
+      navigate({ to: "/home" });
+    }, 2800);
   };
+
 
   return (
     <AppShell hideNav>
