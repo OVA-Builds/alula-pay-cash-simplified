@@ -69,17 +69,17 @@ function DemoVouchers() {
       >
 
         <div className="relative flex items-center gap-2 mt-2">
-          <div className="h-10 w-10 rounded-2xl bg-gradient-gold flex items-center justify-center shadow-gold">
-            <PartyPopper className="h-5 w-5 text-gold-foreground" />
+          <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <Ticket className="h-5 w-5 text-primary" />
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-primary">Welcome gift</p>
-            <p className="text-sm text-muted-foreground">You're all set up!</p>
+            <p className="text-sm text-muted-foreground">You're all set up.</p>
           </div>
         </div>
 
         <h1 className="relative mt-5 text-[26px] leading-tight font-bold tracking-tight">
-          Try Alula Pay <span className="text-primary">for free</span> 🎉
+          Try Alula Pay <span className="text-primary">for free</span>
         </h1>
         <p className="relative mt-2 text-sm text-muted-foreground max-w-xs">
           Here are three demo voucher pins. Copy one, then tap Redeem on your home screen to load your wallet.
