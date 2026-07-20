@@ -160,7 +160,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setOnboarded(false);
   }, []);
   const addTransaction = useCallback((t: Transaction) => setTransactions((prev) => [t, ...prev]), []);
-  const adjustBalance = useCallback((delta: number) => setBalance((b) => Math.max(0, +(b + delta).toFixed(2))), []);
+  const adjustBalance = useCallback((delta: number) => setBalance((b) => +(b + delta).toFixed(2)), []);
   const setApprovalPin = useCallback((p: string | null) => {
     setApprovalPinState(p);
     setPinAttemptsLeft(3);
