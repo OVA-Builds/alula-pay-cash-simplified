@@ -184,7 +184,17 @@ function Home() {
           <Link to="/history" className="text-xs text-primary font-medium">See all</Link>
         </div>
         <div className="bg-card rounded-2xl border border-border divide-y divide-border">
-          {recent.map((t) => (
+          {recent.length === 0 ? (
+            <div className="p-6 text-center">
+              <div className="mx-auto h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                <Ticket className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <p className="text-sm font-semibold mt-3">No transactions yet</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Redeem a voucher to load your wallet and get started.
+              </p>
+            </div>
+          ) : recent.map((t) => (
             <div key={t.id} className="flex items-center gap-3 p-4">
               <div className={`h-10 w-10 rounded-full flex items-center justify-center ${t.amount > 0 ? "bg-success/10" : "bg-muted"}`}>
                 {t.amount > 0 ? (

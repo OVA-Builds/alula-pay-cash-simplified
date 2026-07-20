@@ -9,14 +9,23 @@ export const Route = createFileRoute("/verify")({ component: Verify });
 
 function Verify() {
   const navigate = useNavigate();
-  const { setVerified } = useApp();
+  const { setVerified, balance, adjustBalance } = useApp();
   const [stage, setStage] = useState<"intro" | "capturing" | "checking">("intro");
+  const PRO_FEE = 10;
+  const canUpgrade = balance >= PRO_FEE;
 
   const start = () => {
+    if (!canUpgrade) return;
     setStage("capturing");
     setTimeout(() => setStage("checking"), 1400);
-    setTimeout(() => { setVerified(true); navigate({ to: "/home" }); }, 2800);
+    setTimeout(() => {
+      // Charge first month's Pro subscription on upgrade.
+      adjustBalance(-PRO_FEE);
+      setVerified(true);
+      navigate({ to: "/home" });
+    }, 2800);
   };
+
 
   return (
     <AppShell hideNav>
@@ -75,9 +84,19 @@ function Verify() {
         <div className="flex-1" />
 
         {stage === "intro" && (
-          <Button size="lg" onClick={start} className="h-14 w-full rounded-2xl text-base shadow-button">
-            Take selfie
-          </Button>
+          <>
+            {!canUpgrade && (
+              <div className="mb-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-3.5 text-center">
+                <p className="text-sm font-semibold text-destructive">You need at least R10.00 to upgrade</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Pro costs R10 a month. Redeem a voucher to top up, then come back.
+                </p>
+              </div>
+            )}
+            <Button size="lg" onClick={start} disabled={!canUpgrade} className="h-14 w-full rounded-2xl text-base shadow-button">
+              {canUpgrade ? "Take selfie" : "Top up to continue"}
+            </Button>
+          </>
         )}
       </div>
     </AppShell>
