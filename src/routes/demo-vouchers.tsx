@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Copy, Check, Sparkles, PartyPopper, ArrowRight, Ticket } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Copy, Check, Sparkles, PartyPopper, Ticket } from "lucide-react";
 import { PhoneFrame } from "@/components/PhoneFrame";
 
 export const Route = createFileRoute("/demo-vouchers")({ component: DemoVouchers });
@@ -10,9 +9,8 @@ type Voucher = {
   id: "ott" | "blu" | "1v";
   supplier: string;
   code: string;
-  gradient: string;   // tailwind classes for card background
-  accent: string;     // tailwind text color for supplier label
-  emoji: string;
+  gradient: string;
+  accent: string;
 };
 
 const VOUCHERS: Voucher[] = [
@@ -22,7 +20,6 @@ const VOUCHERS: Voucher[] = [
     code: "123456789012",
     gradient: "from-blue-500 via-blue-600 to-indigo-700",
     accent: "text-blue-100",
-    emoji: "🎫",
   },
   {
     id: "blu",
@@ -30,7 +27,6 @@ const VOUCHERS: Voucher[] = [
     code: "1234567890123456",
     gradient: "from-cyan-400 via-sky-500 to-blue-600",
     accent: "text-cyan-50",
-    emoji: "💎",
   },
   {
     id: "1v",
@@ -38,7 +34,6 @@ const VOUCHERS: Voucher[] = [
     code: "1234567890123456",
     gradient: "from-pink-500 via-rose-500 to-orange-500",
     accent: "text-pink-50",
-    emoji: "🎁",
   },
 ];
 
@@ -104,8 +99,6 @@ function DemoVouchers() {
                 }`}
               >
                 <div className={`rounded-[14px] p-4 bg-gradient-to-br ${v.gradient} text-white relative overflow-hidden`}>
-                  <span className="absolute -right-6 -bottom-6 text-6xl opacity-15 select-none">{v.emoji}</span>
-
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Ticket className="h-4 w-4" />
@@ -113,7 +106,6 @@ function DemoVouchers() {
                         {v.supplier}
                       </p>
                     </div>
-                    <span className="text-lg">{v.emoji}</span>
                   </div>
 
                   <p className="mt-2 font-mono text-[17px] font-bold tracking-[0.15em] break-all">
@@ -157,15 +149,10 @@ function DemoVouchers() {
 
         <div className="flex-1" />
 
-        <Button
-          size="lg"
-          variant="secondary"
-          onClick={() => { setLeaving(true); setTimeout(() => navigate({ to: "/home" }), 400); }}
-          className="relative h-12 rounded-2xl mt-4 flex items-center justify-center gap-2"
-        >
-          Skip for now
-          <ArrowRight className="h-4 w-4" />
-        </Button>
+        <p className="relative mt-4 text-center text-xs text-muted-foreground">
+          Tap <b>Copy voucher pin</b> above to continue to your wallet.
+        </p>
+
       </div>
     </PhoneFrame>
   );

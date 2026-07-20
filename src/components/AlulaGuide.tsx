@@ -131,11 +131,21 @@ function GuideStep({ step, index, total }: { step: Step; index: number; total: n
       const el = document.getElementById(step.targetId);
       setRect(el ? el.getBoundingClientRect() : null);
     };
+    // Auto-scroll target into center on mount / step change
+    const el = document.getElementById(step.targetId);
+    if (el) {
+      try { el.scrollIntoView({ behavior: "smooth", block: "center" }); } catch { el.scrollIntoView(); }
+    }
+    // Re-measure shortly after the smooth scroll settles
+    const t1 = window.setTimeout(measure, 350);
+    const t2 = window.setTimeout(measure, 700);
     measure();
     const id = window.setInterval(measure, 250);
     window.addEventListener("resize", measure);
     window.addEventListener("scroll", measure, true);
     return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
       window.clearInterval(id);
       window.removeEventListener("resize", measure);
       window.removeEventListener("scroll", measure, true);
