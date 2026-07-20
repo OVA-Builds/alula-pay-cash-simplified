@@ -84,9 +84,19 @@ function Verify() {
         <div className="flex-1" />
 
         {stage === "intro" && (
-          <Button size="lg" onClick={start} className="h-14 w-full rounded-2xl text-base shadow-button">
-            Take selfie
-          </Button>
+          <>
+            {!canUpgrade && (
+              <div className="mb-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-3.5 text-center">
+                <p className="text-sm font-semibold text-destructive">You need at least R10.00 to upgrade</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Pro costs R10 a month. Redeem a voucher to top up, then come back.
+                </p>
+              </div>
+            )}
+            <Button size="lg" onClick={start} disabled={!canUpgrade} className="h-14 w-full rounded-2xl text-base shadow-button">
+              {canUpgrade ? "Take selfie" : "Top up to continue"}
+            </Button>
+          </>
         )}
       </div>
     </AppShell>
