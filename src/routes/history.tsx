@@ -18,6 +18,10 @@ function History() {
   const [via, setVia] = useState<SendVia>(null);
   const [dest, setDest] = useState("");
   const [sent, setSent] = useState(false);
+  const [filter, setFilter] = useState<"all" | "in" | "out">("all");
+  const filtered = transactions.filter((t) =>
+    filter === "all" ? true : filter === "in" ? t.amount > 0 : t.amount < 0
+  );
 
   const openStatement = (mode: Exclude<SendVia, null>) => {
     setSent(false);
