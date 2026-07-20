@@ -157,15 +157,10 @@ function DemoVouchers() {
 
         <div className="flex-1" />
 
-        <Button
-          size="lg"
-          variant="secondary"
-          onClick={() => { setLeaving(true); setTimeout(() => navigate({ to: "/home" }), 400); }}
-          className="relative h-12 rounded-2xl mt-4 flex items-center justify-center gap-2"
-        >
-          Skip for now
-          <ArrowRight className="h-4 w-4" />
-        </Button>
+        <p className="relative mt-4 text-center text-xs text-muted-foreground">
+          Tap <b>Copy voucher pin</b> above to continue to your wallet.
+        </p>
+
       </div>
     </PhoneFrame>
   );
