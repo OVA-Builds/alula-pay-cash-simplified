@@ -71,6 +71,7 @@ export function AlulaGuide() {
   }, [guideMode, pathname, currentStep, steps.length, stopGuide]);
 
   if (!alulaOn) return null;
+  const onHome = pathname === "/home";
 
   return (
     <>
