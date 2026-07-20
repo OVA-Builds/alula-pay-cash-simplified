@@ -99,8 +99,6 @@ function DemoVouchers() {
                 }`}
               >
                 <div className={`rounded-[14px] p-4 bg-gradient-to-br ${v.gradient} text-white relative overflow-hidden`}>
-                  <span className="absolute -right-6 -bottom-6 text-6xl opacity-15 select-none">{v.emoji}</span>
-
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Ticket className="h-4 w-4" />
@@ -108,7 +106,6 @@ function DemoVouchers() {
                         {v.supplier}
                       </p>
                     </div>
-                    <span className="text-lg">{v.emoji}</span>
                   </div>
 
                   <p className="mt-2 font-mono text-[17px] font-bold tracking-[0.15em] break-all">
