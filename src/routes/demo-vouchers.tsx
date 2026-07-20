@@ -67,9 +67,6 @@ function DemoVouchers() {
           leaving ? "opacity-0 scale-[0.98]" : "opacity-100"
         }`}
       >
-        {/* Floating confetti-ish blobs for fun */}
-        <span className="pointer-events-none absolute -top-10 -left-10 h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
-        <span className="pointer-events-none absolute top-40 -right-16 h-52 w-52 rounded-full bg-gold/25 blur-3xl" />
 
         <div className="relative flex items-center gap-2 mt-2">
           <div className="h-10 w-10 rounded-2xl bg-gradient-gold flex items-center justify-center shadow-gold">
