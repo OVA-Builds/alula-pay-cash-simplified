@@ -144,6 +144,8 @@ function GuideStep({ step, index, total }: { step: Step; index: number; total: n
     window.addEventListener("resize", measure);
     window.addEventListener("scroll", measure, true);
     return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
       window.clearInterval(id);
       window.removeEventListener("resize", measure);
       window.removeEventListener("scroll", measure, true);
