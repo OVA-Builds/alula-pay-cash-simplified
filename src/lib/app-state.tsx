@@ -157,7 +157,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
   const signUp = useCallback((p: string, name: string) => {
     // Always start a new signup on the Basic tier, unverified, with a fresh approval PIN flow.
-    // New account: balance = -R5 (owes first month's Basic subscription), no transaction history.
+    // New account: balance = -R5 (owes first month's Basic subscription).
+    const activationTx: Transaction = {
+      id: crypto.randomUUID(),
+      type: "transfer",
+      amount: -MONTHLY_FEE.basic,
+      label: "App activation",
+      status: "Completed",
+      createdAt: Date.now(),
+    };
     setPhone(p);
     setFirstName(name.trim());
     setSignedIn(true);
@@ -167,7 +175,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setPinAttemptsLeft(3);
     setPinLocked(false);
     setBalance(-MONTHLY_FEE.basic);
-    setTransactions([]);
+    setTransactions([activationTx]);
   }, []);
   const signOut = useCallback(() => {
     // Signing out returns the user to onboarding for the demo.
