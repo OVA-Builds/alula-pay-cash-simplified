@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Ticket, Send, Bell, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Users, TrendingUp, TrendingDown } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { useApp, formatZAR, TIER_LIMITS } from "@/lib/app-state";
+import { useApp, formatZAR, formatTxDate, TIER_LIMITS } from "@/lib/app-state";
 import logo from "@/assets/alula-logo.png";
 
 export const Route = createFileRoute("/home")({ component: Home });
@@ -205,7 +205,7 @@ function Home() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{t.label}</p>
-                <p className="text-xs text-muted-foreground">{t.date}</p>
+                <p className="text-xs text-muted-foreground">{formatTxDate(t)}</p>
               </div>
               <p className={`text-sm font-semibold ${t.amount > 0 ? "text-success" : "text-destructive"}`}>
                 {t.amount > 0 ? "+" : ""}{formatZAR(t.amount)}

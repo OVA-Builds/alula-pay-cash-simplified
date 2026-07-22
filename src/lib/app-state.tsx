@@ -6,7 +6,8 @@ export type Transaction = {
   amount: number;
   label: string;
   status: "Completed" | "Pending";
-  date: string;
+  date?: string;
+  createdAt?: number;
 };
 
 export type Beneficiary = {
@@ -57,10 +58,24 @@ type Ctx = {
 
 const AppContext = createContext<Ctx | null>(null);
 
+const now = new Date();
+
+const todayAt = (h: number, m: number) =>
+  new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m).getTime();
+
+const yesterdayAt = (h: number, m: number) => {
+  const d = new Date(now);
+  d.setDate(now.getDate() - 1);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), h, m).getTime();
+};
+
+const dateAt = (month: number, day: number, h: number, m: number) =>
+  new Date(now.getFullYear(), month - 1, day, h, m).getTime();
+
 const sampleTx: Transaction[] = [
-  { id: "t1", type: "redeem", amount: 200, label: "OTT voucher redeemed", status: "Completed", date: "Today, 10:24" },
-  { id: "t2", type: "transfer", amount: -152.25, label: "Sent to Thandi Nkosi", status: "Completed", date: "Yesterday, 18:02" },
-  { id: "t3", type: "redeem", amount: 500, label: "Blu voucher redeemed", status: "Completed", date: "12 May" },
+  { id: "t1", type: "redeem", amount: 200, label: "OTT voucher redeemed", status: "Completed", createdAt: todayAt(10, 24) },
+  { id: "t2", type: "transfer", amount: -152.25, label: "Sent to Thandi Nkosi", status: "Completed", createdAt: yesterdayAt(18, 2) },
+  { id: "t3", type: "redeem", amount: 500, label: "Blu voucher redeemed", status: "Completed", createdAt: dateAt(5, 12, 14, 30) },
 ];
 
 const sampleBenes: Beneficiary[] = [
@@ -159,7 +174,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSignedIn(false);
     setOnboarded(false);
   }, []);
-  const addTransaction = useCallback((t: Transaction) => setTransactions((prev) => [t, ...prev]), []);
+const addTransaction = useCallback((t: Transaction) => {
+  const enriched: Transaction = { ...t, createdAt: t.createdAt ?? Date.now() };
+  setTransactions((prev) => [enriched, ...prev]);
+}, []);
   const adjustBalance = useCallback((delta: number) => setBalance((b) => +(b + delta).toFixed(2)), []);
   const setApprovalPin = useCallback((p: string | null) => {
     setApprovalPinState(p);
@@ -224,6 +242,31 @@ export const formatZAR = (n: number) => {
   const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return `${neg ? "-" : ""}R${withCommas}.${decPart}`;
 };
+
+export function formatTxDate(t: Transaction): string {
+  if (t.date && !t.createdAt) return t.date;
+
+  const ts = t.createdAt ?? Date.now();
+  const d = new Date(ts);
+  const now = new Date();
+
+  const isSameDay = (a: Date, b: Date) =>
+    a.getDate() === b.getDate() &&
+    a.getMonth() === b.getMonth() &&
+    a.getFullYear() === b.getFullYear();
+
+  const isToday = isSameDay(d, now);
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = isSameDay(d, yesterday);
+
+  const time = d.toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" });
+  if (isToday) return `Today, ${time}`;
+  if (isYesterday) return `Yesterday, ${time}`;
+
+  const date = d.toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" });
+  return `${date}, ${time}`;
+}
 
 // Fee logic from Alula Pay business plan (2025 v2):
 // - Both tiers: 5% per send, R20 minimum send amount.

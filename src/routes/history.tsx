@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { useApp, formatZAR } from "@/lib/app-state";
+import { useApp, formatZAR, formatTxDate } from "@/lib/app-state";
 
 export const Route = createFileRoute("/history")({ component: History });
 
@@ -113,7 +113,7 @@ function History() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">{t.label}</p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xs text-muted-foreground">{t.date}</span>
+                    <span className="text-xs text-muted-foreground">{formatTxDate(t)}</span>
                     <span className="text-xs text-muted-foreground">•</span>
                     <span className="text-xs capitalize text-muted-foreground">{t.type}</span>
                   </div>
