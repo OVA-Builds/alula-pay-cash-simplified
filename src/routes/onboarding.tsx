@@ -54,7 +54,7 @@ function Onboarding() {
   return (
     <PhoneFrame>
       <div
-        className="flex flex-col min-h-screen sm:min-h-[860px] relative overflow-hidden"
+        className="flex flex-col min-h-full h-full relative overflow-y-auto overscroll-contain"
         style={{ backgroundColor: "#F5EFE4", color: "#0B1F4D" }}
       >
         {/* Header */}
@@ -165,7 +165,7 @@ function Onboarding() {
 function FeePreview({ onContinue, onBack }: { onContinue: () => void; onBack: () => void }) {
   return (
     <PhoneFrame>
-      <div className="flex flex-col min-h-screen sm:min-h-[860px] p-7">
+      <div className="flex flex-col min-h-full h-full overflow-y-auto overscroll-contain p-7">
         <button onClick={onBack} className="text-sm text-muted-foreground self-start">← Back</button>
         <h1 className="mt-4 text-3xl font-bold tracking-tight">Honest pricing</h1>
         <p className="mt-2 text-muted-foreground">No hidden fees. You always see the cost before you confirm.</p>
