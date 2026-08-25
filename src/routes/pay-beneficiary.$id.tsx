@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { AppShell } from "@/components/AppShell";
 import { ApprovalPinDialog } from "@/components/ApprovalPinDialog";
 import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy, MIN_SEND } from "@/lib/app-state";
+import { RailToggle } from "@/components/RailToggle";
+
 
 export const Route = createFileRoute("/pay-beneficiary/$id")({ component: PayBeneficiary });
 
