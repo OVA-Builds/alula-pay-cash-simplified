@@ -9,6 +9,8 @@ import { AppShell } from "@/components/AppShell";
 import { ApprovalPinDialog } from "@/components/ApprovalPinDialog";
 import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy, MIN_SEND } from "@/lib/app-state";
 import { SA_BANKS, type Bank } from "@/lib/banks";
+import { RailToggle } from "@/components/RailToggle";
+
 
 export const Route = createFileRoute("/send-once-off")({ component: OnceOff });
 
