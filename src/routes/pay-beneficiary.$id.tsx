@@ -21,6 +21,8 @@ function PayBeneficiary() {
   const [reference, setReference] = useState(bene?.reference ?? "");
   const [pinOpen, setPinOpen] = useState(false);
   const [done, setDone] = useState(false);
+  const [rail, setRail] = useState<"EFT" | "RTC">(plan === "pro" ? "RTC" : "EFT");
+  const activeRail: "EFT" | "RTC" = plan === "pro" ? rail : "EFT";
 
   if (!bene) {
     return (
@@ -34,9 +36,10 @@ function PayBeneficiary() {
   }
 
   const amt = Number(amount) || 0;
-  const fee = amt > 0 ? calcTransferFee(amt, plan) : null;
+  const fee = amt > 0 ? calcTransferFee(amt, plan, activeRail) : null;
   const total = amt + (fee?.fee ?? 0);
   const newBalance = balance - total;
+
   const canPay = amt >= MIN_SEND && total <= balance;
 
   const confirm = () => {
