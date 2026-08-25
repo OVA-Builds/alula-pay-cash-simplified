@@ -117,7 +117,12 @@ function PayBeneficiary() {
           </div>
         </div>
 
+        <div className="mt-5">
+          <RailToggle amount={amt} plan={plan} value={activeRail} onChange={setRail} />
+        </div>
+
         {amt > 0 && fee && (
+
           <div className="mt-5 rounded-2xl bg-card border border-border p-4 space-y-2 animate-float-up">
             <Row label={`Fee (${railLabel(fee.rail)})`} value={formatZAR(fee.fee)} muted />
             <Row label="Total" value={formatZAR(total)} bold />
