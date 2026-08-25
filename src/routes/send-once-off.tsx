@@ -9,6 +9,8 @@ import { AppShell } from "@/components/AppShell";
 import { ApprovalPinDialog } from "@/components/ApprovalPinDialog";
 import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy, MIN_SEND } from "@/lib/app-state";
 import { SA_BANKS, type Bank } from "@/lib/banks";
+import { RailToggle } from "@/components/RailToggle";
+
 
 export const Route = createFileRoute("/send-once-off")({ component: OnceOff });
 
@@ -26,10 +28,13 @@ function OnceOff() {
   const [amount, setAmount] = useState("");
   const [save, setSave] = useState(false);
   const [pinOpen, setPinOpen] = useState(false);
+  const [rail, setRail] = useState<"EFT" | "RTC">(plan === "pro" ? "RTC" : "EFT");
+  const activeRail: "EFT" | "RTC" = plan === "pro" ? rail : "EFT";
 
   const amt = Number(amount) || 0;
-  const fee = amt > 0 ? calcTransferFee(amt, plan) : null;
+  const fee = amt > 0 ? calcTransferFee(amt, plan, activeRail) : null;
   const total = amt + (fee?.fee ?? 0);
+
   const newBalance = balance - total;
   const canPay = !!bank && name.trim().length >= 2 && account.length >= 6 && amt >= MIN_SEND && total <= balance;
 
@@ -149,7 +154,12 @@ function OnceOff() {
           </div>
         </div>
 
+        <div className="mt-5">
+          <RailToggle amount={amt} plan={plan} value={activeRail} onChange={setRail} />
+        </div>
+
         {amt > 0 && fee && (
+
           <div className="mt-5 rounded-2xl bg-card border border-border p-4 space-y-2 animate-float-up">
             <Row label={`Fee (${railLabel(fee.rail)})`} value={formatZAR(fee.fee)} muted />
             <Row label="Total" value={formatZAR(total)} bold />

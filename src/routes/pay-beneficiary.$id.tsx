@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { AppShell } from "@/components/AppShell";
 import { ApprovalPinDialog } from "@/components/ApprovalPinDialog";
 import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy, MIN_SEND } from "@/lib/app-state";
+import { RailToggle } from "@/components/RailToggle";
+
 
 export const Route = createFileRoute("/pay-beneficiary/$id")({ component: PayBeneficiary });
 
@@ -19,6 +21,8 @@ function PayBeneficiary() {
   const [reference, setReference] = useState(bene?.reference ?? "");
   const [pinOpen, setPinOpen] = useState(false);
   const [done, setDone] = useState(false);
+  const [rail, setRail] = useState<"EFT" | "RTC">(plan === "pro" ? "RTC" : "EFT");
+  const activeRail: "EFT" | "RTC" = plan === "pro" ? rail : "EFT";
 
   if (!bene) {
     return (
@@ -32,9 +36,10 @@ function PayBeneficiary() {
   }
 
   const amt = Number(amount) || 0;
-  const fee = amt > 0 ? calcTransferFee(amt, plan) : null;
+  const fee = amt > 0 ? calcTransferFee(amt, plan, activeRail) : null;
   const total = amt + (fee?.fee ?? 0);
   const newBalance = balance - total;
+
   const canPay = amt >= MIN_SEND && total <= balance;
 
   const confirm = () => {
@@ -112,7 +117,12 @@ function PayBeneficiary() {
           </div>
         </div>
 
+        <div className="mt-5">
+          <RailToggle amount={amt} plan={plan} value={activeRail} onChange={setRail} />
+        </div>
+
         {amt > 0 && fee && (
+
           <div className="mt-5 rounded-2xl bg-card border border-border p-4 space-y-2 animate-float-up">
             <Row label={`Fee (${railLabel(fee.rail)})`} value={formatZAR(fee.fee)} muted />
             <Row label="Total" value={formatZAR(total)} bold />

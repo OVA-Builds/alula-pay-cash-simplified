@@ -291,13 +291,18 @@ export const railSettleCopy = (rail: "EFT" | "RTC") =>
 // Minimum single send amount (ZAR) — enforced across all payment flows.
 export const MIN_SEND = 20;
 
-export function calcTransferFee(amount: number, plan: Plan = "basic"): FeeBreakdown {
-  if (amount <= 0) return { rail: "EFT", rate: 0, fee: 0, min: 0 };
-  const isRTC = plan === "pro";
+export function calcTransferFee(
+  amount: number,
+  plan: Plan = "basic",
+  rail?: "EFT" | "RTC",
+): FeeBreakdown {
+  if (amount <= 0) return { rail: rail ?? "EFT", rate: 0, fee: 0, min: 0 };
+  const chosen = rail ?? (plan === "pro" ? "RTC" : "EFT");
   const rate = 0.05;
   const fee = +(amount * rate).toFixed(2);
-  return { rail: isRTC ? "RTC" : "EFT", rate, fee, min: 0 };
+  return { rail: chosen, rate, fee, min: 0 };
 }
+
 
 export const MONTHLY_FEE = { basic: 5, pro: 10 } as const;
 
