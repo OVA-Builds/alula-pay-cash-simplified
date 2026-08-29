@@ -1,18 +1,19 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Ticket, Send, Bell, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Users, TrendingUp, TrendingDown } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { Rocket, Send, Bell, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Users, TrendingUp, TrendingDown, Zap, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useApp, formatZAR, formatTxDate, TIER_LIMITS } from "@/lib/app-state";
-import logo from "@/assets/alula-logo.png";
 
 export const Route = createFileRoute("/home")({ component: Home });
 
 function Home() {
   const { balance, transactions, verified, plan, firstName } = useApp();
+  const navigate = useNavigate();
   const recent = transactions.slice(0, 3);
   const displayName = firstName?.trim() ? firstName.trim().split(/\s+/)[0] : "there";
+  const [launchOpen, setLaunchOpen] = useState(false);
 
   // Monthly tracker — sum of money in (positive) and money out (negative).
-  // Basic monthly cap R2,000 · Pro monthly cap R25,000 (per Alula Pay business plan).
   const moneyIn = transactions.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0);
   const moneyOut = transactions.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
   const limitTotal = TIER_LIMITS[plan].monthly;
@@ -22,6 +23,8 @@ function Home() {
   const warn = usedPct >= 75;
   const periodLabel = "this month";
 
+  const goOnceOff = () => { setLaunchOpen(false); navigate({ to: "/send-once-off" }); };
+  const goBeneficiary = () => { setLaunchOpen(false); navigate({ to: "/beneficiaries" }); };
 
   return (
     <AppShell>
@@ -37,28 +40,66 @@ function Home() {
         </div>
       </div>
 
-      <div className="px-6">
-        <div className="bg-gradient-wallet rounded-3xl p-7 text-white shadow-card relative overflow-hidden">
-          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/5" />
-          <div className="absolute -right-20 bottom-0 h-32 w-32 rounded-full bg-gold/25" />
-          
-          <div className="flex justify-between items-start">
-            <div className="flex items-center gap-2">
-              <img src={logo} alt="" className="h-6 w-6" />
-              <p className="text-white/80 text-sm font-medium">Alula Pay</p>
-            </div>
-            <span className="text-[10px] font-bold tracking-wider bg-gold text-gold-foreground px-2 py-0.5 rounded-full uppercase">
-              {plan === "pro" ? "Pro" : "Basic"}
-            </span>
-          </div>
-          <p className="text-white/60 text-xs mt-5">Your balance</p>
+      {/* Launch */}
+      <div className="px-6 relative">
+        <div className="bg-card rounded-3xl p-7 shadow-card border border-border relative overflow-hidden">
+          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/5" />
+          <div className="absolute -right-20 bottom-0 h-32 w-32 rounded-full bg-gold/20" />
+          <p className="text-muted-foreground text-xs">Your balance</p>
           <p className="text-4xl font-bold mt-1 tracking-tight">{formatZAR(balance)}</p>
-          <p className="text-white/60 text-xs mt-3">
-            Monthly limit {formatZAR(limitTotal)}
-          </p>
-
+          <button
+            id="guide-send"
+            onClick={() => setLaunchOpen(true)}
+            className="mt-5 w-full h-14 rounded-2xl bg-gradient-brand text-primary-foreground font-semibold text-base flex items-center justify-center gap-2 shadow-button active:scale-[0.98] transition-transform"
+          >
+            <Rocket className="h-5 w-5" />
+            Launch
+          </button>
         </div>
       </div>
+
+      {/* Launch options overlay */}
+      {launchOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setLaunchOpen(false)}>
+          <div className="absolute inset-0 bg-foreground/30 backdrop-blur-sm" />
+          <div className="relative w-full sm:max-w-[420px] px-6 pb-24 space-y-3" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={goOnceOff}
+              className="w-full bg-card rounded-2xl border border-border p-5 shadow-card flex items-center gap-4 animate-float-up active:scale-[0.99] transition-transform"
+            >
+              <div className="h-12 w-12 rounded-xl bg-gold/30 flex items-center justify-center shrink-0">
+                <Zap className="h-5 w-5 text-gold-foreground" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="font-semibold">Once-off payment</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Pay any SA bank account</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </button>
+            <button
+              onClick={goBeneficiary}
+              className="w-full bg-card rounded-2xl border border-border p-5 shadow-card flex items-center gap-4 animate-float-up active:scale-[0.99] transition-transform"
+              style={{ animationDelay: "60ms" }}
+            >
+              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Users className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="font-semibold">Beneficiary</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Pay a saved recipient</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </button>
+            <button
+              onClick={() => setLaunchOpen(false)}
+              className="w-full h-12 rounded-2xl bg-muted text-foreground font-medium text-sm flex items-center justify-center gap-2 shadow-soft"
+            >
+              <X className="h-4 w-4" />
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Monthly / daily spend tracker */}
       <div className="px-6 mt-4">
@@ -111,37 +152,6 @@ function Home() {
         </div>
       </div>
 
-
-
-      <div className="grid grid-cols-2 gap-3 px-6 mt-5">
-        <Link
-          id="guide-redeem"
-          to="/redeem"
-          className="bg-card rounded-2xl p-5 shadow-soft border border-border flex flex-col gap-3 active:scale-[0.98] transition-transform"
-        >
-          <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Ticket className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <p className="font-semibold">Redeem Voucher</p>
-            <p className="text-xs text-muted-foreground mt-0.5">OTT · Blu · 1Voucher</p>
-          </div>
-        </Link>
-        <Link
-          id="guide-send"
-          to="/send"
-          className="bg-card rounded-2xl p-5 shadow-soft border border-border flex flex-col gap-3 active:scale-[0.98] transition-transform"
-        >
-          <div className="h-11 w-11 rounded-xl bg-gold/30 flex items-center justify-center">
-            <Send className="h-5 w-5 text-gold-foreground" />
-          </div>
-          <div>
-            <p className="font-semibold">Send to Bank</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Any SA bank</p>
-          </div>
-        </Link>
-      </div>
-
       <div className="px-6 mt-3">
         <Link
           to="/beneficiaries"
@@ -183,15 +193,15 @@ function Home() {
           <h2 className="font-semibold">Recent activity</h2>
           <Link to="/history" className="text-xs text-primary font-medium">See all</Link>
         </div>
-        <div className="bg-card rounded-2xl border border-border divide-y divide-border">
+        <div className="bg-card rounded-2xl border border-border shadow-soft divide-y divide-border">
           {recent.length === 0 ? (
             <div className="p-6 text-center">
               <div className="mx-auto h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                <Ticket className="h-5 w-5 text-muted-foreground" />
+                <Send className="h-5 w-5 text-muted-foreground" />
               </div>
               <p className="text-sm font-semibold mt-3">No transactions yet</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Redeem a voucher to load your wallet and get started.
+                Launch a payment to get started.
               </p>
             </div>
           ) : recent.map((t) => (
@@ -215,7 +225,6 @@ function Home() {
         </div>
       </div>
 
-      
     </AppShell>
   );
 }
