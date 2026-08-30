@@ -1,13 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Users, Zap, ChevronRight } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { useApp, formatZAR } from "@/lib/app-state";
+import { useApp } from "@/lib/app-state";
 
 export const Route = createFileRoute("/send")({ component: SendChoose });
 
 function SendChoose() {
   const navigate = useNavigate();
-  const { balance, beneficiaries, stopGuide } = useApp();
+  const { beneficiaries, stopGuide } = useApp();
 
   return (
     <AppShell>
@@ -16,7 +16,6 @@ function SendChoose() {
           <ArrowLeft className="h-4 w-4" />
         </button>
         <h1 className="mt-6 text-2xl font-bold tracking-tight">Send money</h1>
-        <p className="mt-2 text-muted-foreground text-sm">Available: <span className="font-medium text-foreground">{formatZAR(balance)}</span></p>
 
         <div id="guide-send-options" className="mt-8 space-y-3">
           <Link
@@ -57,7 +56,7 @@ function SendChoose() {
         </div>
 
         <div className="mt-8 p-4 rounded-2xl bg-muted/50 text-xs text-muted-foreground leading-relaxed">
-          Fees are calculated on the amount you enter. We'll show you the exact fee and your new balance before you confirm.
+          Fees are calculated on the amount you enter. We'll show you the exact fee and total before you confirm.
         </div>
       </div>
     </AppShell>
