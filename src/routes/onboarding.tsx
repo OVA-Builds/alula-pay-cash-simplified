@@ -20,9 +20,10 @@ const steps = [
   },
   {
     image: onb2,
-    headline: "Load your wallet",
+    headline: "Enter your voucher",
     accent: "in seconds",
-    body: "Scan or type the code from your voucher slip — your balance updates instantly.",
+    body: "Scan or type the code from your voucher slip — we take it from there.",
+
   },
   {
     image: onb3,
