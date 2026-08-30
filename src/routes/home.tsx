@@ -70,9 +70,6 @@ function Home() {
               </div>
             </div>
 
-            <p className="mt-6 text-center text-xs text-muted-foreground">
-              Tap Launch to pay a beneficiary or any SA bank account
-            </p>
           </div>
         </div>
       </div>
@@ -84,7 +81,7 @@ function Home() {
           <div className="relative w-full sm:max-w-[420px] px-6 pb-24 space-y-3" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={goOnceOff}
-              className="w-full glass rounded-[1.75rem] border border-border p-5 shadow-3d flex items-center gap-4 animate-float-up active:scale-[0.98] transition-transform"
+              className="w-full bg-card rounded-[1.75rem] border border-border p-5 shadow-3d flex items-center gap-4 animate-float-up active:scale-[0.98] transition-transform"
             >
               <div className="h-12 w-12 rounded-2xl bg-gradient-gold flex items-center justify-center shrink-0 shadow-gold">
                 <Zap className="h-5 w-5 text-gold-foreground" />
