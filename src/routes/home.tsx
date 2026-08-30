@@ -27,37 +27,29 @@ function Home() {
 
   return (
     <AppShell>
-      {/* Ambient aurora backdrop */}
       <div className="relative">
-        <div className="pointer-events-none absolute inset-x-0 -top-24 h-[420px] overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-aurora opacity-70" />
-          <div className="absolute left-[-60px] top-10 h-56 w-56 rounded-full bg-primary/25 blur-3xl animate-blob" />
-          <div className="absolute right-[-40px] top-[-30px] h-48 w-48 rounded-full bg-gold/30 blur-3xl animate-blob" style={{ animationDelay: "-5s" }} />
-        </div>
-
         {/* Header */}
         <div className="relative px-6 pt-9 pb-2 flex items-start justify-between animate-rise-in">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Hello</p>
             <h1 className="text-3xl font-bold tracking-tight leading-tight">{displayName}</h1>
-            <span className="mt-2 inline-flex items-center gap-1.5 rounded-full glass border border-border px-3 py-1 shadow-soft">
+            <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-card border border-border px-3 py-1 shadow-soft">
               <Sparkles className="h-3 w-3 text-primary" />
               <span className="text-[10px] font-bold uppercase tracking-wider">{plan === "pro" ? "Pro member" : "Basic member"}</span>
             </span>
           </div>
-          <button className="h-11 w-11 rounded-2xl glass border border-border flex items-center justify-center shadow-lift active:scale-95 transition-transform">
+          <button className="h-11 w-11 rounded-2xl bg-card border border-border flex items-center justify-center shadow-lift active:scale-95 transition-transform">
             <Bell className="h-4 w-4 text-muted-foreground" />
           </button>
         </div>
 
         {/* Launch stage */}
-        <div className="relative px-6 pt-4">
-          <div className="relative rounded-[2rem] p-7 pb-8 glass border border-border shadow-3d card-3d overflow-hidden">
+        <div className="relative px-6 pt-5">
+          <div className="relative rounded-[2rem] p-7 pb-8 bg-card border border-border shadow-3d card-3d overflow-hidden">
             <span className="pointer-events-none absolute -top-10 left-0 h-40 w-24 bg-background/50 blur-xl animate-sheen" />
-            <div className="absolute -right-16 -bottom-16 h-48 w-48 rounded-full border border-primary/15 animate-spin-slow" />
+            <div className="absolute -right-16 -bottom-16 h-48 w-48 rounded-full border border-primary/10 animate-spin-slow" />
 
-            <p className="text-center text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Ready when you are</p>
-            <p className="mt-1 text-center text-2xl font-bold tracking-tight">
+            <p className="text-center text-2xl font-bold tracking-tight">
               Move money in <span className="text-gradient-brand">seconds</span>
             </p>
 
@@ -78,9 +70,6 @@ function Home() {
               </div>
             </div>
 
-            <p className="mt-6 text-center text-xs text-muted-foreground">
-              Tap Launch to pay a beneficiary or any SA bank account
-            </p>
           </div>
         </div>
       </div>
@@ -92,7 +81,7 @@ function Home() {
           <div className="relative w-full sm:max-w-[420px] px-6 pb-24 space-y-3" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={goOnceOff}
-              className="w-full glass rounded-[1.75rem] border border-border p-5 shadow-3d flex items-center gap-4 animate-float-up active:scale-[0.98] transition-transform"
+              className="w-full bg-card rounded-[1.75rem] border border-border p-5 shadow-3d flex items-center gap-4 animate-float-up active:scale-[0.98] transition-transform"
             >
               <div className="h-12 w-12 rounded-2xl bg-gradient-gold flex items-center justify-center shrink-0 shadow-gold">
                 <Zap className="h-5 w-5 text-gold-foreground" />
@@ -105,7 +94,7 @@ function Home() {
             </button>
             <button
               onClick={goBeneficiary}
-              className="w-full glass rounded-[1.75rem] border border-border p-5 shadow-3d flex items-center gap-4 animate-float-up active:scale-[0.98] transition-transform"
+              className="w-full bg-card rounded-[1.75rem] border border-border p-5 shadow-3d flex items-center gap-4 animate-float-up active:scale-[0.98] transition-transform"
               style={{ animationDelay: "60ms" }}
             >
               <div className="h-12 w-12 rounded-2xl bg-gradient-brand flex items-center justify-center shrink-0 shadow-button">
@@ -119,7 +108,7 @@ function Home() {
             </button>
             <button
               onClick={() => setLaunchOpen(false)}
-              className="w-full h-12 rounded-2xl glass border border-border text-foreground font-medium text-sm flex items-center justify-center gap-2 shadow-soft"
+              className="w-full h-12 rounded-2xl bg-card border border-border text-foreground font-medium text-sm flex items-center justify-center gap-2 shadow-soft"
             >
               <X className="h-4 w-4" />
               Close
@@ -130,7 +119,7 @@ function Home() {
 
       {/* Monthly tracker */}
       <div className="px-6 mt-5 animate-rise-in" style={{ animationDelay: "80ms" }}>
-        <div className="rounded-[1.75rem] glass border border-border p-5 shadow-lift card-3d">
+        <div className="rounded-[1.75rem] bg-card border border-border p-5 shadow-lift card-3d">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-bold">Monthly limit</p>
@@ -178,7 +167,7 @@ function Home() {
       <div className="px-6 mt-3 animate-rise-in" style={{ animationDelay: "140ms" }}>
         <Link
           to="/beneficiaries"
-          className="rounded-[1.5rem] glass border border-border p-4 shadow-lift card-3d flex items-center gap-3"
+          className="rounded-[1.5rem] bg-card border border-border p-4 shadow-lift card-3d flex items-center gap-3"
         >
           <div className="h-11 w-11 rounded-2xl bg-secondary flex items-center justify-center">
             <Users className="h-4 w-4 text-secondary-foreground" />
@@ -217,7 +206,7 @@ function Home() {
           <h2 className="font-semibold">Recent activity</h2>
           <Link to="/history" className="text-xs text-primary font-medium">See all</Link>
         </div>
-        <div className="rounded-[1.5rem] glass border border-border shadow-lift divide-y divide-border overflow-hidden">
+        <div className="rounded-[1.5rem] bg-card border border-border shadow-lift divide-y divide-border overflow-hidden">
           {recent.length === 0 ? (
             <div className="p-6 text-center">
               <div className="mx-auto h-12 w-12 rounded-full bg-muted flex items-center justify-center">
