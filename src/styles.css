@@ -144,3 +144,47 @@
 .shadow-soft { box-shadow: var(--shadow-soft); }
 .shadow-button { box-shadow: var(--shadow-button); }
 .shadow-gold { box-shadow: var(--shadow-gold); }
+
+/* ── Depth & motion layer ─────────────────────────────────── */
+:root {
+  --gradient-aurora: radial-gradient(60% 60% at 20% 10%, oklch(0.75 0.16 264 / 0.35) 0%, transparent 70%),
+                     radial-gradient(50% 50% at 90% 0%, oklch(0.9 0.15 92 / 0.35) 0%, transparent 70%),
+                     radial-gradient(60% 60% at 70% 90%, oklch(0.7 0.18 300 / 0.25) 0%, transparent 70%);
+  --gradient-orb: radial-gradient(circle at 32% 28%, oklch(0.82 0.12 264) 0%, oklch(0.55 0.23 264) 42%, oklch(0.28 0.17 266) 100%);
+  --shadow-3d: 0 26px 60px -22px oklch(0.35 0.18 264 / 0.55), 0 10px 20px -12px oklch(0.35 0.18 264 / 0.35), inset 0 1px 0 oklch(1 0 0 / 0.35);
+  --shadow-lift: 0 20px 45px -20px oklch(0.4 0.12 264 / 0.35), 0 2px 6px -2px oklch(0.4 0.12 264 / 0.18);
+}
+
+.bg-gradient-aurora { background-image: var(--gradient-aurora); }
+.bg-gradient-orb { background-image: var(--gradient-orb); }
+.shadow-3d { box-shadow: var(--shadow-3d); }
+.shadow-lift { box-shadow: var(--shadow-lift); }
+.text-gradient-brand {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.glass {
+  background: color-mix(in oklab, var(--card) 72%, transparent);
+  backdrop-filter: blur(18px) saturate(1.4);
+}
+.tilt-3d { transform: perspective(900px) rotateX(6deg); }
+.card-3d { transition: transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease; }
+.card-3d:active { transform: perspective(900px) rotateX(4deg) scale(0.985); }
+
+@keyframes blob-drift {
+  0%, 100% { transform: translate3d(0,0,0) scale(1); }
+  33% { transform: translate3d(14px,-18px,0) scale(1.08); }
+  66% { transform: translate3d(-12px,12px,0) scale(0.95); }
+}
+@keyframes breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.045); } }
+@keyframes halo { 0% { transform: scale(0.85); opacity: .55; } 100% { transform: scale(1.6); opacity: 0; } }
+@keyframes sheen-sweep { 0% { transform: translateX(-150%) rotate(18deg); } 55%,100% { transform: translateX(220%) rotate(18deg); } }
+@keyframes rise-in { from { opacity: 0; transform: translateY(18px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+
+.animate-blob { animation: blob-drift 14s ease-in-out infinite; }
+.animate-breathe { animation: breathe 3.4s ease-in-out infinite; }
+.animate-halo { animation: halo 2.6s ease-out infinite; }
+.animate-sheen { animation: sheen-sweep 3.6s ease-in-out infinite; }
+.animate-rise-in { animation: rise-in .55s cubic-bezier(.22,1,.36,1) both; }
+.animate-spin-slow { animation: spin-slow 18s linear infinite; }
