@@ -94,7 +94,7 @@ function Home() {
             </button>
             <button
               onClick={goBeneficiary}
-              className="w-full glass rounded-[1.75rem] border border-border p-5 shadow-3d flex items-center gap-4 animate-float-up active:scale-[0.98] transition-transform"
+              className="w-full bg-card rounded-[1.75rem] border border-border p-5 shadow-3d flex items-center gap-4 animate-float-up active:scale-[0.98] transition-transform"
               style={{ animationDelay: "60ms" }}
             >
               <div className="h-12 w-12 rounded-2xl bg-gradient-brand flex items-center justify-center shrink-0 shadow-button">
@@ -108,7 +108,7 @@ function Home() {
             </button>
             <button
               onClick={() => setLaunchOpen(false)}
-              className="w-full h-12 rounded-2xl glass border border-border text-foreground font-medium text-sm flex items-center justify-center gap-2 shadow-soft"
+              className="w-full h-12 rounded-2xl bg-card border border-border text-foreground font-medium text-sm flex items-center justify-center gap-2 shadow-soft"
             >
               <X className="h-4 w-4" />
               Close
@@ -119,7 +119,7 @@ function Home() {
 
       {/* Monthly tracker */}
       <div className="px-6 mt-5 animate-rise-in" style={{ animationDelay: "80ms" }}>
-        <div className="rounded-[1.75rem] glass border border-border p-5 shadow-lift card-3d">
+        <div className="rounded-[1.75rem] bg-card border border-border p-5 shadow-lift card-3d">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-bold">Monthly limit</p>
@@ -167,7 +167,7 @@ function Home() {
       <div className="px-6 mt-3 animate-rise-in" style={{ animationDelay: "140ms" }}>
         <Link
           to="/beneficiaries"
-          className="rounded-[1.5rem] glass border border-border p-4 shadow-lift card-3d flex items-center gap-3"
+          className="rounded-[1.5rem] bg-card border border-border p-4 shadow-lift card-3d flex items-center gap-3"
         >
           <div className="h-11 w-11 rounded-2xl bg-secondary flex items-center justify-center">
             <Users className="h-4 w-4 text-secondary-foreground" />
@@ -206,7 +206,7 @@ function Home() {
           <h2 className="font-semibold">Recent activity</h2>
           <Link to="/history" className="text-xs text-primary font-medium">See all</Link>
         </div>
-        <div className="rounded-[1.5rem] glass border border-border shadow-lift divide-y divide-border overflow-hidden">
+        <div className="rounded-[1.5rem] bg-card border border-border shadow-lift divide-y divide-border overflow-hidden">
           {recent.length === 0 ? (
             <div className="p-6 text-center">
               <div className="mx-auto h-12 w-12 rounded-full bg-muted flex items-center justify-center">
