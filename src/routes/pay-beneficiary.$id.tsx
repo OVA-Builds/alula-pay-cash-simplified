@@ -15,7 +15,7 @@ export const Route = createFileRoute("/pay-beneficiary/$id")({ component: PayBen
 function PayBeneficiary() {
   const navigate = useNavigate();
   const { id } = Route.useParams();
-  const { beneficiaries, balance, plan, addTransaction, adjustBalance } = useApp();
+  const { beneficiaries, plan, addTransaction, adjustBalance } = useApp();
   const bene = beneficiaries.find((b) => b.id === id);
   const [amount, setAmount] = useState("");
   const [reference, setReference] = useState(bene?.reference ?? "");
@@ -38,9 +38,8 @@ function PayBeneficiary() {
   const amt = Number(amount) || 0;
   const fee = amt > 0 ? calcTransferFee(amt, plan, activeRail) : null;
   const total = amt + (fee?.fee ?? 0);
-  const newBalance = balance - total;
 
-  const canPay = amt >= MIN_SEND && total <= balance;
+  const canPay = amt >= MIN_SEND;
 
   const confirm = () => {
     adjustBalance(-total);
@@ -126,18 +125,11 @@ function PayBeneficiary() {
           <div className="mt-5 rounded-2xl bg-card border border-border p-4 space-y-2 animate-float-up">
             <Row label={`Fee (${railLabel(fee.rail)})`} value={formatZAR(fee.fee)} muted />
             <Row label="Total" value={formatZAR(total)} bold />
-            <div className="border-t border-border pt-2 mt-2 flex justify-between text-sm">
-              <span className="text-muted-foreground">New balance after payment</span>
-              <span className={`font-bold ${newBalance < 0 ? "text-destructive" : "text-foreground"}`}>{formatZAR(Math.max(0, newBalance))}</span>
-            </div>
           </div>
         )}
 
         {amt > 0 && amt < MIN_SEND && (
           <p className="mt-3 text-xs text-destructive text-center">Minimum send amount is {formatZAR(MIN_SEND)}.</p>
-        )}
-        {amt >= MIN_SEND && total > balance && (
-          <p className="mt-3 text-xs text-destructive text-center">Insufficient balance for this transfer.</p>
         )}
 
         <Button size="lg" disabled={!canPay} onClick={() => setPinOpen(true)}

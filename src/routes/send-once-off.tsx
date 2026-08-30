@@ -18,7 +18,7 @@ type Step = "bank" | "details" | "done";
 
 function OnceOff() {
   const navigate = useNavigate();
-  const { balance, plan, addBeneficiary, addTransaction, adjustBalance } = useApp();
+  const { plan, addBeneficiary, addTransaction, adjustBalance } = useApp();
   const [step, setStep] = useState<Step>("bank");
   const [bankQuery, setBankQuery] = useState("");
   const [bank, setBank] = useState<Bank | null>(null);
@@ -35,8 +35,7 @@ function OnceOff() {
   const fee = amt > 0 ? calcTransferFee(amt, plan, activeRail) : null;
   const total = amt + (fee?.fee ?? 0);
 
-  const newBalance = balance - total;
-  const canPay = !!bank && name.trim().length >= 2 && account.length >= 6 && amt >= MIN_SEND && total <= balance;
+  const canPay = !!bank && name.trim().length >= 2 && account.length >= 6 && amt >= MIN_SEND;
 
   const banks = SA_BANKS.filter((b) => b.name.toLowerCase().includes(bankQuery.trim().toLowerCase()));
 
@@ -163,10 +162,6 @@ function OnceOff() {
           <div className="mt-5 rounded-2xl bg-card border border-border p-4 space-y-2 animate-float-up">
             <Row label={`Fee (${railLabel(fee.rail)})`} value={formatZAR(fee.fee)} muted />
             <Row label="Total" value={formatZAR(total)} bold />
-            <div className="border-t border-border pt-2 mt-2 flex justify-between text-sm">
-              <span className="text-muted-foreground">New balance after payment</span>
-              <span className={`font-bold ${newBalance < 0 ? "text-destructive" : "text-foreground"}`}>{formatZAR(Math.max(0, newBalance))}</span>
-            </div>
           </div>
         )}
 
@@ -180,9 +175,6 @@ function OnceOff() {
 
         {amt > 0 && amt < MIN_SEND && (
           <p className="mt-3 text-xs text-destructive text-center">Minimum send amount is {formatZAR(MIN_SEND)}.</p>
-        )}
-        {amt >= MIN_SEND && total > balance && (
-          <p className="mt-3 text-xs text-destructive text-center">Insufficient balance for this transfer.</p>
         )}
 
         <Button size="lg" disabled={!canPay} onClick={() => setPinOpen(true)}

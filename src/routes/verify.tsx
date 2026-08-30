@@ -9,10 +9,10 @@ export const Route = createFileRoute("/verify")({ component: Verify });
 
 function Verify() {
   const navigate = useNavigate();
-  const { setVerified, balance, adjustBalance } = useApp();
+  const { setVerified, adjustBalance } = useApp();
   const [stage, setStage] = useState<"intro" | "capturing" | "checking">("intro");
   const PRO_FEE = 10;
-  const canUpgrade = balance >= PRO_FEE;
+  const canUpgrade = true;
 
   const start = () => {
     if (!canUpgrade) return;
