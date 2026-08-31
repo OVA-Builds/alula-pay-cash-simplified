@@ -18,9 +18,7 @@ function Home() {
   const limitTotal = TIER_LIMITS[plan].monthly;
 
   const usedPct = Math.min(100, Math.round((moneyOut / limitTotal) * 100));
-  const remaining = Math.max(0, limitTotal - moneyOut);
   const warn = usedPct >= 75;
-  const periodLabel = "this month";
 
   const goOnceOff = () => { setLaunchOpen(false); navigate({ to: "/send-once-off" }); };
   const goBeneficiary = () => { setLaunchOpen(false); navigate({ to: "/beneficiaries" }); };
