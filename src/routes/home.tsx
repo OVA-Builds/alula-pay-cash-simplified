@@ -18,9 +18,7 @@ function Home() {
   const limitTotal = TIER_LIMITS[plan].monthly;
 
   const usedPct = Math.min(100, Math.round((moneyOut / limitTotal) * 100));
-  const remaining = Math.max(0, limitTotal - moneyOut);
   const warn = usedPct >= 75;
-  const periodLabel = "this month";
 
   const goOnceOff = () => { setLaunchOpen(false); navigate({ to: "/send-once-off" }); };
   const goBeneficiary = () => { setLaunchOpen(false); navigate({ to: "/beneficiaries" }); };
@@ -120,17 +118,10 @@ function Home() {
       {/* Monthly tracker */}
       <div className="px-6 mt-5 animate-rise-in" style={{ animationDelay: "80ms" }}>
         <div className="rounded-[1.75rem] bg-card border border-border p-5 shadow-lift card-3d">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-bold">Monthly limit</p>
-              <p className="text-base font-semibold mt-1">
-                {formatZAR(moneyOut)} <span className="text-muted-foreground font-normal">of {formatZAR(limitTotal)}</span>
-              </p>
-            </div>
-            <span className={`text-[10px] font-bold tracking-wider px-2.5 py-1 rounded-full uppercase ${warn ? "bg-destructive/15 text-destructive" : "bg-success/15 text-success"}`}>
-              {warn ? "Almost there" : "On track"}
-            </span>
-          </div>
+          <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-bold">Monthly limit</p>
+          <p className="text-base font-semibold mt-1">
+            {formatZAR(moneyOut)} <span className="text-muted-foreground font-normal">of {formatZAR(limitTotal)}</span>
+          </p>
 
           <div className="mt-3 h-3 w-full rounded-full bg-muted overflow-hidden shadow-inner">
             <div
@@ -140,44 +131,22 @@ function Home() {
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-success/10 p-3 border border-success/15">
+            <div className="rounded-2xl bg-card p-3 border border-border shadow-soft">
               <div className="flex items-center gap-1.5 text-success">
                 <TrendingUp className="h-3.5 w-3.5" />
-                <span className="text-[10px] font-semibold uppercase tracking-wider">In {periodLabel}</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider">In</span>
               </div>
               <p className="text-sm font-bold mt-1 text-foreground">{formatZAR(moneyIn)}</p>
             </div>
-            <div className="rounded-2xl bg-destructive/10 p-3 border border-destructive/15">
+            <div className="rounded-2xl bg-card p-3 border border-border shadow-soft">
               <div className="flex items-center gap-1.5 text-destructive">
                 <TrendingDown className="h-3.5 w-3.5" />
-                <span className="text-[10px] font-semibold uppercase tracking-wider">Out {periodLabel}</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider">Out</span>
               </div>
               <p className="text-sm font-bold mt-1 text-foreground">{formatZAR(moneyOut)}</p>
             </div>
           </div>
-
-          <p className={`text-xs mt-3 ${warn ? "text-destructive font-medium" : "text-muted-foreground"}`}>
-            {remaining > 0
-              ? `${formatZAR(remaining)} left to send ${periodLabel}.`
-              : `You've reached your monthly limit.`}
-          </p>
         </div>
-      </div>
-
-      <div className="px-6 mt-3 animate-rise-in" style={{ animationDelay: "140ms" }}>
-        <Link
-          to="/beneficiaries"
-          className="rounded-[1.5rem] bg-card border border-border p-4 shadow-lift card-3d flex items-center gap-3"
-        >
-          <div className="h-11 w-11 rounded-2xl bg-secondary flex items-center justify-center">
-            <Users className="h-4 w-4 text-secondary-foreground" />
-          </div>
-          <div className="flex-1">
-            <p className="font-semibold text-sm">Beneficiaries</p>
-            <p className="text-xs text-muted-foreground">Manage saved recipients</p>
-          </div>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
       </div>
 
       {!verified && (
