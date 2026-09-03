@@ -64,12 +64,12 @@ function Onboarding() {
 
   return (
     <PhoneFrame>
-      <div className="relative min-h-full bg-background">
-        <div className="relative w-full">
+      <div className="relative h-full min-h-full overflow-hidden bg-background">
+        <div className="relative h-full w-full">
           <img
             src={screens[screen]}
             alt={SCREEN_ALT}
-            className="block h-auto w-full select-none"
+            className="absolute inset-0 block h-full w-full select-none object-cover object-top"
             style={screen === 3 ? {
               filter: `hue-rotate(${[-4, 8, -7, 5][hypePhase]}deg) saturate(${[1, 1.08, 0.94, 1.06][hypePhase]})`,
               transition: "filter 420ms ease-in-out",
