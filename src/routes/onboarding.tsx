@@ -85,18 +85,6 @@ function Onboarding() {
                 onClick={next}
                 className="absolute left-[7.5%] top-[85.2%] h-[6.8%] w-[85%] rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent"
               />
-              <div className="absolute bottom-[2.5%] left-[36%] flex w-[28%] justify-between">
-                {[0, 1, 2].map((dot) => (
-                  <Button
-                    key={dot}
-                    type="button"
-                    variant="ghost"
-                    aria-label={`Go to onboarding screen ${dot + 1}`}
-                    onClick={() => setScreen(dot)}
-                    className="h-8 w-8 rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent"
-                  />
-                ))}
-              </div>
             </>
           )}
 
@@ -107,28 +95,28 @@ function Onboarding() {
                 variant="ghost"
                 aria-label="Open an account"
                 onClick={() => navigate({ to: "/signup" })}
-                className="absolute left-[8%] top-[55.8%] h-[7%] w-[48%] rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent"
+                className="absolute left-[8%] top-[60.1%] h-[6.6%] w-[46%] rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent"
               />
               <Button
                 type="button"
                 variant="ghost"
                 aria-label="I already have an account"
                 onClick={() => navigate({ to: "/login" })}
-                className="absolute right-[8%] top-[55.8%] h-[7%] w-[36%] rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent"
+                className="absolute right-[8%] top-[60.1%] h-[6.6%] w-[34%] rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent"
               />
               <Button
                 type="button"
                 variant="ghost"
                 aria-label="Continue with Google"
                 onClick={() => setScreen(5)}
-                className="absolute left-[8%] top-[69.8%] h-[7%] w-[84%] rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent"
+                className="absolute left-[8%] top-[75.9%] h-[7%] w-[84%] rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent"
               />
               <Button
                 type="button"
                 variant="ghost"
                 aria-label="Continue with Apple"
                 onClick={() => navigate({ to: "/signup" })}
-                className="absolute left-[8%] top-[78.3%] h-[7%] w-[84%] rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent"
+                className="absolute left-[8%] top-[84.5%] h-[7%] w-[84%] rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent"
               />
             </>
           )}
@@ -143,15 +131,17 @@ function Onboarding() {
                 onKeyDown={(event) => {
                   if (event.key === "Enter" && googleEmail.trim()) goToSignup();
                 }}
-                className="absolute left-[9%] top-[37.1%] h-[7%] w-[82%] bg-transparent px-6 text-[18px] text-foreground outline-none"
+                className="absolute left-[9.5%] top-[40.1%] h-[6.4%] w-[81%] rounded-lg px-6 text-[16px] text-[#202124] outline-none"
+                style={{ backgroundColor: googleEmail ? "#FBFBFB" : "transparent" }}
               />
+
               <Button
                 type="button"
                 variant="ghost"
                 aria-label="Continue with email"
                 disabled={!googleEmail.trim()}
                 onClick={goToSignup}
-                className="absolute left-[9%] top-[65.9%] h-[7%] w-[82%] rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent disabled:opacity-100"
+                className="absolute left-[9.5%] top-[70.4%] h-[7%] w-[82%] rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent disabled:opacity-100"
               />
               <Button
                 type="button"
