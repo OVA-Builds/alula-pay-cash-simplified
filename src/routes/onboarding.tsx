@@ -131,8 +131,10 @@ function Onboarding() {
                 onKeyDown={(event) => {
                   if (event.key === "Enter" && googleEmail.trim()) goToSignup();
                 }}
-                className="absolute left-[9.5%] top-[40.1%] h-[6.4%] w-[81%] rounded-lg bg-transparent px-6 text-[16px] text-[#202124] outline-none"
+                className="absolute left-[9.5%] top-[40.1%] h-[6.4%] w-[81%] rounded-lg px-6 text-[16px] text-[#202124] outline-none"
+                style={{ backgroundColor: googleEmail ? "#FBFBFB" : "transparent" }}
               />
+
               <Button
                 type="button"
                 variant="ghost"
