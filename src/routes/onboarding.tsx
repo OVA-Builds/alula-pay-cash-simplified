@@ -69,7 +69,7 @@ function Onboarding() {
           <img
             src={screens[screen]}
             alt={SCREEN_ALT}
-            className="absolute inset-0 block h-full w-full select-none object-fill"
+            className="absolute inset-0 block h-full w-full select-none object-cover object-bottom"
             style={screen === 3 ? {
               filter: `hue-rotate(${[-4, 8, -7, 5][hypePhase]}deg) saturate(${[1, 1.08, 0.94, 1.06][hypePhase]})`,
               transition: "filter 420ms ease-in-out",
