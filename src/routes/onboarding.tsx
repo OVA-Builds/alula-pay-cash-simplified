@@ -69,7 +69,7 @@ function Onboarding() {
           <img
             src={screens[screen]}
             alt={SCREEN_ALT}
-            className="absolute inset-0 block h-full w-full select-none object-cover object-bottom"
+            className={`absolute inset-0 block h-full w-full select-none object-cover ${screen === 3 ? "object-bottom" : "object-top"}`}
             style={screen === 3 ? {
               filter: `hue-rotate(${[-4, 8, -7, 5][hypePhase]}deg) saturate(${[1, 1.08, 0.94, 1.06][hypePhase]})`,
               transition: "filter 420ms ease-in-out",
@@ -83,7 +83,7 @@ function Onboarding() {
                 variant="ghost"
                 aria-label={screen === 2 ? "Get started" : "Next"}
                 onClick={next}
-                className="absolute left-[7.5%] top-[85.2%] h-[6.8%] w-[85%] rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent"
+                className="absolute left-[7.5%] top-[90.5%] h-[6.8%] w-[85%] rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent"
               />
             </>
           )}
