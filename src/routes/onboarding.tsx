@@ -77,7 +77,7 @@ function Onboarding() {
             src={screens[screen]}
             alt={SCREEN_ALT}
             className={screen < 3
-              ? "absolute -left-[2%] bottom-0 block h-auto w-[104%] max-w-none select-none"
+              ? "absolute -left-[2%] top-0 block h-auto w-[104%] max-w-none select-none"
               : `absolute inset-0 block h-full w-full select-none ${screen === 3 ? "object-cover object-bottom" : "object-contain"}`}
             style={screen === 3 ? {
               filter: `hue-rotate(${[-4, 8, -7, 5][hypePhase]}deg) saturate(${[1, 1.08, 0.94, 1.06][hypePhase]})`,
