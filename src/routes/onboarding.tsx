@@ -25,6 +25,7 @@ export const Route = createFileRoute("/onboarding")({
 });
 
 const screens = [screen1.url, screen2.url, screen3.url, screen4.url, screen5.url, screen6.url];
+const screenRatios = [853 / 1844, 843 / 1866, 843 / 1866, 852 / 1332, 843 / 1866, 852 / 1846];
 const SCREEN_ALT = "Alula Pay onboarding screen";
 
 function Onboarding() {
@@ -64,12 +65,20 @@ function Onboarding() {
 
   return (
     <PhoneFrame>
-      <div className="relative h-full min-h-full overflow-hidden bg-background">
-        <div className="relative h-full w-full">
+      <div className="flex h-full min-h-full items-center justify-center overflow-hidden bg-secondary">
+        <div
+          className={screen === 3 ? "relative h-full w-full" : "relative max-h-full max-w-full overflow-hidden"}
+          style={screen === 3 ? undefined : {
+            aspectRatio: `${screenRatios[screen]}`,
+            width: `min(100%, calc(min(100dvh, 860px) * ${screenRatios[screen]}))`,
+          }}
+        >
           <img
             src={screens[screen]}
             alt={SCREEN_ALT}
-            className={`absolute inset-0 block h-full w-full select-none object-cover ${screen === 3 ? "object-bottom" : "object-top"}`}
+            className={screen < 3
+              ? "absolute -left-[2%] top-0 block h-auto w-[104%] max-w-none select-none"
+              : `absolute inset-0 block h-full w-full select-none ${screen === 3 ? "object-cover object-bottom" : "object-contain"}`}
             style={screen === 3 ? {
               filter: `hue-rotate(${[-4, 8, -7, 5][hypePhase]}deg) saturate(${[1, 1.08, 0.94, 1.06][hypePhase]})`,
               transition: "filter 420ms ease-in-out",
