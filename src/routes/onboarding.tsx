@@ -25,7 +25,7 @@ export const Route = createFileRoute("/onboarding")({
 });
 
 const screens = [screen1.url, screen2.url, screen3.url, screen4.url, screen5.url, screen6.url];
-const screenRatios = [853 / 1844, 843 / 1866, 843 / 1866, 852 / 1332, 843 / 1866, 852 / 1846];
+const screenRatios = [853 / 1844, 852 / 1846, 853 / 1844, 852 / 1332, 843 / 1866, 852 / 1846];
 const SCREEN_ALT = "Alula Pay onboarding screen";
 
 function Onboarding() {
