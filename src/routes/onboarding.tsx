@@ -65,12 +65,25 @@ function Onboarding() {
 
   return (
     <PhoneFrame>
-      <div className="flex h-full min-h-full items-center justify-center overflow-hidden bg-secondary">
+      <div className="relative flex h-full min-h-full items-center justify-center overflow-hidden bg-background">
+        {screen !== 3 && (
+          <>
+            <img
+              src={screens[screen]}
+              alt=""
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover object-top opacity-35 blur-xl"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-background/35" />
+          </>
+        )}
         <div
-          className={screen === 3 ? "relative h-full w-full" : "relative max-h-full max-w-full overflow-hidden"}
+          className={screen === 3
+            ? "relative h-full w-full"
+            : "relative z-10 max-h-[calc(100%+12px)] max-w-full -translate-y-1.5 overflow-hidden shadow-2xl"}
           style={screen === 3 ? undefined : {
             aspectRatio: `${screenRatios[screen]}`,
-            width: `min(100%, calc(min(100dvh, 860px) * ${screenRatios[screen]}))`,
+            width: `min(100%, calc((min(100dvh, 860px) + 12px) * ${screenRatios[screen]}))`,
           }}
         >
           <img
