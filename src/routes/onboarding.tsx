@@ -88,7 +88,7 @@ function Onboarding() {
             src={screens[screen]}
             alt={SCREEN_ALT}
             className={screen < 3
-              ? `absolute block h-auto max-w-none select-none ${screen === 2 ? "-left-[2%] bottom-0 w-[104%]" : "-left-[2%] top-0 w-[104%]"}`
+              ? `absolute block h-auto max-w-none select-none ${screen === 2 ? "-left-[6%] bottom-0 w-[112%]" : "-left-[2%] top-0 w-[104%]"}`
               : `absolute inset-0 block h-full w-full select-none ${screen === 3 ? "object-cover object-bottom" : "object-contain"}`}
             style={screen === 3 ? {
               filter: `hue-rotate(${[-4, 8, -7, 5][hypePhase]}deg) saturate(${[1, 1.08, 0.94, 1.06][hypePhase]})`,
