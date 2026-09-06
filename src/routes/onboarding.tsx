@@ -66,19 +66,22 @@ function Onboarding() {
   return (
     <PhoneFrame>
       <div className="relative flex h-full min-h-full items-center justify-center overflow-hidden bg-background">
-        <>
-          <img
-            src={screens[screen]}
-            alt=""
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover object-top opacity-55 blur-[32px]"
-          />
-          <div className="pointer-events-none absolute inset-0 bg-background/25" />
-        </>
+        {screen < 4 && (
+          <>
+            <img
+              src={screens[screen]}
+              alt=""
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover object-top opacity-55 blur-[32px]"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-background/25" />
+          </>
+        )}
+        {screen === 4 && <div className="pointer-events-none absolute inset-0 bg-gold" />}
         <div
           className={screen === 3
             ? "relative h-full w-full"
-            : "relative z-10 max-h-[calc(100%+12px)] max-w-full -translate-y-1.5 overflow-hidden shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6),0_16px_40px_-12px_rgba(0,0,0,0.35)]"}
+            : "relative z-10 max-h-[calc(100%+12px)] max-w-full -translate-y-1.5 overflow-hidden shadow-[0_32px_90px_-18px_rgba(0,0,0,0.55),0_12px_32px_-10px_rgba(0,0,0,0.28)]"}
           style={screen === 3 ? undefined : {
             aspectRatio: `${screenRatios[screen]}`,
             width: `min(100%, calc((min(100dvh, 860px) + 12px) * ${screenRatios[screen]}))`,
@@ -88,7 +91,7 @@ function Onboarding() {
             src={screens[screen]}
             alt={SCREEN_ALT}
             className={screen < 3
-              ? `absolute block h-auto max-w-none select-none ${screen === 2 ? "-left-[6%] bottom-0 w-[112%]" : "-left-[2%] top-0 w-[104%]"}`
+              ? "absolute -left-[2%] top-0 block h-auto w-[104%] max-w-none select-none"
               : `absolute inset-0 block h-full w-full select-none ${screen === 3 ? "object-cover object-bottom" : "object-contain"}`}
             style={screen === 3 ? {
               filter: `hue-rotate(${[-4, 8, -7, 5][hypePhase]}deg) saturate(${[1, 1.08, 0.94, 1.06][hypePhase]})`,
