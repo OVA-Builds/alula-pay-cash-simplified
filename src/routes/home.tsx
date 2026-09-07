@@ -21,8 +21,8 @@ function Home() {
   const usedPct = Math.min(100, Math.round((moneyOut / limitTotal) * 100));
   const warn = usedPct >= 75;
 
-  const goOnceOff = () => { setLaunchOpen(false); navigate({ to: "/send-once-off" }); };
-  const goBeneficiary = () => { setLaunchOpen(false); navigate({ to: "/beneficiaries" }); };
+  const goOnceOff = () => { setLaunchOpen(false); setVoucherFor("/send-once-off"); };
+  const goBeneficiary = () => { setLaunchOpen(false); setVoucherFor("/beneficiaries"); };
 
   return (
     <AppShell>
