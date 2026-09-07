@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Rocket, Send, Bell, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Users, TrendingUp, TrendingDown, Zap, X, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useApp, formatZAR, formatTxDate, TIER_LIMITS } from "@/lib/app-state";
+import { VoucherFlow } from "@/components/VoucherFlow";
 
 export const Route = createFileRoute("/home")({ component: Home });
 
@@ -12,6 +13,7 @@ function Home() {
   const recent = transactions.slice(0, 3);
   const displayName = firstName?.trim() ? firstName.trim().split(/\s+/)[0] : "there";
   const [launchOpen, setLaunchOpen] = useState(false);
+  const [voucherFor, setVoucherFor] = useState<null | "/send-once-off" | "/beneficiaries">(null);
 
   const moneyIn = transactions.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0);
   const moneyOut = transactions.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
@@ -20,8 +22,8 @@ function Home() {
   const usedPct = Math.min(100, Math.round((moneyOut / limitTotal) * 100));
   const warn = usedPct >= 75;
 
-  const goOnceOff = () => { setLaunchOpen(false); navigate({ to: "/send-once-off" }); };
-  const goBeneficiary = () => { setLaunchOpen(false); navigate({ to: "/beneficiaries" }); };
+  const goOnceOff = () => { setLaunchOpen(false); setVoucherFor("/send-once-off"); };
+  const goBeneficiary = () => { setLaunchOpen(false); setVoucherFor("/beneficiaries"); };
 
   return (
     <AppShell>
@@ -113,6 +115,13 @@ function Home() {
             </button>
           </div>
         </div>
+      )}
+
+      {voucherFor && (
+        <VoucherFlow
+          onCancel={() => setVoucherFor(null)}
+          onComplete={() => { const to = voucherFor; setVoucherFor(null); navigate({ to }); }}
+        />
       )}
 
       {/* Monthly tracker */}
