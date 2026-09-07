@@ -12,6 +12,7 @@ function Home() {
   const recent = transactions.slice(0, 3);
   const displayName = firstName?.trim() ? firstName.trim().split(/\s+/)[0] : "there";
   const [launchOpen, setLaunchOpen] = useState(false);
+  const [voucherFor, setVoucherFor] = useState<null | "/send-once-off" | "/beneficiaries">(null);
 
   const moneyIn = transactions.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0);
   const moneyOut = transactions.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
