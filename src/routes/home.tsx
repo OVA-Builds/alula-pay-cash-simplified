@@ -117,6 +117,13 @@ function Home() {
         </div>
       )}
 
+      {voucherFor && (
+        <VoucherFlow
+          onCancel={() => setVoucherFor(null)}
+          onComplete={() => { const to = voucherFor; setVoucherFor(null); navigate({ to }); }}
+        />
+      )}
+
       {/* Monthly tracker */}
       <div className="px-6 mt-5 animate-rise-in" style={{ animationDelay: "80ms" }}>
         <div className="rounded-[1.75rem] bg-card border border-border p-5 shadow-lift card-3d">
