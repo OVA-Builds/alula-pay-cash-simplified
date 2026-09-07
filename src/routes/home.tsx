@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Rocket, Send, Bell, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Users, TrendingUp, TrendingDown, Zap, X, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useApp, formatZAR, formatTxDate, TIER_LIMITS } from "@/lib/app-state";
+import { VoucherFlow } from "@/components/VoucherFlow";
 
 export const Route = createFileRoute("/home")({ component: Home });
 
