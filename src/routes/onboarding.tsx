@@ -1,14 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Apple, ArrowLeft, ArrowRight, Chrome, Loader2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { useApp } from "@/lib/app-state";
-import screen1 from "@/assets/onboarding-screen-1.png.asset.json";
-import screen2 from "@/assets/onboarding-screen-2.png.asset.json";
-import screen3 from "@/assets/onboarding-screen-3.png.asset.json";
-import screen4 from "@/assets/onboarding-screen-4.png.asset.json";
-import screen5 from "@/assets/onboarding-screen-5.png.asset.json";
-import screen6 from "@/assets/onboarding-screen-6.png.asset.json";
+import logo from "@/assets/alula-logo.png";
+import onb1 from "@/assets/onb-1.jpg";
+import onb2 from "@/assets/onb-2.jpg";
+import onb3 from "@/assets/onb-3.jpg";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
@@ -24,25 +25,34 @@ export const Route = createFileRoute("/onboarding")({
   component: Onboarding,
 });
 
-const screens = [screen1.url, screen2.url, screen3.url, screen4.url, screen5.url, screen6.url];
-const screenRatios = [853 / 1844, 852 / 1846, 853 / 1844, 852 / 1332, 843 / 1866, 852 / 1846];
-const SCREEN_ALT = "Alula Pay onboarding screen";
+const SLIDES = [
+  {
+    image: onb1,
+    title: "Send money in seconds",
+    body: "Top up, pay bills, and send cash to family — all from your phone.",
+  },
+  {
+    image: onb2,
+    title: "Redeem cash easily",
+    body: "Turn vouchers into cash at thousands of partner stores nationwide.",
+  },
+  {
+    image: onb3,
+    title: "Built for everyone",
+    body: "No paperwork to start. Just your phone number and a PIN.",
+  },
+];
 
 function Onboarding() {
   const navigate = useNavigate();
   const { setOnboarded } = useApp();
   const [screen, setScreen] = useState(0);
   const [googleEmail, setGoogleEmail] = useState("");
-  const [hypePhase, setHypePhase] = useState(0);
 
   useEffect(() => {
     if (screen !== 3) return;
-    const interval = window.setInterval(() => setHypePhase((phase) => (phase + 1) % 4), 450);
-    const timeout = window.setTimeout(() => setScreen(4), 5000);
-    return () => {
-      window.clearInterval(interval);
-      window.clearTimeout(timeout);
-    };
+    const timeout = window.setTimeout(() => setScreen(4), 1800);
+    return () => window.clearTimeout(timeout);
   }, [screen]);
 
   const goToSignup = () => {
@@ -54,8 +64,8 @@ function Onboarding() {
   };
 
   const next = () => {
-    if (screen < 2) setScreen((current) => current + 1);
-    else if (screen === 2) setScreen(3);
+    if (screen < SLIDES.length - 1) setScreen((current) => current + 1);
+    else setScreen(3);
   };
 
   const backToAccountChoices = () => {
@@ -63,118 +73,170 @@ function Onboarding() {
     setScreen(4);
   };
 
-  return (
-    <PhoneFrame>
-      <div className="relative flex h-full min-h-full items-center justify-center overflow-hidden bg-background">
-        {screen < 4 && (
-          <>
-            <img
-              src={screens[screen]}
-              alt=""
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover object-top opacity-55 blur-[32px]"
-            />
-            <div className="pointer-events-none absolute inset-0 bg-background/25" />
-          </>
-        )}
-        {screen === 4 && <div className="pointer-events-none absolute inset-0 bg-gold" />}
-        <div
-          className={screen === 3
-            ? "relative h-full w-full"
-            : "relative z-10 max-h-[calc(100%+12px)] max-w-full -translate-y-1.5 overflow-hidden shadow-[0_32px_90px_-18px_rgba(0,0,0,0.55),0_12px_32px_-10px_rgba(0,0,0,0.28)]"}
-          style={screen === 3 ? undefined : {
-            aspectRatio: `${screenRatios[screen]}`,
-            width: `min(100%, calc((min(100dvh, 860px) + 12px) * ${screenRatios[screen]}))`,
-          }}
-        >
-          <img
-            src={screens[screen]}
-            alt={SCREEN_ALT}
-            className={screen < 3
-              ? "absolute -left-[2%] top-0 block h-auto w-[104%] max-w-none select-none"
-              : `absolute inset-0 block h-full w-full select-none ${screen === 3 ? "object-cover object-bottom" : "object-contain"}`}
-            style={screen === 3 ? {
-              filter: `hue-rotate(${[-4, 8, -7, 5][hypePhase]}deg) saturate(${[1, 1.08, 0.94, 1.06][hypePhase]})`,
-              transition: "filter 420ms ease-in-out",
-            } : undefined}
-          />
+  if (screen < SLIDES.length) {
+    const slide = SLIDES[screen];
+    const isLast = screen === SLIDES.length - 1;
+    return (
+      <PhoneFrame>
+        <div className="relative flex h-full min-h-full flex-col overflow-hidden bg-background">
+          <div className="relative h-[58%] w-full shrink-0 overflow-hidden">
+            <img src={slide.image} alt="" className="h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/10 to-transparent" />
+            <button
+              type="button"
+              onClick={() => setScreen(4)}
+              className="absolute right-5 top-6 rounded-full bg-background/70 px-4 py-1.5 text-sm font-medium text-foreground backdrop-blur"
+            >
+              Skip
+            </button>
+          </div>
 
-          {screen < 3 && (
-            <>
+          <div className="flex flex-1 flex-col px-8 pb-8 pt-2">
+            <div className="flex justify-center gap-2 pb-6">
+              {SLIDES.map((_, i) => (
+                <span
+                  key={i}
+                  className={`h-1.5 rounded-full transition-all ${
+                    i === screen ? "w-6 bg-primary" : "w-1.5 bg-muted"
+                  }`}
+                />
+              ))}
+            </div>
+
+            <h1 className="text-center text-2xl font-bold tracking-tight">{slide.title}</h1>
+            <p className="mt-2 text-center text-muted-foreground">{slide.body}</p>
+
+            <div className="mt-auto pt-8">
               <Button
-                type="button"
-                variant="ghost"
-                aria-label={screen === 2 ? "Get started" : "Next"}
+                size="lg"
                 onClick={next}
-                className="absolute left-[7.5%] top-[90.5%] h-[6.8%] w-[85%] rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent"
-              />
-            </>
-          )}
+                className="h-14 w-full rounded-2xl text-base shadow-button"
+              >
+                {isLast ? "Get started" : "Next"}
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </PhoneFrame>
+    );
+  }
 
-          {screen === 4 && (
-            <>
-              <Button
-                type="button"
-                variant="ghost"
-                aria-label="Open an account"
-                onClick={() => navigate({ to: "/signup" })}
-                className="absolute left-[8%] top-[60.1%] h-[6.6%] w-[46%] rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                aria-label="I already have an account"
-                onClick={() => navigate({ to: "/login" })}
-                className="absolute right-[8%] top-[60.1%] h-[6.6%] w-[34%] rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                aria-label="Continue with Google"
-                onClick={() => setScreen(5)}
-                className="absolute left-[8%] top-[75.9%] h-[7%] w-[84%] rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                aria-label="Continue with Apple"
-                onClick={() => navigate({ to: "/signup" })}
-                className="absolute left-[8%] top-[84.5%] h-[7%] w-[84%] rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent"
-              />
-            </>
-          )}
+  if (screen === 3) {
+    return (
+      <PhoneFrame>
+        <div className="flex h-full min-h-full flex-col items-center justify-center gap-5 bg-gradient-splash px-10 text-center">
+          <img src={logo} alt="Alula Pay" className="h-20 w-20 drop-shadow-2xl" />
+          <Loader2 className="h-6 w-6 animate-spin text-gold" />
+          <div>
+            <h1 className="text-xl font-semibold text-primary-foreground">Setting up your wallet</h1>
+            <p className="mt-1 text-sm text-primary-foreground/70">This only takes a moment.</p>
+          </div>
+        </div>
+      </PhoneFrame>
+    );
+  }
 
-          {screen === 5 && (
-            <>
-              <input
-                aria-label="Email or phone"
+  if (screen === 5) {
+    return (
+      <PhoneFrame>
+        <div className="flex h-full min-h-full flex-col p-8">
+          <button
+            type="button"
+            aria-label="Back to account choices"
+            onClick={backToAccountChoices}
+            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-accent"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+
+          <div className="pt-6">
+            <h1 className="text-2xl font-bold tracking-tight">Continue with Google</h1>
+            <p className="mt-2 text-muted-foreground">Enter the email linked to your Google account.</p>
+          </div>
+
+          <div className="mt-8 flex-1 space-y-2">
+            <Label htmlFor="google-email">Email or phone</Label>
+            <div className="relative">
+              <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="google-email"
                 type="email"
+                autoFocus
+                placeholder="you@gmail.com"
                 value={googleEmail}
                 onChange={(event) => setGoogleEmail(event.target.value)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" && googleEmail.trim()) goToSignup();
                 }}
-                className="absolute left-[9.5%] top-[40.1%] h-[6.4%] w-[81%] rounded-lg px-6 text-[16px] text-[#202124] outline-none"
-                style={{ backgroundColor: googleEmail ? "#FBFBFB" : "transparent" }}
+                className="h-14 rounded-2xl pl-11 text-base"
               />
+            </div>
+          </div>
 
-              <Button
-                type="button"
-                variant="ghost"
-                aria-label="Continue with email"
-                disabled={!googleEmail.trim()}
-                onClick={goToSignup}
-                className="absolute left-[9.5%] top-[70.4%] h-[7%] w-[82%] rounded-full bg-transparent p-0 text-transparent shadow-none hover:bg-transparent disabled:opacity-100"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                aria-label="Back to account choices"
-                onClick={backToAccountChoices}
-                className="absolute left-[4%] top-[8%] h-[7%] w-[12%] bg-transparent p-0 text-transparent shadow-none hover:bg-transparent"
-              />
-            </>
-          )}
+          <Button
+            size="lg"
+            disabled={!googleEmail.trim()}
+            onClick={goToSignup}
+            className="h-14 rounded-2xl text-base shadow-button"
+          >
+            Continue
+          </Button>
+        </div>
+      </PhoneFrame>
+    );
+  }
+
+  return (
+    <PhoneFrame>
+      <div className="flex h-full min-h-full flex-col p-8">
+        <div className="flex flex-1 flex-col items-center justify-center text-center">
+          <img src={logo} alt="Alula Pay" className="h-20 w-20" />
+          <h1 className="mt-5 text-2xl font-bold tracking-tight">Welcome to Alula Pay</h1>
+          <p className="mt-2 text-muted-foreground">Create an account to get started.</p>
+        </div>
+
+        <div className="space-y-3">
+          <Button
+            size="lg"
+            onClick={() => navigate({ to: "/signup" })}
+            className="h-14 w-full rounded-2xl text-base shadow-button"
+          >
+            Open an account
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => navigate({ to: "/login" })}
+            className="h-14 w-full rounded-2xl text-base"
+          >
+            I already have an account
+          </Button>
+
+          <div className="flex items-center gap-3 py-1">
+            <span className="h-px flex-1 bg-border" />
+            <span className="text-xs text-muted-foreground">or continue with</span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => setScreen(5)}
+            className="h-14 w-full rounded-2xl text-base"
+          >
+            <Chrome className="h-4 w-4" />
+            Continue with Google
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => navigate({ to: "/signup" })}
+            className="h-14 w-full rounded-2xl text-base"
+          >
+            <Apple className="h-4 w-4" />
+            Continue with Apple
+          </Button>
         </div>
       </div>
     </PhoneFrame>
