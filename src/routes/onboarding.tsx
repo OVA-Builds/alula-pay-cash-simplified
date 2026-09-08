@@ -84,7 +84,7 @@ function Onboarding() {
             : "relative z-10 max-h-[calc(100%+12px)] max-w-full -translate-y-1.5 overflow-hidden shadow-[0_32px_90px_-18px_rgba(0,0,0,0.55),0_12px_32px_-10px_rgba(0,0,0,0.28)]"}
           style={screen === 3 ? undefined : {
             aspectRatio: `${screenRatios[screen]}`,
-            width: `min(100%, calc((min(100dvh, 860px) + 12px) * ${screenRatios[screen]}))`,
+            width: "100%",
           }}
         >
           <img
