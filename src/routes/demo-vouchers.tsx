@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Copy, Check, Sparkles, Ticket } from "lucide-react";
+import { Copy, Check, Ticket } from "lucide-react";
 import { PhoneFrame } from "@/components/PhoneFrame";
 
 export const Route = createFileRoute("/demo-vouchers")({ component: DemoVouchers });
@@ -73,8 +73,8 @@ function DemoVouchers() {
             <Ticket className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">Welcome gift</p>
-            <p className="text-sm text-muted-foreground">You're all set up.</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">Demo account</p>
+            <p className="text-sm text-muted-foreground">Explore with sample vouchers.</p>
           </div>
         </div>
 
@@ -134,14 +134,6 @@ function DemoVouchers() {
               </div>
             );
           })}
-        </div>
-
-        <div className="relative mt-5 flex items-start gap-2 rounded-2xl bg-gold/15 border border-gold/40 p-3">
-          <Sparkles className="h-4 w-4 text-gold-foreground mt-0.5 shrink-0" />
-          <p className="text-xs text-foreground/80 leading-relaxed">
-            Copy any pin above, then on the home screen tap <b>Redeem Voucher</b> and paste it.
-            Alula will show you how — just tap the yellow <b>Help</b> button.
-          </p>
         </div>
 
         <div className="flex-1" />
