@@ -125,29 +125,25 @@ function Onboarding() {
           <img
             src={slide.hero}
             alt=""
-            className="block w-full shrink-0 rounded-b-[2rem] object-cover"
-            style={{ height: "clamp(150px, 30dvh, 260px)", objectPosition: "50% 28%" }}
+            className="block max-h-[420px] min-h-[160px] w-full flex-1 rounded-b-[2rem] object-cover"
+            style={{ objectPosition: "50% 28%" }}
           />
-          <div className="flex flex-1 flex-col px-6 py-5">
-            <div className="flex flex-1 flex-col justify-center gap-4">
-              <div>
-                <h1 className="text-xl font-extrabold leading-tight tracking-tight">{slide.title}</h1>
-                <p className="mt-2 text-sm text-muted-foreground">{slide.body}</p>
-              </div>
+          <div className="flex shrink-0 flex-col px-6 py-5">
+            <h1 className="text-xl font-extrabold leading-tight tracking-tight">{slide.title}</h1>
+            <p className="mt-2 text-sm text-muted-foreground">{slide.body}</p>
 
-              <div className="grid grid-cols-3 gap-2 rounded-2xl bg-muted/60 p-3">
-                {slide.features.map(({ icon: Icon, label }) => (
-                  <div key={label} className="flex flex-col items-center gap-1.5 text-center">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                      <Icon className="h-4 w-4" />
-                    </span>
-                    <span className="text-[11px] font-semibold leading-tight">{label}</span>
-                  </div>
-                ))}
-              </div>
+            <div className="mt-4 grid grid-cols-3 gap-2 rounded-2xl bg-muted/60 p-3">
+              {slide.features.map(({ icon: Icon, label }) => (
+                <div key={label} className="flex flex-col items-center gap-1.5 text-center">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <span className="text-[11px] font-semibold leading-tight">{label}</span>
+                </div>
+              ))}
             </div>
 
-            <div className="flex items-center justify-between gap-4 pt-5">
+            <div className="mt-auto flex items-center justify-between gap-4 pt-5">
               <div className="flex gap-1.5">
                 {[0, 1, 2].map((i) => (
                   <span key={i} className={`h-1.5 rounded-full transition-all ${i === screen ? "w-5 bg-primary" : "w-1.5 bg-muted"}`} />
@@ -171,10 +167,10 @@ function Onboarding() {
           <img
             src={hero3}
             alt=""
-            className="block w-full shrink-0 rounded-b-[2rem] object-cover"
-            style={{ height: "clamp(90px, 16dvh, 150px)", objectPosition: "50% 15%" }}
+            className="block min-h-[90px] max-h-[280px] w-full flex-1 rounded-b-[2rem] object-cover"
+            style={{ objectPosition: "50% 15%" }}
           />
-          <div className="flex flex-1 flex-col px-6 py-4">
+          <div className="flex shrink-0 flex-col px-6 py-4">
             <h1 className="text-lg font-extrabold leading-tight tracking-tight">
               Choose the plan that <span className="text-primary">works for you</span>
             </h1>
@@ -239,10 +235,10 @@ function Onboarding() {
           <img
             src={heroChoices}
             alt="ATM deposits? A thing of the past!"
-            className="block w-full shrink-0 object-cover"
-            style={{ height: "clamp(220px, 42dvh, 360px)", objectPosition: "50% 100%" }}
+            className="block max-h-[480px] min-h-[220px] w-full flex-1 object-cover"
+            style={{ objectPosition: "50% 100%" }}
           />
-          <div className="flex flex-1 flex-col gap-3 px-6 py-6">
+          <div className="flex shrink-0 flex-col gap-3 px-6 py-6">
             <Button
               size="lg"
               onClick={() => navigate({ to: "/signup" })}
