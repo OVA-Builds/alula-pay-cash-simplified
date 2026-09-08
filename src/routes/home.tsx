@@ -1,218 +1,200 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { Rocket, Send, Bell, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Users, TrendingUp, TrendingDown, Zap, X, Sparkles } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Bell, Landmark, Settings, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useApp, formatZAR, formatTxDate, TIER_LIMITS } from "@/lib/app-state";
-import { VoucherFlow } from "@/components/VoucherFlow";
+import promoPhoto from "@/assets/onb-1.jpg";
 
 export const Route = createFileRoute("/home")({ component: Home });
 
 function Home() {
-  const { transactions, verified, plan, firstName } = useApp();
-  const navigate = useNavigate();
+  const { transactions, verified, plan, firstName, balance } = useApp();
   const recent = transactions.slice(0, 3);
   const displayName = firstName?.trim() ? firstName.trim().split(/\s+/)[0] : "there";
-  const [launchOpen, setLaunchOpen] = useState(false);
-  const [voucherFor, setVoucherFor] = useState<null | "/send-once-off" | "/beneficiaries">(null);
 
-  const moneyIn = transactions.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0);
   const moneyOut = transactions.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
   const limitTotal = TIER_LIMITS[plan].monthly;
-
   const usedPct = Math.min(100, Math.round((moneyOut / limitTotal) * 100));
-  const warn = usedPct >= 75;
-
-  const goOnceOff = () => { setLaunchOpen(false); setVoucherFor("/send-once-off"); };
-  const goBeneficiary = () => { setLaunchOpen(false); setVoucherFor("/beneficiaries"); };
+  const remaining = Math.max(0, limitTotal - moneyOut);
 
   return (
     <AppShell>
-      <div className="relative">
-        {/* Header */}
-        <div className="relative px-6 pt-9 pb-2 flex items-start justify-between animate-rise-in">
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary-deep pb-14 pt-9">
+        <div className="pointer-events-none absolute -right-10 -top-16 h-56 w-56 rounded-full bg-white/10" />
+        <div className="pointer-events-none absolute -right-10 bottom-0 h-24 w-36 rounded-tl-[3rem] bg-gold/90" />
+
+        <div className="relative flex items-start justify-between px-6">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Hello</p>
-            <h1 className="text-3xl font-bold tracking-tight leading-tight">{displayName}</h1>
-            <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-card border border-border px-3 py-1 shadow-soft">
-              <Sparkles className="h-3 w-3 text-primary" />
-              <span className="text-[10px] font-bold uppercase tracking-wider">{plan === "pro" ? "Pro member" : "Basic member"}</span>
-            </span>
+            <p className="text-sm text-primary-foreground/80">Hello</p>
+            <h1 className="text-3xl font-bold tracking-tight text-primary-foreground">{displayName}</h1>
+            <p className="mt-1 text-sm text-primary-foreground/80">Good to see you again!</p>
           </div>
-          <button className="h-11 w-11 rounded-2xl bg-card border border-border flex items-center justify-center shadow-lift active:scale-95 transition-transform">
-            <Bell className="h-4 w-4 text-muted-foreground" />
+          <button className="relative flex h-11 w-11 items-center justify-center rounded-full bg-white/15 backdrop-blur">
+            <Bell className="h-4.5 w-4.5 text-primary-foreground" />
+            <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-gold" />
           </button>
         </div>
-
-        {/* Launch stage */}
-        <div className="relative px-6 pt-5">
-          <div className="relative rounded-[2rem] p-7 pb-8 bg-card border border-border shadow-3d card-3d overflow-hidden">
-            <span className="pointer-events-none absolute -top-10 left-0 h-40 w-24 bg-background/50 blur-xl animate-sheen" />
-            <div className="absolute -right-16 -bottom-16 h-48 w-48 rounded-full border border-primary/10 animate-spin-slow" />
-
-            <p className="text-center text-2xl font-bold tracking-tight">
-              Move money in <span className="text-gradient-brand">seconds</span>
-            </p>
-
-            {/* 3D launch orb */}
-            <div className="mt-7 flex justify-center">
-              <div className="relative">
-                <span className="absolute inset-0 rounded-full bg-primary/25 animate-halo" />
-                <span className="absolute inset-0 rounded-full bg-gold/25 animate-halo" style={{ animationDelay: "1.3s" }} />
-                <button
-                  id="guide-send"
-                  onClick={() => setLaunchOpen(true)}
-                  className="relative h-32 w-32 rounded-full bg-gradient-orb shadow-3d animate-breathe flex flex-col items-center justify-center text-primary-foreground active:scale-95 transition-transform"
-                >
-                  <span className="absolute top-3 left-6 h-6 w-14 rounded-full bg-background/30 blur-md" />
-                  <Rocket className="h-8 w-8 drop-shadow" />
-                  <span className="mt-1 text-sm font-bold tracking-wide">Launch</span>
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </div>
       </div>
 
-      {/* Launch options overlay */}
-      {launchOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setLaunchOpen(false)}>
-          <div className="absolute inset-0 bg-foreground/40 backdrop-blur-md" />
-          <div className="relative w-full sm:max-w-[420px] px-6 pb-24 space-y-3" onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={goOnceOff}
-              className="w-full bg-card rounded-[1.75rem] border border-border p-5 shadow-3d flex items-center gap-4 animate-float-up active:scale-[0.98] transition-transform"
-            >
-              <div className="h-12 w-12 rounded-2xl bg-gradient-gold flex items-center justify-center shrink-0 shadow-gold">
-                <Zap className="h-5 w-5 text-gold-foreground" />
-              </div>
-              <div className="flex-1 text-left">
-                <p className="font-semibold">Once-off payment</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Pay any SA bank account</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </button>
-            <button
-              onClick={goBeneficiary}
-              className="w-full bg-card rounded-[1.75rem] border border-border p-5 shadow-3d flex items-center gap-4 animate-float-up active:scale-[0.98] transition-transform"
-              style={{ animationDelay: "60ms" }}
-            >
-              <div className="h-12 w-12 rounded-2xl bg-gradient-brand flex items-center justify-center shrink-0 shadow-button">
-                <Users className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <div className="flex-1 text-left">
-                <p className="font-semibold">Beneficiary</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Pay a saved recipient</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </button>
-            <button
-              onClick={() => setLaunchOpen(false)}
-              className="w-full h-12 rounded-2xl bg-card border border-border text-foreground font-medium text-sm flex items-center justify-center gap-2 shadow-soft"
-            >
-              <X className="h-4 w-4" />
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
-      {voucherFor && (
-        <VoucherFlow
-          onCancel={() => setVoucherFor(null)}
-          onComplete={() => { const to = voucherFor; setVoucherFor(null); navigate({ to }); }}
-        />
-      )}
-
-      {/* Monthly tracker */}
-      <div className="px-6 mt-5 animate-rise-in" style={{ animationDelay: "80ms" }}>
-        <div className="rounded-[1.75rem] bg-card border border-border p-5 shadow-lift card-3d">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-bold">Monthly limit</p>
-          <p className="text-base font-semibold mt-1">
-            {formatZAR(moneyOut)} <span className="text-muted-foreground font-normal">of {formatZAR(limitTotal)}</span>
+      <div className="relative -mt-8 px-6">
+        <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Monthly limit</p>
+          <p className="mt-1 text-2xl font-bold tracking-tight">
+            {formatZAR(moneyOut)} <span className="text-base font-normal text-muted-foreground">of {formatZAR(limitTotal)}</span>
           </p>
 
-          <div className="mt-3 h-3 w-full rounded-full bg-muted overflow-hidden shadow-inner">
-            <div
-              className={`h-full rounded-full transition-[width] duration-700 ease-out ${warn ? "bg-destructive" : "bg-gradient-brand"}`}
-              style={{ width: `${usedPct}%` }}
-            />
+          <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-muted">
+            <div className="h-full rounded-full bg-gold transition-[width] duration-700" style={{ width: `${usedPct}%` }} />
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-card p-3 border border-border shadow-soft">
-              <div className="flex items-center gap-1.5 text-success">
-                <TrendingUp className="h-3.5 w-3.5" />
-                <span className="text-[10px] font-semibold uppercase tracking-wider">In</span>
+          <div className="mt-4 grid grid-cols-[0.85fr_auto_1.5fr] items-center gap-2.5">
+            <div className="flex items-center gap-2">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">
+                <ArrowUpRight className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-bold leading-tight">{formatZAR(remaining)}</p>
+                <p className="text-xs text-muted-foreground">Remaining</p>
               </div>
-              <p className="text-sm font-bold mt-1 text-foreground">{formatZAR(moneyIn)}</p>
             </div>
-            <div className="rounded-2xl bg-card p-3 border border-border shadow-soft">
-              <div className="flex items-center gap-1.5 text-destructive">
-                <TrendingDown className="h-3.5 w-3.5" />
-                <span className="text-[10px] font-semibold uppercase tracking-wider">Out</span>
+
+            <span className="h-9 w-px bg-border" />
+
+            {verified ? (
+              <div className="flex items-center gap-2">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <ShieldCheck className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold leading-tight">Pro plan</p>
+                  <p className="text-xs text-muted-foreground">Instant payments</p>
+                </div>
               </div>
-              <p className="text-sm font-bold mt-1 text-foreground">{formatZAR(moneyOut)}</p>
-            </div>
+            ) : (
+              <Link to="/verify" className="flex items-center gap-2">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <ShieldCheck className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="whitespace-nowrap text-[13px] font-bold leading-tight">Upgrade to Pro</p>
+                  <p className="text-xs leading-snug text-muted-foreground">Higher limits, instant payments.</p>
+                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+              </Link>
+            )}
           </div>
         </div>
       </div>
 
-      {!verified && (
-        <div className="px-6 mt-3 animate-rise-in" style={{ animationDelay: "200ms" }}>
-          <Link
-            to="/verify"
-            className="block rounded-[1.5rem] border border-gold/40 bg-gold/10 p-4 shadow-gold card-3d overflow-hidden relative"
-          >
-            <span className="pointer-events-none absolute -top-8 left-0 h-32 w-16 bg-background/40 blur-lg animate-sheen" />
-            <div className="flex items-center gap-3 relative">
-              <div className="h-11 w-11 rounded-2xl bg-gradient-gold flex items-center justify-center shrink-0">
-                <ShieldCheck className="h-5 w-5 text-gold-foreground" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm">Upgrade to Pro</p>
-                <p className="text-xs text-muted-foreground">One selfie. Higher limits, instant payments.</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-gold-foreground" />
-            </div>
-          </Link>
-        </div>
-      )}
+      <div className="mt-4 grid grid-cols-[1.55fr_1fr] gap-2.5 px-6">
+        <Link
+          id="guide-send"
+          to="/send-once-off"
+          className="relative flex items-center gap-3 overflow-hidden rounded-3xl bg-primary p-4 text-primary-foreground shadow-button"
+        >
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-primary">
+            <Landmark className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="whitespace-nowrap text-[15px] font-semibold">Send to Bank</p>
+            <p className="text-xs leading-snug text-primary-foreground/80">Transfer to any South African bank account</p>
+          </div>
+          <ChevronRight className="h-4 w-4 shrink-0" />
+        </Link>
 
-      <div className="px-6 mt-6 pb-8 animate-rise-in" style={{ animationDelay: "260ms" }}>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold">Recent activity</h2>
-          <Link to="/history" className="text-xs text-primary font-medium">See all</Link>
+        <Link
+          to="/profile"
+          className="flex flex-col items-start justify-between gap-3 rounded-3xl border border-border bg-card p-4 shadow-card"
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-foreground">
+            <Settings className="h-4.5 w-4.5" />
+          </span>
+          <div>
+            <p className="font-semibold">Settings</p>
+            <p className="text-xs text-muted-foreground">Manage your account</p>
+          </div>
+        </Link>
+      </div>
+
+      <div className="mt-4 px-6">
+        <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-primary/5 to-background p-5 shadow-card">
+          <img
+            src={promoPhoto}
+            alt=""
+            className="pointer-events-none absolute -right-4 bottom-0 h-full w-[46%] rounded-2xl object-cover object-top opacity-95"
+          />
+          <div className="relative max-w-[58%]">
+            <p className="text-xl font-bold leading-tight tracking-tight">
+              Real People.<br /><span className="text-primary">Real Possibilities.</span>
+            </p>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              Your money, your way. Fast. Safe. Simple.
+            </p>
+            <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-gold px-4 py-2 text-xs font-bold text-gold-foreground shadow-gold">
+              Learn more
+              <ChevronRight className="h-3.5 w-3.5" />
+            </span>
+          </div>
         </div>
-        <div className="rounded-[1.5rem] bg-card border border-border shadow-lift divide-y divide-border overflow-hidden">
+      </div>
+
+      <div className="mt-6 px-6 pb-6">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-semibold">Recent transactions</h2>
+          <Link to="/history" className="text-xs font-medium text-primary">See all</Link>
+        </div>
+        <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-card">
           {recent.length === 0 ? (
             <div className="p-6 text-center">
-              <div className="mx-auto h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                <Send className="h-5 w-5 text-muted-foreground" />
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                <Landmark className="h-5 w-5 text-muted-foreground" />
               </div>
-              <p className="text-sm font-semibold mt-3">No transactions yet</p>
-              <p className="text-xs text-muted-foreground mt-1">Launch a payment to get started.</p>
+              <p className="mt-3 text-sm font-semibold">No transactions yet</p>
+              <p className="mt-1 text-xs text-muted-foreground">Send money to get started.</p>
             </div>
-          ) : recent.map((t) => (
-            <div key={t.id} className="flex items-center gap-3 p-4">
-              <div className={`h-10 w-10 rounded-2xl flex items-center justify-center ${t.amount > 0 ? "bg-success/10" : "bg-muted"}`}>
-                {t.amount > 0 ? (
-                  <ArrowDownLeft className="h-4 w-4 text-success" />
-                ) : (
-                  <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
-                )}
+          ) : (
+            recent.map((t, i) => (
+              <div key={t.id} className={`flex items-center gap-3 p-4 ${i > 0 ? "border-t border-border" : ""}`}>
+                <div className={`flex h-10 w-10 items-center justify-center rounded-full ${t.amount > 0 ? "bg-success/10" : "bg-muted"}`}>
+                  {t.amount > 0 ? (
+                    <ArrowDownLeft className="h-4 w-4 text-success" />
+                  ) : (
+                    <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{t.label}</p>
+                  <p className="text-xs text-muted-foreground">{formatTxDate(t)}</p>
+                </div>
+                <p className={`text-sm font-semibold ${t.amount > 0 ? "text-success" : "text-foreground"}`}>
+                  {t.amount > 0 ? "+" : "-"}{formatZAR(Math.abs(t.amount))}
+                </p>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{t.label}</p>
-                <p className="text-xs text-muted-foreground">{formatTxDate(t)}</p>
-              </div>
-              <p className={`text-sm font-semibold ${t.amount > 0 ? "text-success" : "text-destructive"}`}>
-                {t.amount > 0 ? "+" : ""}{formatZAR(t.amount)}
-              </p>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
+
+      <div className="px-6 pb-6">
+        <Link
+          to="/send-once-off"
+          className="flex items-center gap-3 rounded-3xl bg-gold p-4 text-gold-foreground shadow-gold"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/40">
+            <Lightbulb className="h-4.5 w-4.5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold">Did you know?</p>
+            <p className="text-xs leading-snug">
+              You can send money to any South African bank account in just a few seconds.
+            </p>
+          </div>
+          <ChevronRight className="h-4 w-4 shrink-0" />
+        </Link>
+      </div>
+
+      <p className="pb-2 text-center text-[11px] font-medium text-muted-foreground">
+        Balance: {formatZAR(balance)}
+      </p>
     </AppShell>
   );
 }
