@@ -222,7 +222,12 @@ function Onboarding() {
     return (
       <PhoneFrame>
         <div className="relative h-full w-full">
-          <img src={hypeImage} alt="" className="absolute inset-0 h-full w-full select-none object-cover object-bottom" />
+          <img
+            src={hypeImage}
+            alt=""
+            className="absolute inset-0 h-full w-full select-none object-cover"
+            style={{ objectPosition: "35% 100%" }}
+          />
         </div>
       </PhoneFrame>
     );
