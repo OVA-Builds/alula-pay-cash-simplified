@@ -105,23 +105,41 @@ function readStoredState(): Partial<Persisted> | null {
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [initial] = useState<Partial<Persisted> | null>(() => readStoredState());
   const [hydrated, setHydrated] = useState(false);
-  const [onboarded, setOnboarded] = useState(() => initial?.onboarded ?? false);
-  const [signedIn, setSignedIn] = useState(() => initial?.signedIn ?? false);
-  const [phone, setPhone] = useState(() => initial?.phone ?? "");
-  const [firstName, setFirstName] = useState(() => initial?.firstName ?? "");
-  const [balance, setBalance] = useState(() => initial?.balance ?? 550);
-  const [verified, setVerified] = useState(() => initial?.verified ?? false);
-  const [plan, setPlan] = useState<Plan>(() => initial?.plan ?? "basic");
-  const [approvalPin, setApprovalPinState] = useState<string | null>(() => initial?.approvalPin ?? null);
-  const [alulaOn, setAlulaOn] = useState(() => initial?.alulaOn ?? true);
-  const [theme, setThemeState] = useState<"light" | "dark">(() => initial?.theme ?? "light");
-  const [transactions, setTransactions] = useState<Transaction[]>(() => initial?.transactions ?? sampleTx);
-  const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>(() => initial?.beneficiaries ?? sampleBenes);
+  const [onboarded, setOnboarded] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [balance, setBalance] = useState(550);
+  const [verified, setVerified] = useState(false);
+  const [plan, setPlan] = useState<Plan>("basic");
+  const [approvalPin, setApprovalPinState] = useState<string | null>(null);
+  const [alulaOn, setAlulaOn] = useState(true);
+  const [theme, setThemeState] = useState<"light" | "dark">("light");
+  const [transactions, setTransactions] = useState<Transaction[]>(sampleTx);
+  const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>(sampleBenes);
 
-  // Unlock persistence only after the first browser render, so saved state never gets overwritten by defaults.
+  // Apply any persisted state once, after mount. The very first render (both
+  // server and the client's hydration pass) always starts from the same
+  // plain defaults above — reading localStorage synchronously into initial
+  // state would make the client's first render diverge from the server's,
+  // causing a hydration mismatch.
   useEffect(() => {
+    const initial = readStoredState();
+    if (initial) {
+      if (initial.onboarded !== undefined) setOnboarded(initial.onboarded);
+      if (initial.signedIn !== undefined) setSignedIn(initial.signedIn);
+      if (initial.phone !== undefined) setPhone(initial.phone);
+      if (initial.firstName !== undefined) setFirstName(initial.firstName);
+      if (initial.balance !== undefined) setBalance(initial.balance);
+      if (initial.verified !== undefined) setVerified(initial.verified);
+      if (initial.plan !== undefined) setPlan(initial.plan);
+      if (initial.approvalPin !== undefined) setApprovalPinState(initial.approvalPin);
+      if (initial.alulaOn !== undefined) setAlulaOn(initial.alulaOn);
+      if (initial.theme !== undefined) setThemeState(initial.theme);
+      if (initial.transactions !== undefined) setTransactions(initial.transactions);
+      if (initial.beneficiaries !== undefined) setBeneficiaries(initial.beneficiaries);
+    }
     setHydrated(true);
   }, []);
 
