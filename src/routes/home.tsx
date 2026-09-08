@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bell, Landmark, Settings, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useApp, formatZAR, formatTxDate, TIER_LIMITS } from "@/lib/app-state";
-import promoPhoto from "@/assets/onb-1.jpg";
+import promoBanner from "@/assets/home-promo-banner.jpg";
 
 export const Route = createFileRoute("/home")({ component: Home });
 
@@ -116,25 +116,11 @@ function Home() {
       </div>
 
       <div className="mt-4 px-6">
-        <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-primary/5 to-background p-5 shadow-card">
-          <img
-            src={promoPhoto}
-            alt=""
-            className="pointer-events-none absolute -right-4 bottom-0 h-full w-[46%] rounded-2xl object-cover object-top opacity-95"
-          />
-          <div className="relative max-w-[58%]">
-            <p className="text-xl font-bold leading-tight tracking-tight">
-              Real People.<br /><span className="text-primary">Real Possibilities.</span>
-            </p>
-            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-              Your money, your way. Fast. Safe. Simple.
-            </p>
-            <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-gold px-4 py-2 text-xs font-bold text-gold-foreground shadow-gold">
-              Learn more
-              <ChevronRight className="h-3.5 w-3.5" />
-            </span>
-          </div>
-        </div>
+        <img
+          src={promoBanner}
+          alt="Real People. Real Possibilities. More freedom. More control. A brighter tomorrow."
+          className="w-full rounded-3xl object-cover shadow-card"
+        />
       </div>
 
       <div className="mt-6 px-6 pb-6">
