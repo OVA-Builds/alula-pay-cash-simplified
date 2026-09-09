@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { AppShell } from "@/components/AppShell";
@@ -9,9 +9,17 @@ export const Route = createFileRoute("/spending")({ component: Spending });
 
 type Point = { day: number; label: string; total: number };
 
+const MONTH_OFFSETS = [2, 1, 0] as const; // oldest to newest, 0 = current month
+
+function monthStart(offset: number): Date {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth() - offset, 1);
+}
+
 function Spending() {
   const router = useRouter();
   const { transactions, plan } = useApp();
+  const [offset, setOffset] = useState<number>(0);
 
   const isPro = plan === "pro";
   const step = isPro ? 5000 : 500;
@@ -21,10 +29,12 @@ function Spending() {
     [axisMax, step]
   );
 
+  const selected = monthStart(offset);
+  const monthLabel = selected.toLocaleDateString("en-ZA", { month: "long", year: "numeric" });
+
   const data = useMemo<Point[]>(() => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
+    const year = selected.getFullYear();
+    const month = selected.getMonth();
     const totalDays = new Date(year, month + 1, 0).getDate();
 
     return Array.from({ length: totalDays }, (_, i) => {
@@ -40,9 +50,9 @@ function Spending() {
         total: +total.toFixed(2),
       };
     });
-  }, [transactions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transactions, offset]);
 
-  const daysWithSends = data.filter((d) => d.total > 0).length;
   // Only show every few day-labels on the x-axis so a 28-31 day month
   // doesn't overlap on a narrow phone screen.
   const labelEvery = Math.max(1, Math.ceil(data.length / 8));
@@ -62,7 +72,21 @@ function Spending() {
         <h1 className="text-2xl font-bold tracking-tight">Monthly spending</h1>
         <p className="mt-1 text-sm text-muted-foreground">Tap a point on the line to see what you sent that day.</p>
 
-        <div className="mt-5 rounded-3xl border border-border bg-card p-4 shadow-card">
+        <div className="mt-4 grid grid-cols-3 gap-2 rounded-2xl bg-muted p-1">
+          {MONTH_OFFSETS.map((o) => (
+            <button
+              key={o}
+              onClick={() => setOffset(o)}
+              className={`h-9 rounded-xl text-xs font-semibold transition-all active:scale-[0.97] ${
+                offset === o ? "bg-card text-foreground shadow-card" : "text-muted-foreground"
+              }`}
+            >
+              {monthStart(o).toLocaleDateString("en-ZA", { month: "short" })}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-4 rounded-3xl border border-border bg-card p-4 shadow-card">
           <div style={{ width: "100%", height: 260 }}>
             <ResponsiveContainer>
               <LineChart data={data} margin={{ top: 10, right: 10, left: -18, bottom: 0 }}>
@@ -107,11 +131,11 @@ function Spending() {
               </LineChart>
             </ResponsiveContainer>
           </div>
+          <p className="mt-1 text-center text-xs font-semibold text-muted-foreground">{monthLabel}</p>
         </div>
 
         <p className="mt-4 text-center text-xs text-muted-foreground">
           {isPro ? "Pro" : "Basic"} monthly limit: {formatZAR(axisMax)}
-          {daysWithSends > 0 && ` · Sent on ${daysWithSends} ${daysWithSends === 1 ? "day" : "days"} this month`}
         </p>
       </div>
     </AppShell>
