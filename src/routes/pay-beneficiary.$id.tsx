@@ -36,6 +36,7 @@ function PayBeneficiary() {
   useRequireSubscription({ enabled: step !== "done" });
 
   const [reference, setReference] = useState(bene?.reference ?? "");
+  const [refError, setRefError] = useState(false);
   const [brand, setBrand] = useState<VoucherBrand | null>(null);
   const [code, setCode] = useState("");
   const [pinOpen, setPinOpen] = useState(false);
@@ -208,8 +209,14 @@ function PayBeneficiary() {
 
         <div className="mt-4">
           <Label>Reference (shown on their statement)</Label>
-          <Input value={reference} onChange={(e) => setReference(e.target.value)} maxLength={20}
-            placeholder="e.g. Rent" className="mt-2 h-12 rounded-2xl" />
+          <Input
+            value={reference}
+            onChange={(e) => { setReference(e.target.value); if (e.target.value.trim()) setRefError(false); }}
+            maxLength={20}
+            placeholder="e.g. Rent"
+            className={`mt-2 h-12 rounded-2xl ${refError ? "border-destructive focus-visible:ring-destructive" : ""}`}
+          />
+          {refError && <p className="mt-1.5 text-xs text-destructive">Reference is required.</p>}
         </div>
 
         <div className="mt-5">
@@ -265,8 +272,11 @@ function PayBeneficiary() {
           </div>
         )}
 
-        <Button size="lg" onClick={() => setPinOpen(true)}
-          className="mt-6 h-14 w-full rounded-2xl text-base shadow-button">
+        <Button
+          size="lg"
+          onClick={() => { if (!reference.trim()) { setRefError(true); return; } setPinOpen(true); }}
+          className="mt-6 h-14 w-full rounded-2xl text-base shadow-button"
+        >
           Pay {formatZAR(netToBank)}
         </Button>
       </div>

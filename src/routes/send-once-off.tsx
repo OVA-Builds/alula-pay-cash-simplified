@@ -41,6 +41,7 @@ function OnceOff() {
   const [name, setName] = useState("");
   const [account, setAccount] = useState("");
   const [reference, setReference] = useState("");
+  const [refError, setRefError] = useState(false);
   const [save, setSave] = useState(false);
   const [brand, setBrand] = useState<VoucherBrand | null>(null);
   const [code, setCode] = useState("");
@@ -178,8 +179,14 @@ function OnceOff() {
             </div>
             <div>
               <Label>Reference (shown on their statement)</Label>
-              <Input value={reference} onChange={(e) => setReference(e.target.value)} maxLength={20}
-                placeholder="e.g. Rent" className="mt-2 h-12 rounded-2xl" />
+              <Input
+                value={reference}
+                onChange={(e) => { setReference(e.target.value); if (e.target.value.trim()) setRefError(false); }}
+                maxLength={20}
+                placeholder="e.g. Rent"
+                className={`mt-2 h-12 rounded-2xl ${refError ? "border-destructive focus-visible:ring-destructive" : ""}`}
+              />
+              {refError && <p className="mt-1.5 text-xs text-destructive">Reference is required.</p>}
             </div>
           </div>
 
@@ -191,8 +198,12 @@ function OnceOff() {
             <Switch checked={save} onCheckedChange={setSave} />
           </label>
 
-          <Button size="lg" disabled={!detailsValid} onClick={() => setStep("voucher")}
-            className="mt-6 h-14 w-full rounded-2xl text-base shadow-button">
+          <Button
+            size="lg"
+            disabled={!detailsValid}
+            onClick={() => { if (!reference.trim()) { setRefError(true); return; } setStep("voucher"); }}
+            className="mt-6 h-14 w-full rounded-2xl text-base shadow-button"
+          >
             Continue
           </Button>
         </div>
