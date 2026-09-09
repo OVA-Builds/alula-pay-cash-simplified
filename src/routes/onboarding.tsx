@@ -61,7 +61,7 @@ const SLIDES = [
 ];
 
 const PLAN_ROWS: { label: string; basic: string | boolean; pro: string | boolean }[] = [
-  { label: "Subscription", basic: "R5 / month", pro: "R10 / month" },
+  { label: "Subscription", basic: "R10 / month", pro: "R20 / month" },
   { label: "Monthly Limit", basic: "R5 000", pro: "R50 000" },
   { label: "Bio Metrics", basic: false, pro: true },
   { label: "Normal EFT", basic: true, pro: true },
@@ -182,10 +182,10 @@ function Onboarding() {
                   <tr>
                     <th className="p-2 font-semibold">Features</th>
                     <th className="bg-muted p-2 text-center font-semibold">
-                      Basic<div className="font-normal text-muted-foreground">R5/mo</div>
+                      Basic<div className="font-normal text-muted-foreground">R10/mo</div>
                     </th>
                     <th className="bg-primary p-2 text-center font-semibold text-primary-foreground">
-                      Pro<div className="font-normal text-primary-foreground/80">R10/mo</div>
+                      Pro<div className="font-normal text-primary-foreground/80">R20/mo</div>
                     </th>
                   </tr>
                 </thead>

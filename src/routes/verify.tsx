@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ArrowLeft, Camera, ShieldCheck, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/AppShell";
-import { useApp } from "@/lib/app-state";
+import { useApp, MONTHLY_FEE } from "@/lib/app-state";
 
 export const Route = createFileRoute("/verify")({ component: Verify });
 
@@ -11,7 +11,7 @@ function Verify() {
   const navigate = useNavigate();
   const { setVerified, adjustBalance } = useApp();
   const [stage, setStage] = useState<"intro" | "capturing" | "checking">("intro");
-  const PRO_FEE = 10;
+  const PRO_FEE = MONTHLY_FEE.pro;
   const canUpgrade = true;
 
   const start = () => {
@@ -87,9 +87,9 @@ function Verify() {
           <>
             {!canUpgrade && (
               <div className="mb-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-3.5 text-center">
-                <p className="text-sm font-semibold text-destructive">You need at least R10.00 to upgrade</p>
+                <p className="text-sm font-semibold text-destructive">You need at least R20.00 to upgrade</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Pro costs R10 a month. Redeem a voucher to top up, then come back.
+                  Pro costs R20 a month. Redeem a voucher to top up, then come back.
                 </p>
               </div>
             )}

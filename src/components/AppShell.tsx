@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { BottomNav } from "./BottomNav";
 import { PhoneFrame } from "./PhoneFrame";
 import { AlulaGuide } from "./AlulaGuide";
+import { SubscriptionPaywall } from "./SubscriptionPaywall";
 
 export function AppShell({ children, hideNav }: { children: ReactNode; hideNav?: boolean }) {
   return (
@@ -14,6 +15,7 @@ export function AppShell({ children, hideNav }: { children: ReactNode; hideNav?:
           </div>
         )}
         <AlulaGuide />
+        <SubscriptionPaywall />
       </div>
     </PhoneFrame>
   );

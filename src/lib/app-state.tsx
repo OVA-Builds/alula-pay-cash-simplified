@@ -54,6 +54,14 @@ type Ctx = {
   guideMode: "deposit" | "withdraw" | null;
   startGuide: (m: "deposit" | "withdraw") => void;
   stopGuide: () => void;
+  // Subscription paywall
+  freeTransactionsLeft: number;
+  subscriptionActive: boolean;
+  paywallActive: boolean;
+  pendingPlan: Plan | null;
+  pendingAmountPaid: number;
+  choosePendingPlan: (p: Plan) => void;
+  redeemTowardSubscription: (amount: number, voucherLabel: string) => { fullyPaid: boolean; outstanding: number };
 };
 
 const AppContext = createContext<Ctx | null>(null);
@@ -92,6 +100,8 @@ type Persisted = {
   onboarded: boolean; signedIn: boolean; phone: string; firstName: string; balance: number;
   verified: boolean; plan: Plan; approvalPin: string | null; alulaOn: boolean;
   theme: "light" | "dark"; transactions: Transaction[]; beneficiaries: Beneficiary[];
+  freeTransactionsLeft: number; lastPaidPeriod: string | null;
+  pendingPlan: Plan | null; pendingAmountPaid: number;
 };
 
 function readStoredState(): Partial<Persisted> | null {
@@ -118,6 +128,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<"light" | "dark">("light");
   const [transactions, setTransactions] = useState<Transaction[]>(sampleTx);
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>(sampleBenes);
+  const [freeTransactionsLeft, setFreeTransactionsLeft] = useState(2);
+  const [lastPaidPeriod, setLastPaidPeriod] = useState<string | null>(null);
+  const [pendingPlan, setPendingPlan] = useState<Plan | null>(null);
+  const [pendingAmountPaid, setPendingAmountPaid] = useState(0);
 
   // Apply any persisted state once, after mount. The very first render (both
   // server and the client's hydration pass) always starts from the same
@@ -139,6 +153,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (initial.theme !== undefined) setThemeState(initial.theme);
       if (initial.transactions !== undefined) setTransactions(initial.transactions);
       if (initial.beneficiaries !== undefined) setBeneficiaries(initial.beneficiaries);
+      if (initial.freeTransactionsLeft !== undefined) setFreeTransactionsLeft(initial.freeTransactionsLeft);
+      if (initial.lastPaidPeriod !== undefined) setLastPaidPeriod(initial.lastPaidPeriod);
+      if (initial.pendingPlan !== undefined) setPendingPlan(initial.pendingPlan);
+      if (initial.pendingAmountPaid !== undefined) setPendingAmountPaid(initial.pendingAmountPaid);
     }
     setHydrated(true);
   }, []);
@@ -150,10 +168,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const data: Persisted = {
         onboarded, signedIn, phone, firstName, balance, verified, plan,
         approvalPin, alulaOn, theme, transactions, beneficiaries,
+        freeTransactionsLeft, lastPaidPeriod, pendingPlan, pendingAmountPaid,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch {}
-  }, [hydrated, onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries]);
+  }, [hydrated, onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries, freeTransactionsLeft, lastPaidPeriod, pendingPlan, pendingAmountPaid]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -185,6 +204,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setPinLocked(false);
     setBalance(0);
     setTransactions([]);
+    setFreeTransactionsLeft(2);
+    setLastPaidPeriod(null);
+    setPendingPlan(null);
+    setPendingAmountPaid(0);
   }, []);
   const signOut = useCallback(() => {
     // Signing out returns the user to onboarding for the demo.
@@ -194,6 +217,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 const addTransaction = useCallback((t: Transaction) => {
   const enriched: Transaction = { ...t, createdAt: t.createdAt ?? Date.now() };
   setTransactions((prev) => [enriched, ...prev]);
+  // Sends (not redeems) count against the two free transactions new accounts get
+  // before a subscription is required.
+  if (t.type === "transfer") {
+    setFreeTransactionsLeft((n) => Math.max(0, n - 1));
+  }
 }, []);
   const adjustBalance = useCallback((delta: number) => setBalance((b) => +(b + delta).toFixed(2)), []);
   const setApprovalPin = useCallback((p: string | null) => {
@@ -228,6 +256,43 @@ const addTransaction = useCallback((t: Transaction) => {
     setApprovalPinState(null);
   }, []);
 
+  const choosePendingPlan = useCallback((p: Plan) => {
+    setPendingPlan(p);
+  }, []);
+
+  // Applies a redeemed voucher's value toward the outstanding subscription
+  // fee. Vouchers used here are earmarked for the subscription — they don't
+  // add to the spendable wallet balance. Partial payments persist (added to
+  // pendingAmountPaid) so the user always continues where they left off
+  // rather than losing progress.
+  const redeemTowardSubscription = useCallback((amount: number, voucherLabel: string) => {
+    const target = pendingPlan ? MONTHLY_FEE[pendingPlan] : 0;
+    const newPaid = +(pendingAmountPaid + amount).toFixed(2);
+
+    setTransactions((prev) => [{
+      id: crypto.randomUUID(),
+      type: "redeem",
+      amount,
+      label: `${voucherLabel} — Subscription payment`,
+      status: "Completed",
+      createdAt: Date.now(),
+    }, ...prev]);
+
+    if (pendingPlan && newPaid >= target) {
+      setPlan(pendingPlan);
+      if (pendingPlan === "pro") setVerified(true);
+      setLastPaidPeriod(getBillingPeriod());
+      setPendingAmountPaid(0);
+      setPendingPlan(null);
+      return { fullyPaid: true, outstanding: 0 };
+    }
+    setPendingAmountPaid(newPaid);
+    return { fullyPaid: false, outstanding: +(target - newPaid).toFixed(2) };
+  }, [pendingPlan, pendingAmountPaid]);
+
+  const subscriptionActive = lastPaidPeriod === getBillingPeriod();
+  const paywallActive = freeTransactionsLeft <= 0 && !subscriptionActive;
+
   return (
     <AppContext.Provider
       value={{
@@ -238,6 +303,8 @@ const addTransaction = useCallback((t: Transaction) => {
         setApprovalPin, setAlulaOn, setTheme, addBeneficiary,
         pinAttemptsLeft, pinLocked, registerPinAttempt, resetPinLock,
         guideMode, startGuide, stopGuide,
+        freeTransactionsLeft, subscriptionActive, paywallActive,
+        pendingPlan, pendingAmountPaid, choosePendingPlan, redeemTowardSubscription,
       }}
     >
       {children}
@@ -313,7 +380,14 @@ export function calcTransferFee(
 }
 
 
-export const MONTHLY_FEE = { basic: 5, pro: 10 } as const;
+export const MONTHLY_FEE = { basic: 10, pro: 20 } as const;
+
+// The subscription billing cycle rolls over on the 2nd of each calendar
+// month. Returns a "YYYY-MM" key identifying the cycle `d` falls in.
+export function getBillingPeriod(d: Date = new Date()): string {
+  const cycleStart = d.getDate() >= 2 ? new Date(d.getFullYear(), d.getMonth(), 1) : new Date(d.getFullYear(), d.getMonth() - 1, 1);
+  return `${cycleStart.getFullYear()}-${String(cycleStart.getMonth() + 1).padStart(2, "0")}`;
+}
 
 // Tier limits per business plan v2 (2025).
 export const TIER_LIMITS = {
