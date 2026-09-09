@@ -24,7 +24,7 @@ function MessageDetail() {
           <button
             onClick={() => (router.history.canGoBack() ? router.history.back() : router.navigate({ to: "/notifications" }))}
             aria-label="Back"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card transition-transform active:scale-95"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card shadow-soft transition-transform active:scale-95"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -38,7 +38,7 @@ function MessageDetail() {
               {message.logo ? (
                 <img src={message.logo} alt="Alula Pay" className="h-14 w-14 shrink-0 rounded-2xl object-cover shadow-card" />
               ) : (
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary shadow-soft">
                   <message.icon className="h-5 w-5" />
                 </span>
               )}
@@ -48,9 +48,11 @@ function MessageDetail() {
               </div>
             </div>
 
-            <p className="mt-5 text-sm font-medium leading-relaxed text-foreground">{message.body}</p>
+            <div className="mt-5 rounded-2xl border border-primary/15 bg-primary/5 p-4 shadow-soft">
+              <p className="text-sm font-medium leading-relaxed text-foreground">{message.body}</p>
+            </div>
 
-            <div className="mt-5 space-y-4 border-t border-border pt-5">
+            <div className="mt-4 space-y-4 rounded-3xl border border-border bg-card p-5 shadow-card">
               {message.newsletter.map((para, i) => (
                 <p key={i} className="text-sm leading-relaxed text-muted-foreground">{para}</p>
               ))}
