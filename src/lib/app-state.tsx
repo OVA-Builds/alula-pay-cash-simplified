@@ -398,6 +398,14 @@ export const formatZAR = (n: number) => {
   return `${neg ? "-" : ""}R${withCommas}.${decPart}`;
 };
 
+// Transactions are never deleted — this is only how far back History and
+// Notifications' Transactions tab look by default.
+export function threeMonthsAgo(): number {
+  const d = new Date();
+  d.setMonth(d.getMonth() - 3);
+  return d.getTime();
+}
+
 export function formatTxDate(t: Transaction): string {
   if (t.date && !t.createdAt) return t.date;
 

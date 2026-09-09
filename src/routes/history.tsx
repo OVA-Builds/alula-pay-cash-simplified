@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { useApp, formatZAR, formatTxDate } from "@/lib/app-state";
+import { useApp, formatZAR, formatTxDate, threeMonthsAgo } from "@/lib/app-state";
 
 export const Route = createFileRoute("/history")({
   component: History,
@@ -25,8 +25,7 @@ function History() {
   const [dest, setDest] = useState("");
   const [sent, setSent] = useState(false);
   const [filter, setFilter] = useState<"all" | "in" | "out">("all");
-  const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
-  const cutoff = Date.now() - THIRTY_DAYS_MS;
+  const cutoff = threeMonthsAgo();
   const recentOnly = transactions.filter((t) => (t.createdAt ?? Date.now()) >= cutoff);
   const filtered = recentOnly.filter((t) =>
     filter === "all" ? true : filter === "in" ? t.amount > 0 : t.amount < 0
@@ -64,7 +63,7 @@ function History() {
           </button>
         </div>
         <h1 className="text-2xl font-bold tracking-tight">Transaction history</h1>
-        <p className="text-sm text-muted-foreground mt-1">Everything that has moved in and out in the past 30 days.</p>
+        <p className="text-sm text-muted-foreground mt-1">Everything that has moved in and out in the past 3 months.</p>
 
         {/* 3-month deposit statement card */}
         <div className="mt-5 rounded-2xl border border-border bg-card p-5 shadow-soft">
@@ -114,7 +113,7 @@ function History() {
 
         <div className="mt-3 bg-card rounded-2xl border border-border divide-y divide-border">
           {filtered.length === 0 && (
-            <p className="p-6 text-center text-xs text-muted-foreground">No {filter === "in" ? "incoming" : filter === "out" ? "outgoing" : ""} transactions in the past 30 days.</p>
+            <p className="p-6 text-center text-xs text-muted-foreground">No {filter === "in" ? "incoming" : filter === "out" ? "outgoing" : ""} transactions in the past 3 months.</p>
           )}
           {filtered.map((t) => {
             const positive = t.amount > 0;

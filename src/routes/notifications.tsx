@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { ArrowLeft, ArrowDownLeft, ArrowUpRight, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { useApp, formatZAR, formatTxDate } from "@/lib/app-state";
+import { useApp, formatZAR, formatTxDate, threeMonthsAgo } from "@/lib/app-state";
 import { MESSAGES } from "@/lib/messages";
 
 type Tab = "transactions" | "messages";
@@ -24,8 +24,7 @@ function Notifications() {
 
   const messages = MESSAGES.filter((m) => !deletedMessageIds.includes(m.id));
 
-  const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
-  const cutoff = Date.now() - THIRTY_DAYS_MS;
+  const cutoff = threeMonthsAgo();
   const recentTransactions = transactions.filter((t) => (t.createdAt ?? Date.now()) >= cutoff);
 
   return (
@@ -62,7 +61,7 @@ function Notifications() {
 
         {tab === "transactions" && (
           <div className="mt-4">
-            <p className="mb-2 px-1 text-xs text-muted-foreground">Past 30 days</p>
+            <p className="mb-2 px-1 text-xs text-muted-foreground">Past 3 months</p>
             {recentTransactions.length === 0 ? (
               <div className="rounded-3xl border border-border bg-card p-6 text-center shadow-card">
                 <p className="text-xs text-muted-foreground">Nothing to show yet.</p>
