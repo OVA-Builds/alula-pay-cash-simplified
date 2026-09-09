@@ -1,18 +1,26 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
 import { ArrowLeft, ArrowDownLeft, ArrowUpRight, ChevronRight, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useApp, formatZAR, formatTxDate } from "@/lib/app-state";
 import { MESSAGES } from "@/lib/messages";
 
-export const Route = createFileRoute("/notifications")({ component: Notifications });
-
 type Tab = "transactions" | "messages";
+
+export const Route = createFileRoute("/notifications")({
+  component: Notifications,
+  validateSearch: (search: Record<string, unknown>): { tab?: Tab } => ({
+    tab: search.tab === "messages" ? "messages" : undefined,
+  }),
+});
 
 function Notifications() {
   const router = useRouter();
+  const { tab = "transactions" } = Route.useSearch();
   const { transactions, deletedMessageIds, readMessageIds, deleteMessage } = useApp();
-  const [tab, setTab] = useState<Tab>("transactions");
+  // The active tab lives in the URL (not local state) so that pressing back
+  // after opening a message returns to whichever tab you were actually on,
+  // instead of resetting to the default every time this route remounts.
+  const setTab = (t: Tab) => router.navigate({ to: "/notifications", search: { tab: t }, replace: true });
 
   const messages = MESSAGES.filter((m) => !deletedMessageIds.includes(m.id));
 
@@ -114,8 +122,8 @@ function Notifications() {
                         </span>
                       )}
                       <div className="min-w-0 flex-1">
-                        <p className={`text-sm ${unread ? "font-bold" : "font-normal"}`}>{m.title}</p>
-                        <p className={`mt-0.5 text-xs leading-relaxed text-muted-foreground ${unread ? "font-semibold" : "font-normal"}`}>{m.body}</p>
+                        <p className={`text-sm font-bold ${unread ? "text-foreground" : "text-primary"}`}>{m.title}</p>
+                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{m.body}</p>
                         <p className="mt-1 text-[11px] text-muted-foreground">{m.date}</p>
                       </div>
                       <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground" />
