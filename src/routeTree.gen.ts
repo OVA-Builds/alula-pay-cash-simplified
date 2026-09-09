@@ -24,6 +24,7 @@ import { Route as SendRouteImport } from './routes/send'
 import { Route as SendOnceOffRouteImport } from './routes/send-once-off'
 import { Route as SetupPinRouteImport } from './routes/setup-pin'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SpendingRouteImport } from './routes/spending'
 import { Route as SubscribeRouteImport } from './routes/subscribe'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as MessageIdRouteImport } from './routes/message.$id'
@@ -104,6 +105,11 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SpendingRoute = SpendingRouteImport.update({
+  id: '/spending',
+  path: '/spending',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SubscribeRoute = SubscribeRouteImport.update({
   id: '/subscribe',
   path: '/subscribe',
@@ -141,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/send-once-off': typeof SendOnceOffRoute
   '/setup-pin': typeof SetupPinRoute
   '/signup': typeof SignupRoute
+  '/spending': typeof SpendingRoute
   '/subscribe': typeof SubscribeRoute
   '/verify': typeof VerifyRoute
   '/message/$id': typeof MessageIdRoute
@@ -162,6 +169,7 @@ export interface FileRoutesByTo {
   '/send-once-off': typeof SendOnceOffRoute
   '/setup-pin': typeof SetupPinRoute
   '/signup': typeof SignupRoute
+  '/spending': typeof SpendingRoute
   '/subscribe': typeof SubscribeRoute
   '/verify': typeof VerifyRoute
   '/message/$id': typeof MessageIdRoute
@@ -184,6 +192,7 @@ export interface FileRoutesById {
   '/send-once-off': typeof SendOnceOffRoute
   '/setup-pin': typeof SetupPinRoute
   '/signup': typeof SignupRoute
+  '/spending': typeof SpendingRoute
   '/subscribe': typeof SubscribeRoute
   '/verify': typeof VerifyRoute
   '/message/$id': typeof MessageIdRoute
@@ -207,6 +216,7 @@ export interface FileRouteTypes {
     | '/send-once-off'
     | '/setup-pin'
     | '/signup'
+    | '/spending'
     | '/subscribe'
     | '/verify'
     | '/message/$id'
@@ -228,6 +238,7 @@ export interface FileRouteTypes {
     | '/send-once-off'
     | '/setup-pin'
     | '/signup'
+    | '/spending'
     | '/subscribe'
     | '/verify'
     | '/message/$id'
@@ -249,6 +260,7 @@ export interface FileRouteTypes {
     | '/send-once-off'
     | '/setup-pin'
     | '/signup'
+    | '/spending'
     | '/subscribe'
     | '/verify'
     | '/message/$id'
@@ -271,6 +283,7 @@ export interface RootRouteChildren {
   SendOnceOffRoute: typeof SendOnceOffRoute
   SetupPinRoute: typeof SetupPinRoute
   SignupRoute: typeof SignupRoute
+  SpendingRoute: typeof SpendingRoute
   SubscribeRoute: typeof SubscribeRoute
   VerifyRoute: typeof VerifyRoute
   MessageIdRoute: typeof MessageIdRoute
@@ -384,6 +397,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/spending': {
+      id: '/spending'
+      path: '/spending'
+      fullPath: '/spending'
+      preLoaderRoute: typeof SpendingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/subscribe': {
       id: '/subscribe'
       path: '/subscribe'
@@ -431,6 +451,7 @@ const rootRouteChildren: RootRouteChildren = {
   SendOnceOffRoute: SendOnceOffRoute,
   SetupPinRoute: SetupPinRoute,
   SignupRoute: SignupRoute,
+  SpendingRoute: SpendingRoute,
   SubscribeRoute: SubscribeRoute,
   VerifyRoute: VerifyRoute,
   MessageIdRoute: MessageIdRoute,

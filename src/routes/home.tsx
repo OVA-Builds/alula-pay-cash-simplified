@@ -16,7 +16,17 @@ function Home() {
   const displayName = firstName?.trim() ? firstName.trim().split(/\s+/)[0] : "there";
   const hasUnreadMessages = MESSAGES.some((m) => !deletedMessageIds.includes(m.id) && !readMessageIds.includes(m.id));
 
-  const moneyOut = transactions.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+  // Scoped to the current calendar month, matching what /spending charts —
+  // the monthly limit resets each month, so it shouldn't count sends from
+  // a previous month.
+  const now = new Date();
+  const moneyOut = transactions
+    .filter((t) => {
+      if (t.amount >= 0 || !t.createdAt) return false;
+      const d = new Date(t.createdAt);
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    })
+    .reduce((s, t) => s + Math.abs(t.amount), 0);
   const limitTotal = TIER_LIMITS[plan].monthly;
   const usedPct = Math.min(100, Math.round((moneyOut / limitTotal) * 100));
   const remaining = Math.max(0, limitTotal - moneyOut);
@@ -44,16 +54,18 @@ function Home() {
         {subscriptionActive ? (
           <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Monthly limit</p>
-            <p className="mt-1 text-2xl font-bold tracking-tight">
-              {formatZAR(moneyOut)} <span className="text-base font-normal text-muted-foreground">of {formatZAR(limitTotal)}</span>
-            </p>
+            <Link to="/spending" className="mt-1 block active:opacity-70">
+              <p className="text-2xl font-bold tracking-tight">
+                {formatZAR(moneyOut)} <span className="text-base font-normal text-muted-foreground">of {formatZAR(limitTotal)}</span>
+              </p>
+            </Link>
 
             <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-muted">
               <div className="h-full rounded-full bg-gold transition-[width] duration-700" style={{ width: `${usedPct}%` }} />
             </div>
 
             <div className="mt-4 grid grid-cols-[0.85fr_auto_1.5fr] items-center gap-2.5">
-              <div className="flex items-center gap-2">
+              <Link to="/spending" className="flex items-center gap-2 active:opacity-70">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">
                   <ArrowUpRight className="h-4 w-4" />
                 </span>
@@ -61,7 +73,7 @@ function Home() {
                   <p className="text-sm font-bold leading-tight">{formatZAR(remaining)}</p>
                   <p className="text-xs text-muted-foreground">Remaining</p>
                 </div>
-              </div>
+              </Link>
 
               <span className="h-9 w-px bg-border" />
 
