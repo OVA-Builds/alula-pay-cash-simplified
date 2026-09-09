@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Bell, Landmark, Settings, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb, Users, Zap } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { BottomSheet } from "@/components/BottomSheet";
 import { useApp, formatZAR, formatTxDate, TIER_LIMITS } from "@/lib/app-state";
 import { MESSAGES } from "@/lib/messages";
 import promoBanner from "@/assets/home-promo-banner.jpg";
@@ -284,46 +284,41 @@ function Home() {
         )}
       </div>
 
-      <Sheet open={sendPickerOpen} onOpenChange={setSendPickerOpen}>
-        <SheetContent
-          side="bottom"
-          className="rounded-t-[2rem] border-none bg-card p-0 pb-8 shadow-3d [&>button]:hidden"
-        >
-          <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-muted" />
-          <SheetHeader className="px-6 pt-5 text-left">
-            <SheetTitle className="text-xl">Send to Bank</SheetTitle>
-            <SheetDescription>How would you like to pay?</SheetDescription>
-          </SheetHeader>
-          <div className="mt-3 space-y-3 px-6">
-            <button
-              onClick={() => { setSendPickerOpen(false); navigate({ to: "/send-once-off" }); }}
-              className="flex w-full items-center gap-4 rounded-3xl border border-border bg-card p-4 text-left shadow-soft transition-transform active:scale-[0.98]"
-            >
-              <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-gradient-gold shadow-gold">
-                <Zap className="h-5.5 w-5.5 text-gold-foreground" strokeWidth={2.2} />
-              </span>
-              <div className="flex-1">
-                <p className="font-bold">Once-off payment</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">Choose a bank and pay with a voucher</p>
-              </div>
-              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-            </button>
-            <button
-              onClick={() => { setSendPickerOpen(false); navigate({ to: "/beneficiaries" }); }}
-              className="flex w-full items-center gap-4 rounded-3xl border border-border bg-card p-4 text-left shadow-soft transition-transform active:scale-[0.98]"
-            >
-              <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-gradient-brand shadow-button">
-                <Users className="h-5.5 w-5.5 text-white" strokeWidth={2.2} />
-              </span>
-              <div className="flex-1">
-                <p className="font-bold">Pay beneficiary</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">Saved recipients — faster, no re-entry</p>
-              </div>
-              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-            </button>
-          </div>
-        </SheetContent>
-      </Sheet>
+      <BottomSheet open={sendPickerOpen} onClose={() => setSendPickerOpen(false)}>
+        <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-muted" />
+        <div className="px-6 pt-5 text-left">
+          <h2 className="text-xl font-bold">Send to Bank</h2>
+          <p className="mt-1 text-sm text-muted-foreground">How would you like to pay?</p>
+        </div>
+        <div className="mt-3 space-y-3 px-6">
+          <button
+            onClick={() => { setSendPickerOpen(false); navigate({ to: "/send-once-off" }); }}
+            className="flex w-full items-center gap-4 rounded-3xl border border-border bg-card p-4 text-left shadow-soft transition-transform active:scale-[0.98]"
+          >
+            <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-gradient-gold shadow-gold">
+              <Zap className="h-5.5 w-5.5 text-gold-foreground" strokeWidth={2.2} />
+            </span>
+            <div className="flex-1">
+              <p className="font-bold">Once-off payment</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Choose a bank and pay with a voucher</p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </button>
+          <button
+            onClick={() => { setSendPickerOpen(false); navigate({ to: "/beneficiaries" }); }}
+            className="flex w-full items-center gap-4 rounded-3xl border border-border bg-card p-4 text-left shadow-soft transition-transform active:scale-[0.98]"
+          >
+            <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-gradient-brand shadow-button">
+              <Users className="h-5.5 w-5.5 text-white" strokeWidth={2.2} />
+            </span>
+            <div className="flex-1">
+              <p className="font-bold">Pay beneficiary</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Saved recipients — faster, no re-entry</p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </button>
+        </div>
+      </BottomSheet>
     </AppShell>
   );
 }
