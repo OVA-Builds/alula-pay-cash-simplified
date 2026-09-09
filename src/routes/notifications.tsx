@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, ArrowDownLeft, ArrowUpRight, ChevronRight, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowDownLeft, ArrowUpRight, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useApp, formatZAR, formatTxDate } from "@/lib/app-state";
 import { MESSAGES } from "@/lib/messages";
@@ -126,7 +126,6 @@ function Notifications() {
                         <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{m.body}</p>
                         <p className="mt-1 text-[11px] text-muted-foreground">{m.date}</p>
                       </div>
-                      <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground" />
                       <button
                         aria-label="Delete message"
                         onClick={(e) => { e.stopPropagation(); deleteMessage(m.id); }}
