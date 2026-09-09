@@ -1,5 +1,6 @@
 import { ShieldCheck, Landmark, Megaphone, Newspaper } from "lucide-react";
 import alulaLogo from "@/assets/alula-logo-newsletter.jpg";
+import newsletterPhoto from "@/assets/home-promo-banner.jpg";
 
 export type Message = {
   id: string;
@@ -12,6 +13,10 @@ export type Message = {
   // Optional letterhead image shown at the top of the detail page instead
   // of the usual icon badge — used for official Alula Pay newsletters.
   logo?: string;
+  // Optional hero photo — shows as a small thumbnail in the list and a
+  // full-width banner in the detail view, for photo-carrying messages
+  // (e.g. a newsletter sent with an image, not just a plain tip).
+  photo?: string;
 };
 
 export const MESSAGES: Message[] = [
@@ -58,6 +63,7 @@ export const MESSAGES: Message[] = [
     id: "m4",
     icon: Newspaper,
     logo: alulaLogo,
+    photo: newsletterPhoto,
     title: "Turning cash into digital access",
     body: "A simpler way to move your money to your bank account — see how Alula Pay is building financial freedom for every South African.",
     date: "This week",

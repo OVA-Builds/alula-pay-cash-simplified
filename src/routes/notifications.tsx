@@ -106,9 +106,13 @@ function Notifications() {
                       onKeyDown={(e) => { if (e.key === "Enter") router.navigate({ to: "/message/$id", params: { id: m.id } }); }}
                       className="flex cursor-pointer items-start gap-3 rounded-3xl border border-border bg-card p-4 shadow-card transition-transform active:scale-[0.99]"
                     >
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary shadow-soft">
-                        <m.icon className="h-4.5 w-4.5" />
-                      </span>
+                      {m.photo ? (
+                        <img src={m.photo} alt="" className="h-11 w-11 shrink-0 rounded-2xl object-cover shadow-soft" />
+                      ) : (
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary shadow-soft">
+                          <m.icon className="h-4.5 w-4.5" />
+                        </span>
+                      )}
                       <div className="min-w-0 flex-1">
                         <p className={`text-sm ${unread ? "font-bold" : "font-normal"}`}>{m.title}</p>
                         <p className={`mt-0.5 text-xs leading-relaxed text-muted-foreground ${unread ? "font-semibold" : "font-normal"}`}>{m.body}</p>

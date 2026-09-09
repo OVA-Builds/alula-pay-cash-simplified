@@ -48,6 +48,10 @@ function MessageDetail() {
               </div>
             </div>
 
+            {message.photo && (
+              <img src={message.photo} alt="" className="mt-5 w-full rounded-3xl object-cover shadow-card" />
+            )}
+
             <div className="mt-5 rounded-2xl border border-primary/15 bg-primary/5 p-4 shadow-soft">
               <p className="text-sm font-medium leading-relaxed text-foreground">{message.body}</p>
             </div>
