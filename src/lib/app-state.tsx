@@ -97,13 +97,13 @@ const dateAt = (month: number, day: number, h: number, m: number) =>
   new Date(now.getFullYear(), month - 1, day, h, m).getTime();
 
 const sampleTx: Transaction[] = [
-  { id: "t1", type: "redeem", amount: 200, label: "OTT voucher redeemed", status: "Completed", createdAt: todayAt(10, 24) },
+  { id: "t1", type: "redeem", amount: 200, label: "OTT voucher added", status: "Completed", createdAt: todayAt(10, 24) },
   {
     id: "t2", type: "transfer", amount: -152.25, label: "Sent to Thandi Nkosi", status: "Completed", createdAt: yesterdayAt(18, 2),
     recipientName: "Thandi Nkosi", bankName: "Capitec Bank", accountNumber: "1234567890", reference: "Rent",
     sendAmount: 145, fee: 7.25, rail: "RTC",
   },
-  { id: "t3", type: "redeem", amount: 500, label: "Blu voucher redeemed", status: "Completed", createdAt: dateAt(5, 12, 14, 30) },
+  { id: "t3", type: "redeem", amount: 500, label: "Blu voucher added", status: "Completed", createdAt: dateAt(5, 12, 14, 30) },
 ];
 
 const sampleBenes: Beneficiary[] = [

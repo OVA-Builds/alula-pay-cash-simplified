@@ -82,7 +82,7 @@ function DemoVouchers() {
           Try Alula Pay <span className="text-primary">for free</span>
         </h1>
         <p className="relative mt-2 text-sm text-muted-foreground max-w-xs">
-          Here are three demo voucher pins. Copy one, then tap Redeem on your home screen to load your wallet.
+          Here are three demo voucher pins. Copy one, then tap Add voucher on your home screen to load your wallet.
         </p>
 
         <div className="relative mt-6 space-y-3">

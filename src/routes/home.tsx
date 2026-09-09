@@ -1,6 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Bell, Landmark, Settings, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { Bell, Landmark, Settings, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb, Users, Zap } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useApp, formatZAR, formatTxDate, TIER_LIMITS } from "@/lib/app-state";
 import { MESSAGES } from "@/lib/messages";
 import promoBanner from "@/assets/home-promo-banner.jpg";
@@ -8,10 +10,12 @@ import promoBanner from "@/assets/home-promo-banner.jpg";
 export const Route = createFileRoute("/home")({ component: Home });
 
 function Home() {
+  const navigate = useNavigate();
   const {
     transactions, verified, plan, firstName, subscriptionActive, paywallActive, freeTransactionsLeft,
     deletedMessageIds, readMessageIds,
   } = useApp();
+  const [sendPickerOpen, setSendPickerOpen] = useState(false);
   const recent = transactions.slice(0, 3);
   const displayName = firstName?.trim() ? firstName.trim().split(/\s+/)[0] : "there";
   const hasUnreadMessages = MESSAGES.some((m) => !deletedMessageIds.includes(m.id) && !readMessageIds.includes(m.id));
@@ -160,10 +164,10 @@ function Home() {
             </div>
           </div>
         ) : (
-          <Link
+          <button
             id="guide-send"
-            to="/send-once-off"
-            className="relative flex items-center gap-3 overflow-hidden rounded-3xl bg-primary p-4 text-primary-foreground shadow-button"
+            onClick={() => setSendPickerOpen(true)}
+            className="relative flex items-center gap-3 overflow-hidden rounded-3xl bg-primary p-4 text-left text-primary-foreground shadow-button active:scale-[0.99] transition-transform"
           >
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-primary">
               <Landmark className="h-5 w-5" />
@@ -173,7 +177,7 @@ function Home() {
               <p className="text-xs leading-snug text-primary-foreground/80">Transfer to any South African bank account</p>
             </div>
             <ChevronRight className="h-4 w-4 shrink-0" />
-          </Link>
+          </button>
         )}
 
         <Link
@@ -279,6 +283,43 @@ function Home() {
           </Link>
         )}
       </div>
+
+      <Dialog open={sendPickerOpen} onOpenChange={setSendPickerOpen}>
+        <DialogContent className="max-w-sm rounded-3xl">
+          <DialogHeader>
+            <DialogTitle>Send to Bank</DialogTitle>
+            <DialogDescription>How would you like to pay?</DialogDescription>
+          </DialogHeader>
+          <div className="mt-2 space-y-3">
+            <button
+              onClick={() => { setSendPickerOpen(false); navigate({ to: "/send-once-off" }); }}
+              className="w-full flex items-center gap-4 rounded-2xl border border-border bg-card p-4 text-left shadow-soft active:scale-[0.98] transition-transform"
+            >
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gold/30">
+                <Zap className="h-5 w-5 text-gold-foreground" />
+              </span>
+              <div className="flex-1">
+                <p className="font-semibold">Once-off payment</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Choose a bank and pay with a voucher</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </button>
+            <button
+              onClick={() => { setSendPickerOpen(false); navigate({ to: "/beneficiaries" }); }}
+              className="w-full flex items-center gap-4 rounded-2xl border border-border bg-card p-4 text-left shadow-soft active:scale-[0.98] transition-transform"
+            >
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                <Users className="h-5 w-5 text-primary" />
+              </span>
+              <div className="flex-1">
+                <p className="font-semibold">Pay beneficiary</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Saved recipients — faster, no re-entry</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }

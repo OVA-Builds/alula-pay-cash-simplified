@@ -30,7 +30,7 @@ function SendChoose() {
                 <Users className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1">
-                <p className="font-semibold">Send to beneficiary</p>
+                <p className="font-semibold">Pay beneficiary</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {beneficiaries.length} saved · faster, no re-entry
                 </p>

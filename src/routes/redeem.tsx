@@ -33,7 +33,7 @@ function Redeem() {
     adjustBalance(amount);
     addTransaction({
       id: crypto.randomUUID(), type: "redeem", amount,
-      label: `${type.name} redeemed`, status: "Completed", date: "Just now",
+      label: `${type.name} added`, status: "Completed", date: "Just now",
     });
     setDone(amount);
   };
@@ -48,7 +48,7 @@ function Redeem() {
               <Check className="h-12 w-12 text-success-foreground" strokeWidth={3} />
             </div>
           </div>
-          <h1 className="mt-8 text-2xl font-bold">Voucher redeemed</h1>
+          <h1 className="mt-8 text-2xl font-bold">Voucher added</h1>
           <p className="mt-2 text-muted-foreground">{formatZAR(done)} added to your wallet.</p>
           <Button size="lg" onClick={() => navigate({ to: "/home" })} className="mt-10 h-14 w-full rounded-2xl shadow-button">
             Done
@@ -124,7 +124,7 @@ function Redeem() {
           size="lg" disabled={!valid} onClick={submit}
           className="mt-10 h-14 w-full rounded-2xl text-base shadow-button"
         >
-          Redeem
+          Add to wallet
         </Button>
       </div>
     </AppShell>

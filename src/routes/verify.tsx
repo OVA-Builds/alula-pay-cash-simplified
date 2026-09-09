@@ -89,7 +89,7 @@ function Verify() {
               <div className="mb-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-3.5 text-center">
                 <p className="text-sm font-semibold text-destructive">You need at least R20.00 to upgrade</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Pro costs R20 a month. Redeem a voucher to top up, then come back.
+                  Pro costs R20 a month. Load a voucher to top up, then come back.
                 </p>
               </div>
             )}

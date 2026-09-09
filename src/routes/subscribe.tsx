@@ -105,7 +105,7 @@ function Subscribe() {
       setStep("success");
     } else {
       setNotice(
-        `${formatZAR(remaining)} redeemed. ${formatZAR(result.outstanding)} still needed to activate your ` +
+        `${formatZAR(remaining)} applied. ${formatZAR(result.outstanding)} still needed to activate your ` +
         `${reviewPlan === "pro" ? "Pro" : "Basic"} subscription.`
       );
       setStep("brand");
@@ -307,7 +307,7 @@ function Subscribe() {
               size="lg" disabled={!validCode} onClick={submitVoucher}
               className="mt-6 h-14 w-full rounded-2xl text-base shadow-button"
             >
-              Redeem {formatZAR(remaining)}
+              Pay {formatZAR(remaining)}
             </Button>
           </>
         )}
@@ -339,7 +339,7 @@ function Subscribe() {
           <DialogHeader>
             <DialogTitle>Confirm {confirmBrand?.name}</DialogTitle>
             <DialogDescription>
-              Redeem the exact amount you owe (<b>{formatZAR(remaining)}</b>). A voucher worth less than that
+              Load the exact amount you owe (<b>{formatZAR(remaining)}</b>). A voucher worth less than that
               leaves a balance still outstanding — you'll pick up right where you left off, never from scratch.
             </DialogDescription>
           </DialogHeader>

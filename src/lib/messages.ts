@@ -69,7 +69,7 @@ export const MESSAGES: Message[] = [
     date: "This week",
     newsletter: [
       "Real people. Real solutions. Alula Pay exists to turn cash into digital access — a simpler way to move your money to your bank account and build your financial future, wherever you're starting from.",
-      "Here's how it works: buy a voucher for cash at a local retail partner, redeem the code in the Alula Pay app, then send it straight to any South African bank account. Alula Pay is not a bank — we're the bridge between the cash in your hand and your bank account.",
+      "Here's how it works: buy a voucher for cash at a local retail partner, enter the code in the Alula Pay app, then send it straight to any South African bank account. Alula Pay is not a bank — we're the bridge between the cash in your hand and your bank account.",
       "Every send builds your track record. Pro subscribers can download a 3-month transaction statement — scannable proof of your Alula Pay activity for rentals, credit applications, or opening other accounts.",
       "Basic is R10/month: 5% per send, a R5,000 monthly limit, and EFT transfers that land in 1–2 working days. Pro is R20/month: the same 5% per send, a R10,000 daily limit, a R49,999.99 monthly limit, instant payments, and that 3-month scannable statement.",
       "Over 11 million South Africans are financially excluded from formal banking. With a flat 5% transaction fee and a R20 minimum send, we're building the access to close that gap — together, we build stronger communities.",

@@ -17,8 +17,8 @@ const depositSteps: Step[] = [
   {
     path: "/home",
     targetId: "guide-redeem",
-    title: "Step 1 — Tap Redeem Voucher",
-    body: "This card opens the voucher redemption screen.",
+    title: "Step 1 — Tap Add Voucher",
+    body: "This card opens the add-voucher screen.",
     cta: "Tap the highlighted card to continue →",
   },
   {
