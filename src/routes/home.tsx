@@ -202,7 +202,12 @@ function Home() {
             </div>
           ) : (
             recent.map((t, i) => (
-              <div key={t.id} className={`flex items-center gap-3 p-4 ${i > 0 ? "border-t border-border" : ""}`}>
+              <Link
+                key={t.id}
+                to="/history"
+                search={{ highlight: t.id }}
+                className={`flex items-center gap-3 p-4 active:bg-muted/50 ${i > 0 ? "border-t border-border" : ""}`}
+              >
                 <div className={`flex h-10 w-10 items-center justify-center rounded-full ${t.amount > 0 ? "bg-success/10" : "bg-muted"}`}>
                   {t.amount > 0 ? (
                     <ArrowDownLeft className="h-4 w-4 text-success" />
@@ -217,7 +222,7 @@ function Home() {
                 <p className={`text-sm font-semibold ${t.amount > 0 ? "text-success" : "text-foreground"}`}>
                   {t.amount > 0 ? "+" : "-"}{formatZAR(Math.abs(t.amount))}
                 </p>
-              </div>
+              </Link>
             ))
           )}
         </div>

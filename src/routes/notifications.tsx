@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { ArrowLeft, ArrowDownLeft, ArrowUpRight, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useApp, formatZAR, formatTxDate } from "@/lib/app-state";
@@ -72,7 +72,12 @@ function Notifications() {
                 {recentTransactions.map((t) => {
                   const positive = t.amount > 0;
                   return (
-                    <div key={t.id} className="flex items-center gap-3 rounded-3xl border border-border bg-card p-4 shadow-card">
+                    <Link
+                      key={t.id}
+                      to="/history"
+                      search={{ highlight: t.id }}
+                      className="flex items-center gap-3 rounded-3xl border border-border bg-card p-4 shadow-card transition-transform active:scale-[0.99]"
+                    >
                       <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${positive ? "bg-success/10" : "bg-muted"}`}>
                         {positive ? (
                           <ArrowDownLeft className="h-4.5 w-4.5 text-success" />
@@ -87,7 +92,7 @@ function Notifications() {
                       <p className={`text-sm font-semibold ${positive ? "text-success" : "text-foreground"}`}>
                         {positive ? "+" : "-"}{formatZAR(Math.abs(t.amount))}
                       </p>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>

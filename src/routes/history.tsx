@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowDownLeft, ArrowUpRight, FileText, Download, Mail, MessageCircle, Check, Lock, ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -8,12 +8,18 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useApp, formatZAR, formatTxDate } from "@/lib/app-state";
 
-export const Route = createFileRoute("/history")({ component: History });
+export const Route = createFileRoute("/history")({
+  component: History,
+  validateSearch: (search: Record<string, unknown>): { highlight?: string } => ({
+    highlight: typeof search.highlight === "string" ? search.highlight : undefined,
+  }),
+});
 
 type SendVia = "download" | "email" | "whatsapp" | null;
 
 function History() {
   const router = useRouter();
+  const { highlight } = Route.useSearch();
   const { transactions, firstName, plan } = useApp();
   const [via, setVia] = useState<SendVia>(null);
   const [dest, setDest] = useState("");
@@ -25,6 +31,14 @@ function History() {
   const filtered = recentOnly.filter((t) =>
     filter === "all" ? true : filter === "in" ? t.amount > 0 : t.amount < 0
   );
+
+  // Jump straight to a transaction opened from Home or Notifications and
+  // give it a brief gold glow so it's obvious which one it is.
+  useEffect(() => {
+    if (!highlight) return;
+    const el = document.getElementById(`tx-${highlight}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlight, filtered.length]);
 
   const openStatement = (mode: Exclude<SendVia, null>) => {
     setSent(false);
@@ -106,9 +120,15 @@ function History() {
             const positive = t.amount > 0;
             const isItemizedTransfer = t.type === "transfer" && !!t.recipientName;
 
+            const isHighlighted = t.id === highlight;
+
             if (isItemizedTransfer) {
               return (
-                <div key={t.id} className="p-4">
+                <div
+                  key={t.id}
+                  id={`tx-${t.id}`}
+                  className={`p-4 ${isHighlighted ? "rounded-2xl shadow-gold ring-2 ring-gold animate-gold-glow-pulse" : ""}`}
+                >
                   <div className="flex items-start gap-3">
                     <div className="h-11 w-11 rounded-full bg-muted flex items-center justify-center shrink-0">
                       <ArrowUpRight className="h-5 w-5 text-muted-foreground" />
@@ -137,7 +157,11 @@ function History() {
             }
 
             return (
-              <div key={t.id} className="flex items-center gap-3 p-4">
+              <div
+                key={t.id}
+                id={`tx-${t.id}`}
+                className={`flex items-center gap-3 p-4 ${isHighlighted ? "rounded-2xl shadow-gold ring-2 ring-gold animate-gold-glow-pulse" : ""}`}
+              >
                 <div className={`h-11 w-11 rounded-full flex items-center justify-center ${positive ? "bg-success/10" : "bg-muted"}`}>
                   {positive ? (
                     <ArrowDownLeft className="h-5 w-5 text-success" />
