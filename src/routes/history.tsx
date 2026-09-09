@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowDownLeft, ArrowUpRight, FileText, Download, Mail, MessageCircle, Check, Lock, ArrowLeft, Zap, Clock } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, FileText, Download, Mail, MessageCircle, Check, Lock, ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -142,8 +142,7 @@ function History() {
                         {t.rail && (
                           <>
                             <span className="text-xs text-muted-foreground">•</span>
-                            <span className={`inline-flex items-center gap-1 text-[11px] font-semibold ${t.rail === "RTC" ? "text-primary" : "text-muted-foreground"}`}>
-                              {t.rail === "RTC" ? <Zap className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                            <span className={`text-[11px] font-semibold ${t.rail === "RTC" ? "text-primary" : "text-muted-foreground"}`}>
                               {t.rail === "RTC" ? "Instant" : "EFT"}
                             </span>
                           </>

@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, ArrowDownLeft, ArrowUpRight, Trash2, Zap, Clock } from "lucide-react";
+import { ArrowLeft, ArrowDownLeft, ArrowUpRight, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useApp, formatZAR, formatTxDate } from "@/lib/app-state";
 import { MESSAGES } from "@/lib/messages";
@@ -92,8 +92,7 @@ function Notifications() {
                           {t.rail && (
                             <>
                               <span className="text-xs text-muted-foreground">•</span>
-                              <span className={`inline-flex items-center gap-1 text-[11px] font-semibold ${t.rail === "RTC" ? "text-primary" : "text-muted-foreground"}`}>
-                                {t.rail === "RTC" ? <Zap className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                              <span className={`text-[11px] font-semibold ${t.rail === "RTC" ? "text-primary" : "text-muted-foreground"}`}>
                                 {t.rail === "RTC" ? "Instant" : "EFT"}
                               </span>
                             </>

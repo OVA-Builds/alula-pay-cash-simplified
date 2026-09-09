@@ -217,7 +217,17 @@ function Home() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{t.label}</p>
-                  <p className="text-xs text-muted-foreground">{formatTxDate(t)}</p>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-muted-foreground">{formatTxDate(t)}</span>
+                    {t.rail && (
+                      <>
+                        <span className="text-xs text-muted-foreground">•</span>
+                        <span className={`text-[11px] font-semibold ${t.rail === "RTC" ? "text-primary" : "text-muted-foreground"}`}>
+                          {t.rail === "RTC" ? "Instant" : "EFT"}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
                 <p className={`text-sm font-semibold ${t.amount > 0 ? "text-success" : "text-foreground"}`}>
                   {t.amount > 0 ? "+" : "-"}{formatZAR(Math.abs(t.amount))}
