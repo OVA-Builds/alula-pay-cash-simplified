@@ -8,6 +8,7 @@ import { AppShell } from "@/components/AppShell";
 import { ApprovalPinDialog } from "@/components/ApprovalPinDialog";
 import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy, MIN_SEND } from "@/lib/app-state";
 import { RailToggle } from "@/components/RailToggle";
+import { useRequireSubscription } from "@/hooks/use-require-subscription";
 
 
 export const Route = createFileRoute("/pay-beneficiary/$id")({ component: PayBeneficiary });
@@ -21,6 +22,7 @@ function PayBeneficiary() {
   const [reference, setReference] = useState(bene?.reference ?? "");
   const [pinOpen, setPinOpen] = useState(false);
   const [done, setDone] = useState(false);
+  useRequireSubscription({ enabled: !done });
   const [rail, setRail] = useState<"EFT" | "RTC">(plan === "pro" ? "RTC" : "EFT");
   const activeRail: "EFT" | "RTC" = plan === "pro" ? rail : "EFT";
 

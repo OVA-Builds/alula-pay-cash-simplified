@@ -41,6 +41,7 @@ type Ctx = {
   addTransaction: (t: Transaction) => void;
   adjustBalance: (delta: number) => void;
   setVerified: (v: boolean) => void;
+  verifyIdentity: () => void;
   setApprovalPin: (p: string | null) => void;
   setAlulaOn: (v: boolean) => void;
   setTheme: (t: "light" | "dark") => void;
@@ -249,6 +250,10 @@ const addTransaction = useCallback((t: Transaction) => {
   }, []);
   const setTheme = useCallback((t: "light" | "dark") => setThemeState(t), []);
   const setVerifiedWithPlan = useCallback((v: boolean) => { setVerified(v); if (v) setPlan("pro"); }, []);
+  // Marks the once-off DHA selfie check done without granting the Pro plan
+  // itself — the subscribe flow runs this before payment, and payment
+  // (redeemTowardSubscription) is what actually activates the plan.
+  const verifyIdentity = useCallback(() => setVerified(true), []);
   const addBeneficiary = useCallback((b: Omit<Beneficiary, "id">) => {
     const newB = { ...b, id: crypto.randomUUID() };
     setBeneficiaries((prev) => [newB, ...prev]);
@@ -324,6 +329,7 @@ const addTransaction = useCallback((t: Transaction) => {
         transactions, beneficiaries,
         setOnboarded, signIn, signUp, signOut, addTransaction, adjustBalance,
         setVerified: setVerifiedWithPlan,
+        verifyIdentity,
         setApprovalPin, setAlulaOn, setTheme, addBeneficiary,
         pinAttemptsLeft, pinLocked, registerPinAttempt, resetPinLock,
         guideMode, startGuide, stopGuide,

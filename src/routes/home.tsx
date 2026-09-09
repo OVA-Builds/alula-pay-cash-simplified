@@ -7,7 +7,7 @@ import promoBanner from "@/assets/home-promo-banner.jpg";
 export const Route = createFileRoute("/home")({ component: Home });
 
 function Home() {
-  const { transactions, verified, plan, firstName, subscriptionActive, freeTransactionsLeft } = useApp();
+  const { transactions, verified, plan, firstName, subscriptionActive, paywallActive, freeTransactionsLeft } = useApp();
   const recent = transactions.slice(0, 3);
   const displayName = firstName?.trim() ? firstName.trim().split(/\s+/)[0] : "there";
 
@@ -71,7 +71,7 @@ function Home() {
                   </div>
                 </div>
               ) : (
-                <Link to="/verify" className="flex items-center gap-2">
+                <Link to="/subscribe" className="flex items-center gap-2">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <ShieldCheck className="h-4 w-4" />
                   </span>
@@ -100,36 +100,64 @@ function Home() {
               ))}
             </div>
 
-            <div className="mt-4 flex items-center gap-2.5 rounded-2xl bg-muted/50 p-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <ShieldCheck className="h-4 w-4" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold leading-tight">No plan chosen yet</p>
-                <p className="text-xs text-muted-foreground">
-                  Your limit will show here once you pick Basic or Pro.
-                </p>
+            {paywallActive ? (
+              <Link to="/subscribe" className="mt-4 flex items-center gap-2.5 rounded-2xl border border-gold/40 bg-gold/15 p-3 active:scale-[0.99]">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold/30 text-gold-foreground">
+                  <ShieldCheck className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold leading-tight">Choose a plan to keep sending</p>
+                  <p className="text-xs text-muted-foreground">Your 2 free Basic transactions are used up.</p>
+                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+              </Link>
+            ) : (
+              <div className="mt-4 flex items-center gap-2.5 rounded-2xl bg-muted/50 p-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <ShieldCheck className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold leading-tight">No plan chosen yet</p>
+                  <p className="text-xs text-muted-foreground">
+                    Your limit will show here once you pick Basic or Pro.
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
       </div>
 
       <div className="mt-4 grid grid-cols-[1.55fr_1fr] gap-2.5 px-6">
-        <Link
-          id="guide-send"
-          to="/send-once-off"
-          className="relative flex items-center gap-3 overflow-hidden rounded-3xl bg-primary p-4 text-primary-foreground shadow-button"
-        >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-primary">
-            <Landmark className="h-5 w-5" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="whitespace-nowrap text-[15px] font-semibold">Send to Bank</p>
-            <p className="text-xs leading-snug text-primary-foreground/80">Transfer to any South African bank account</p>
+        {paywallActive ? (
+          <div
+            aria-disabled="true"
+            className="flex items-center gap-3 rounded-3xl bg-muted p-4 text-muted-foreground opacity-60"
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground">
+              <Landmark className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="whitespace-nowrap text-[15px] font-semibold">Send to Bank</p>
+              <p className="text-xs leading-snug">Choose a plan to unlock sending</p>
+            </div>
           </div>
-          <ChevronRight className="h-4 w-4 shrink-0" />
-        </Link>
+        ) : (
+          <Link
+            id="guide-send"
+            to="/send-once-off"
+            className="relative flex items-center gap-3 overflow-hidden rounded-3xl bg-primary p-4 text-primary-foreground shadow-button"
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-primary">
+              <Landmark className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="whitespace-nowrap text-[15px] font-semibold">Send to Bank</p>
+              <p className="text-xs leading-snug text-primary-foreground/80">Transfer to any South African bank account</p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0" />
+          </Link>
+        )}
 
         <Link
           to="/profile"
@@ -153,7 +181,7 @@ function Home() {
         />
       </div>
 
-      <div className="mt-6 px-6 pb-6">
+      <div className={`mt-6 px-6 pb-6 ${paywallActive ? "pointer-events-none opacity-50" : ""}`}>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-semibold">Recent transactions</h2>
           <Link to="/history" className="text-xs font-medium text-primary">See all</Link>
@@ -191,21 +219,33 @@ function Home() {
       </div>
 
       <div className="px-6 pb-6">
-        <Link
-          to="/send-once-off"
-          className="flex items-center gap-3 rounded-3xl bg-gold p-4 text-gold-foreground shadow-gold"
-        >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/40">
-            <Lightbulb className="h-4.5 w-4.5" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold">Did you know?</p>
-            <p className="text-xs leading-snug">
-              You can send money to any South African bank account in just a few seconds.
-            </p>
+        {paywallActive ? (
+          <div className="flex items-center gap-3 rounded-3xl bg-muted p-4 text-muted-foreground opacity-60">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background">
+              <Lightbulb className="h-4.5 w-4.5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold">Did you know?</p>
+              <p className="text-xs leading-snug">Choose a plan to start sending again.</p>
+            </div>
           </div>
-          <ChevronRight className="h-4 w-4 shrink-0" />
-        </Link>
+        ) : (
+          <Link
+            to="/send-once-off"
+            className="flex items-center gap-3 rounded-3xl bg-gold p-4 text-gold-foreground shadow-gold"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/40">
+              <Lightbulb className="h-4.5 w-4.5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold">Did you know?</p>
+              <p className="text-xs leading-snug">
+                You can send money to any South African bank account in just a few seconds.
+              </p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0" />
+          </Link>
+        )}
       </div>
     </AppShell>
   );

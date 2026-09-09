@@ -2,12 +2,14 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Users, Zap, ChevronRight } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useApp } from "@/lib/app-state";
+import { useRequireSubscription } from "@/hooks/use-require-subscription";
 
 export const Route = createFileRoute("/send")({ component: SendChoose });
 
 function SendChoose() {
   const navigate = useNavigate();
   const { beneficiaries, stopGuide } = useApp();
+  useRequireSubscription();
 
   return (
     <AppShell>

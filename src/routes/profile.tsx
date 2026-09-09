@@ -8,7 +8,7 @@ export const Route = createFileRoute("/profile")({ component: Profile });
 
 function Profile() {
   const navigate = useNavigate();
-  const { phone, verified, plan, alulaOn, setAlulaOn, theme, setTheme, signOut } = useApp();
+  const { phone, verified, plan, subscriptionActive, alulaOn, setAlulaOn, theme, setTheme, signOut } = useApp();
   const planLabel = plan === "pro" ? "Pro" : "Basic";
   const handleSignOut = () => { signOut(); navigate({ to: "/onboarding" }); };
 
@@ -30,13 +30,15 @@ function Profile() {
           </div>
         </div>
 
-        {!verified && (
-          <Link to="/verify" className="mt-4 block rounded-2xl bg-primary text-primary-foreground p-4 shadow-button">
+        {plan !== "pro" && (
+          <Link to="/subscribe" className="mt-4 block rounded-2xl bg-primary text-primary-foreground p-4 shadow-button">
             <div className="flex items-center gap-3">
               <ShieldCheck className="h-5 w-5" />
               <div className="flex-1">
-                <p className="text-sm font-semibold">Upgrade to Pro</p>
-                <p className="text-xs opacity-80">Higher limits, lower fees.</p>
+                <p className="text-sm font-semibold">{subscriptionActive ? "Upgrade to Pro" : "Choose a plan"}</p>
+                <p className="text-xs opacity-80">
+                  {subscriptionActive ? "Higher limits, instant payments." : "Pick Basic or Pro to keep sending."}
+                </p>
               </div>
               <ChevronRight className="h-4 w-4" />
             </div>

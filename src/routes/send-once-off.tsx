@@ -10,6 +10,7 @@ import { ApprovalPinDialog } from "@/components/ApprovalPinDialog";
 import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy, MIN_SEND } from "@/lib/app-state";
 import { SA_BANKS, type Bank } from "@/lib/banks";
 import { RailToggle } from "@/components/RailToggle";
+import { useRequireSubscription } from "@/hooks/use-require-subscription";
 
 
 export const Route = createFileRoute("/send-once-off")({ component: OnceOff });
@@ -20,6 +21,7 @@ function OnceOff() {
   const navigate = useNavigate();
   const { plan, addBeneficiary, addTransaction, adjustBalance } = useApp();
   const [step, setStep] = useState<Step>("bank");
+  useRequireSubscription({ enabled: step !== "done" });
   const [bankQuery, setBankQuery] = useState("");
   const [bank, setBank] = useState<Bank | null>(null);
   const [name, setName] = useState("");
