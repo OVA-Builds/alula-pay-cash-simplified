@@ -100,7 +100,7 @@ type Persisted = {
   onboarded: boolean; signedIn: boolean; phone: string; firstName: string; balance: number;
   verified: boolean; plan: Plan; approvalPin: string | null; alulaOn: boolean;
   theme: "light" | "dark"; transactions: Transaction[]; beneficiaries: Beneficiary[];
-  freeTransactionsLeft: number; lastPaidPeriod: string | null;
+  freeTransactionsLeft: number; freeTxPeriod: string | null; lastPaidPeriod: string | null;
   pendingPlan: Plan | null; pendingAmountPaid: number;
 };
 
@@ -128,7 +128,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<"light" | "dark">("light");
   const [transactions, setTransactions] = useState<Transaction[]>(sampleTx);
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>(sampleBenes);
+  // freeTransactionsLeft counts down from 2 within the billing period named
+  // by freeTxPeriod. When the current billing period (see getBillingPeriod)
+  // no longer matches freeTxPeriod, the 2 free transactions are treated as
+  // refreshed — this is derived below rather than reset eagerly, so it
+  // naturally rolls over the moment the 2nd of the month arrives.
   const [freeTransactionsLeft, setFreeTransactionsLeft] = useState(2);
+  const [freeTxPeriod, setFreeTxPeriod] = useState<string | null>(null);
   const [lastPaidPeriod, setLastPaidPeriod] = useState<string | null>(null);
   const [pendingPlan, setPendingPlan] = useState<Plan | null>(null);
   const [pendingAmountPaid, setPendingAmountPaid] = useState(0);
@@ -154,6 +160,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (initial.transactions !== undefined) setTransactions(initial.transactions);
       if (initial.beneficiaries !== undefined) setBeneficiaries(initial.beneficiaries);
       if (initial.freeTransactionsLeft !== undefined) setFreeTransactionsLeft(initial.freeTransactionsLeft);
+      if (initial.freeTxPeriod !== undefined) setFreeTxPeriod(initial.freeTxPeriod);
       if (initial.lastPaidPeriod !== undefined) setLastPaidPeriod(initial.lastPaidPeriod);
       if (initial.pendingPlan !== undefined) setPendingPlan(initial.pendingPlan);
       if (initial.pendingAmountPaid !== undefined) setPendingAmountPaid(initial.pendingAmountPaid);
@@ -168,11 +175,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const data: Persisted = {
         onboarded, signedIn, phone, firstName, balance, verified, plan,
         approvalPin, alulaOn, theme, transactions, beneficiaries,
-        freeTransactionsLeft, lastPaidPeriod, pendingPlan, pendingAmountPaid,
+        freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch {}
-  }, [hydrated, onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries, freeTransactionsLeft, lastPaidPeriod, pendingPlan, pendingAmountPaid]);
+  }, [hydrated, onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries, freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -205,6 +212,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setBalance(0);
     setTransactions([]);
     setFreeTransactionsLeft(2);
+    setFreeTxPeriod(null);
     setLastPaidPeriod(null);
     setPendingPlan(null);
     setPendingAmountPaid(0);
@@ -217,10 +225,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
 const addTransaction = useCallback((t: Transaction) => {
   const enriched: Transaction = { ...t, createdAt: t.createdAt ?? Date.now() };
   setTransactions((prev) => [enriched, ...prev]);
-  // Sends (not redeems) count against the two free transactions new accounts get
-  // before a subscription is required.
+  // Sends (not redeems) count against the two free transactions every
+  // billing period grants before a subscription is required. If the
+  // billing period has rolled over since the count was last touched, the
+  // 2 free transactions are refreshed first.
   if (t.type === "transfer") {
-    setFreeTransactionsLeft((n) => Math.max(0, n - 1));
+    const currentPeriod = getBillingPeriod();
+    setFreeTxPeriod((prevPeriod) => {
+      if (prevPeriod !== currentPeriod) {
+        setFreeTransactionsLeft(1);
+      } else {
+        setFreeTransactionsLeft((n) => Math.max(0, n - 1));
+      }
+      return currentPeriod;
+    });
   }
 }, []);
   const adjustBalance = useCallback((delta: number) => setBalance((b) => +(b + delta).toFixed(2)), []);
@@ -290,8 +308,14 @@ const addTransaction = useCallback((t: Transaction) => {
     return { fullyPaid: false, outstanding: +(target - newPaid).toFixed(2) };
   }, [pendingPlan, pendingAmountPaid]);
 
-  const subscriptionActive = lastPaidPeriod === getBillingPeriod();
-  const paywallActive = freeTransactionsLeft <= 0 && !subscriptionActive;
+  const currentBillingPeriod = getBillingPeriod();
+  // freeTransactionsLeft only reflects the current billing period if
+  // freeTxPeriod still matches it — otherwise the 2 free transactions have
+  // rolled over and are refreshed (the count itself is only written back to
+  // state the next time a transfer actually consumes one, in addTransaction).
+  const effectiveFreeTransactionsLeft = freeTxPeriod === currentBillingPeriod ? freeTransactionsLeft : 2;
+  const subscriptionActive = lastPaidPeriod === currentBillingPeriod;
+  const paywallActive = effectiveFreeTransactionsLeft <= 0 && !subscriptionActive;
 
   return (
     <AppContext.Provider
@@ -303,7 +327,7 @@ const addTransaction = useCallback((t: Transaction) => {
         setApprovalPin, setAlulaOn, setTheme, addBeneficiary,
         pinAttemptsLeft, pinLocked, registerPinAttempt, resetPinLock,
         guideMode, startGuide, stopGuide,
-        freeTransactionsLeft, subscriptionActive, paywallActive,
+        freeTransactionsLeft: effectiveFreeTransactionsLeft, subscriptionActive, paywallActive,
         pendingPlan, pendingAmountPaid, choosePendingPlan, redeemTowardSubscription,
       }}
     >
@@ -391,6 +415,6 @@ export function getBillingPeriod(d: Date = new Date()): string {
 
 // Tier limits per business plan v2 (2025).
 export const TIER_LIMITS = {
-  basic: { wallet: 2000, singleTx: 2000, monthly: 2000, daily: 2000 },
+  basic: { wallet: 2000, singleTx: 2000, monthly: 5000, daily: 2000 },
   pro:   { wallet: 49999.99, singleTx: 10000, monthly: 49999.99, daily: 10000 },
 } as const;
