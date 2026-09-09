@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Bell, Landmark, Settings, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb, Users, Zap } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useApp, formatZAR, formatTxDate, TIER_LIMITS } from "@/lib/app-state";
 import { MESSAGES } from "@/lib/messages";
 import promoBanner from "@/assets/home-promo-banner.jpg";
@@ -284,42 +284,46 @@ function Home() {
         )}
       </div>
 
-      <Dialog open={sendPickerOpen} onOpenChange={setSendPickerOpen}>
-        <DialogContent className="max-w-sm rounded-3xl">
-          <DialogHeader>
-            <DialogTitle>Send to Bank</DialogTitle>
-            <DialogDescription>How would you like to pay?</DialogDescription>
-          </DialogHeader>
-          <div className="mt-2 space-y-3">
+      <Sheet open={sendPickerOpen} onOpenChange={setSendPickerOpen}>
+        <SheetContent
+          side="bottom"
+          className="rounded-t-[2rem] border-none bg-card p-0 pb-8 shadow-3d [&>button]:hidden"
+        >
+          <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-muted" />
+          <SheetHeader className="px-6 pt-5 text-left">
+            <SheetTitle className="text-xl">Send to Bank</SheetTitle>
+            <SheetDescription>How would you like to pay?</SheetDescription>
+          </SheetHeader>
+          <div className="mt-2 space-y-3 px-6">
             <button
               onClick={() => { setSendPickerOpen(false); navigate({ to: "/send-once-off" }); }}
-              className="w-full flex items-center gap-4 rounded-2xl border border-border bg-card p-4 text-left shadow-soft active:scale-[0.98] transition-transform"
+              className="flex w-full items-center gap-4 rounded-3xl bg-muted/60 p-4 text-left transition-transform active:scale-[0.98]"
             >
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gold/30">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gold/30">
                 <Zap className="h-5 w-5 text-gold-foreground" />
               </span>
               <div className="flex-1">
                 <p className="font-semibold">Once-off payment</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Choose a bank and pay with a voucher</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">Choose a bank and pay with a voucher</p>
               </div>
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </button>
             <button
               onClick={() => { setSendPickerOpen(false); navigate({ to: "/beneficiaries" }); }}
-              className="w-full flex items-center gap-4 rounded-2xl border border-border bg-card p-4 text-left shadow-soft active:scale-[0.98] transition-transform"
+              className="flex w-full items-center gap-4 rounded-3xl bg-muted/60 p-4 text-left transition-transform active:scale-[0.98]"
             >
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10">
                 <Users className="h-5 w-5 text-primary" />
               </span>
               <div className="flex-1">
                 <p className="font-semibold">Pay beneficiary</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Saved recipients — faster, no re-entry</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">Saved recipients — faster, no re-entry</p>
               </div>
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </button>
           </div>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </AppShell>
   );
 }

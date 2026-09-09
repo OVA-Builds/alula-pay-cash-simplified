@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
-import { ArrowLeft, Check, Search, Clock, Zap, Lock } from "lucide-react";
+import { useRef, useState } from "react";
+import { ArrowLeft, Check, Clock, Zap, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,7 +37,6 @@ function OnceOff() {
   const [step, setStep] = useState<Step>("bank");
   useRequireSubscription({ enabled: step !== "done" });
 
-  const [bankQuery, setBankQuery] = useState("");
   const [bank, setBank] = useState<Bank | null>(null);
   const [name, setName] = useState("");
   const [account, setAccount] = useState("");
@@ -55,7 +54,6 @@ function OnceOff() {
   const fee = voucherAmount > 0 ? calcTransferFee(voucherAmount, plan, activeRail) : null;
   const netToBank = Math.max(0, +(voucherAmount - (fee?.fee ?? 0)).toFixed(2));
 
-  const banks = SA_BANKS.filter((b) => b.name.toLowerCase().includes(bankQuery.trim().toLowerCase()));
   const digits = code.replace(/\D/g, "");
   const validCode = !!brand && digits.length === brand.length;
   const detailsValid = name.trim().length >= 2 && account.length >= 6;
@@ -118,66 +116,16 @@ function OnceOff() {
   if (step === "bank") {
     return (
       <AppShell>
-        <div className="p-6">
-          <button onClick={back} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
+        <div className="flex min-h-[calc(100dvh-80px)] flex-col p-6 sm:min-h-[780px]">
+          <button onClick={back} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft shrink-0">
             <ArrowLeft className="h-4 w-4" />
           </button>
-          <h1 className="mt-6 text-2xl font-bold tracking-tight">Choose bank</h1>
-          <p className="mt-2 text-muted-foreground text-sm">Swipe to browse, or search below.</p>
 
-          <div className="mt-5 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input value={bankQuery} onChange={(e) => setBankQuery(e.target.value)} placeholder="Search bank" className="h-12 rounded-2xl pl-11" />
+          <div className="flex flex-1 flex-col items-center justify-center">
+            <h1 className="text-2xl font-bold tracking-tight">Choose bank</h1>
+            <p className="mt-2 text-center text-sm text-muted-foreground">Slide to find your bank, then tap it.</p>
+            <BankCarousel banks={SA_BANKS} onPick={pickBank} />
           </div>
-
-          <div className="mt-6 -mx-6 flex gap-4 overflow-x-auto no-scrollbar px-6 pb-2 pt-1 snap-x snap-mandatory">
-            {banks.map((b) => (
-              <button
-                key={b.name}
-                onClick={() => pickBank(b)}
-                className="flex w-24 shrink-0 snap-center flex-col items-center gap-2 active:scale-95 transition-transform"
-              >
-                <span className="flex h-24 w-24 items-center justify-center rounded-3xl border border-border bg-white p-4 shadow-card">
-                  {b.logo ? (
-                    <img src={b.logo} alt={b.name} className="h-full w-full object-contain" />
-                  ) : (
-                    <span className={`flex h-full w-full items-center justify-center rounded-2xl text-lg font-bold text-white ${b.color}`}>
-                      {initials(b.name)}
-                    </span>
-                  )}
-                </span>
-                <span className="text-center text-[11px] font-semibold leading-tight">{b.name}</span>
-              </button>
-            ))}
-            {banks.length === 0 && (
-              <p className="py-8 text-center text-sm text-muted-foreground">No matches.</p>
-            )}
-          </div>
-
-          <ul className="mt-4 bg-card border border-border rounded-2xl divide-y divide-border overflow-hidden">
-            {banks.map((b) => (
-              <li key={b.name}>
-                <button
-                  onClick={() => pickBank(b)}
-                  className="w-full flex items-center gap-3 p-4 active:bg-muted"
-                >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-white p-1.5">
-                    {b.logo ? (
-                      <img src={b.logo} alt="" className="h-full w-full object-contain" />
-                    ) : (
-                      <span className={`flex h-full w-full items-center justify-center rounded-lg text-[10px] font-bold text-white ${b.color}`}>
-                        {initials(b.name)}
-                      </span>
-                    )}
-                  </span>
-                  <div className="flex-1 text-left">
-                    <p className="font-medium">{b.name}</p>
-                    <p className="text-xs text-muted-foreground">Branch {b.branch}</p>
-                  </div>
-                </button>
-              </li>
-            ))}
-          </ul>
         </div>
       </AppShell>
     );
@@ -402,6 +350,70 @@ function OnceOff() {
         summary={{ recipient: name, amount: voucherAmount, fee: fee?.fee ?? 0, total: netToBank }}
       />
     </AppShell>
+  );
+}
+
+const CARD = 152;
+const GAP = 20;
+const STRIDE = CARD + GAP;
+
+function BankCarousel({ banks, onPick }: { banks: Bank[]; onPick: (b: Bank) => void }) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [centerIndex, setCenterIndex] = useState(0);
+
+  const onScroll = () => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const idx = Math.round(el.scrollLeft / STRIDE);
+    setCenterIndex(Math.max(0, Math.min(banks.length - 1, idx)));
+  };
+
+  const centered = banks[centerIndex];
+
+  return (
+    <div className="w-full">
+      <div
+        ref={scrollerRef}
+        onScroll={onScroll}
+        className="flex gap-5 overflow-x-auto no-scrollbar snap-x snap-mandatory py-4"
+        style={{ paddingLeft: `calc(50% - ${CARD / 2}px)`, paddingRight: `calc(50% - ${CARD / 2}px)` }}
+      >
+        {banks.map((b, i) => {
+          const active = i === centerIndex;
+          return (
+            <button
+              key={b.name}
+              onClick={() => onPick(b)}
+              style={{ width: CARD, height: CARD }}
+              className={`flex shrink-0 snap-center items-center justify-center rounded-3xl border bg-white p-4 shadow-card transition-all duration-300 ${
+                active ? "scale-100 opacity-100 border-primary" : "scale-[0.8] opacity-45 border-border"
+              }`}
+            >
+              {b.logo ? (
+                <img src={b.logo} alt={b.name} className="h-full w-full object-contain" />
+              ) : (
+                <span className={`flex h-full w-full items-center justify-center rounded-2xl text-2xl font-bold text-white ${b.color}`}>
+                  {initials(b.name)}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-5 text-center">
+        <p className="text-lg font-bold tracking-tight">{centered?.name}</p>
+        <p className="text-xs text-muted-foreground">Branch {centered?.branch}</p>
+      </div>
+
+      <Button
+        size="lg"
+        onClick={() => centered && onPick(centered)}
+        className="mt-6 h-14 w-full rounded-2xl text-base shadow-button"
+      >
+        Choose this bank
+      </Button>
+    </div>
   );
 }
 
