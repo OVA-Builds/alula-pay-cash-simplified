@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, ArrowDownLeft, ArrowUpRight, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowDownLeft, ArrowUpRight, Trash2, Zap, Clock } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useApp, formatZAR, formatTxDate } from "@/lib/app-state";
 import { MESSAGES } from "@/lib/messages";
@@ -87,7 +87,18 @@ function Notifications() {
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">{t.label}</p>
-                        <p className="text-xs text-muted-foreground">{formatTxDate(t)}</p>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-muted-foreground">{formatTxDate(t)}</span>
+                          {t.rail && (
+                            <>
+                              <span className="text-xs text-muted-foreground">•</span>
+                              <span className={`inline-flex items-center gap-1 text-[11px] font-semibold ${t.rail === "RTC" ? "text-primary" : "text-muted-foreground"}`}>
+                                {t.rail === "RTC" ? <Zap className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                                {t.rail === "RTC" ? "Instant" : "EFT"}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
                       <p className={`text-sm font-semibold ${positive ? "text-success" : "text-foreground"}`}>
                         {positive ? "+" : "-"}{formatZAR(Math.abs(t.amount))}

@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowDownLeft, ArrowUpRight, FileText, Download, Mail, MessageCircle, Check, Lock, ArrowLeft } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, FileText, Download, Mail, MessageCircle, Check, Lock, ArrowLeft, Zap, Clock } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -137,7 +137,18 @@ function History() {
                       <p className="text-sm font-semibold truncate">{t.recipientName}</p>
                       <p className="text-xs text-muted-foreground truncate">{t.bankName} • {t.accountNumber}</p>
                       {t.reference && <p className="text-xs text-muted-foreground truncate">Ref: {t.reference}</p>}
-                      <p className="text-xs text-muted-foreground mt-0.5">{formatTxDate(t)}</p>
+                      <div className="mt-0.5 flex items-center gap-1.5">
+                        <span className="text-xs text-muted-foreground">{formatTxDate(t)}</span>
+                        {t.rail && (
+                          <>
+                            <span className="text-xs text-muted-foreground">•</span>
+                            <span className={`inline-flex items-center gap-1 text-[11px] font-semibold ${t.rail === "RTC" ? "text-primary" : "text-muted-foreground"}`}>
+                              {t.rail === "RTC" ? <Zap className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                              {t.rail === "RTC" ? "Instant" : "EFT"}
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-sm font-semibold text-destructive">-{formatZAR(t.sendAmount ?? Math.abs(t.amount))}</p>

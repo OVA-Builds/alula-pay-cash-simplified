@@ -16,6 +16,7 @@ export type Transaction = {
   reference?: string;
   sendAmount?: number;
   fee?: number;
+  rail?: "EFT" | "RTC";
 };
 
 export type Beneficiary = {
@@ -100,7 +101,7 @@ const sampleTx: Transaction[] = [
   {
     id: "t2", type: "transfer", amount: -152.25, label: "Sent to Thandi Nkosi", status: "Completed", createdAt: yesterdayAt(18, 2),
     recipientName: "Thandi Nkosi", bankName: "Capitec Bank", accountNumber: "1234567890", reference: "Rent",
-    sendAmount: 145, fee: 7.25,
+    sendAmount: 145, fee: 7.25, rail: "RTC",
   },
   { id: "t3", type: "redeem", amount: 500, label: "Blu voucher redeemed", status: "Completed", createdAt: dateAt(5, 12, 14, 30) },
 ];

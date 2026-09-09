@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Check, Search, ChevronRight, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,12 @@ function OnceOff() {
   const [amount, setAmount] = useState("");
   const [save, setSave] = useState(false);
   const [pinOpen, setPinOpen] = useState(false);
-  const [rail, setRail] = useState<"EFT" | "RTC">(plan === "pro" ? "RTC" : "EFT");
+  // Starts at EFT (matching app-state's own hydration-safe default of
+  // plan="basic") and switches to RTC once the persisted plan hydrates as
+  // "pro" — reading plan directly in the initializer would still see the
+  // pre-hydration default and default Pro users to EFT on every fresh load.
+  const [rail, setRail] = useState<"EFT" | "RTC">("EFT");
+  useEffect(() => { if (plan === "pro") setRail("RTC"); }, [plan]);
   const activeRail: "EFT" | "RTC" = plan === "pro" ? rail : "EFT";
 
   const amt = Number(amount) || 0;
@@ -56,6 +61,7 @@ function OnceOff() {
       reference,
       sendAmount: amt,
       fee: fee?.fee ?? 0,
+      rail: fee?.rail,
     });
     setStep("done");
   };
