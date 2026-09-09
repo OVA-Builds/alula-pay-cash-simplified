@@ -14,8 +14,8 @@ import { Route as BeneficiariesRouteImport } from './routes/beneficiaries'
 import { Route as DemoVouchersRouteImport } from './routes/demo-vouchers'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as HomeRouteImport } from './routes/home'
-import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RedeemRouteImport } from './routes/redeem'
@@ -53,14 +53,14 @@ const HomeRoute = HomeRouteImport.update({
   path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InboxRoute = InboxRouteImport.update({
-  id: '/inbox',
-  path: '/inbox',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -125,8 +125,8 @@ export interface FileRoutesByFullPath {
   '/demo-vouchers': typeof DemoVouchersRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
-  '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
@@ -145,8 +145,8 @@ export interface FileRoutesByTo {
   '/demo-vouchers': typeof DemoVouchersRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
-  '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
@@ -166,8 +166,8 @@ export interface FileRoutesById {
   '/demo-vouchers': typeof DemoVouchersRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
-  '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
@@ -188,8 +188,8 @@ export interface FileRouteTypes {
     | '/demo-vouchers'
     | '/history'
     | '/home'
-    | '/inbox'
     | '/login'
+    | '/notifications'
     | '/onboarding'
     | '/profile'
     | '/redeem'
@@ -208,8 +208,8 @@ export interface FileRouteTypes {
     | '/demo-vouchers'
     | '/history'
     | '/home'
-    | '/inbox'
     | '/login'
+    | '/notifications'
     | '/onboarding'
     | '/profile'
     | '/redeem'
@@ -228,8 +228,8 @@ export interface FileRouteTypes {
     | '/demo-vouchers'
     | '/history'
     | '/home'
-    | '/inbox'
     | '/login'
+    | '/notifications'
     | '/onboarding'
     | '/profile'
     | '/redeem'
@@ -249,8 +249,8 @@ export interface RootRouteChildren {
   DemoVouchersRoute: typeof DemoVouchersRoute
   HistoryRoute: typeof HistoryRoute
   HomeRoute: typeof HomeRoute
-  InboxRoute: typeof InboxRoute
   LoginRoute: typeof LoginRoute
+  NotificationsRoute: typeof NotificationsRoute
   OnboardingRoute: typeof OnboardingRoute
   ProfileRoute: typeof ProfileRoute
   RedeemRoute: typeof RedeemRoute
@@ -301,18 +301,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/inbox': {
-      id: '/inbox'
-      path: '/inbox'
-      fullPath: '/inbox'
-      preLoaderRoute: typeof InboxRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -401,8 +401,8 @@ const rootRouteChildren: RootRouteChildren = {
   DemoVouchersRoute: DemoVouchersRoute,
   HistoryRoute: HistoryRoute,
   HomeRoute: HomeRoute,
-  InboxRoute: InboxRoute,
   LoginRoute: LoginRoute,
+  NotificationsRoute: NotificationsRoute,
   OnboardingRoute: OnboardingRoute,
   ProfileRoute: ProfileRoute,
   RedeemRoute: RedeemRoute,

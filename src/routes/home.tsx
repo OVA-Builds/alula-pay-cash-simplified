@@ -2,14 +2,19 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bell, Landmark, Settings, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useApp, formatZAR, formatTxDate, TIER_LIMITS } from "@/lib/app-state";
+import { MESSAGES } from "@/lib/messages";
 import promoBanner from "@/assets/home-promo-banner.jpg";
 
 export const Route = createFileRoute("/home")({ component: Home });
 
 function Home() {
-  const { transactions, verified, plan, firstName, subscriptionActive, paywallActive, freeTransactionsLeft } = useApp();
+  const {
+    transactions, verified, plan, firstName, subscriptionActive, paywallActive, freeTransactionsLeft,
+    deletedMessageIds, readMessageIds,
+  } = useApp();
   const recent = transactions.slice(0, 3);
   const displayName = firstName?.trim() ? firstName.trim().split(/\s+/)[0] : "there";
+  const hasUnreadMessages = MESSAGES.some((m) => !deletedMessageIds.includes(m.id) && !readMessageIds.includes(m.id));
 
   const moneyOut = transactions.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
   const limitTotal = TIER_LIMITS[plan].monthly;
@@ -28,9 +33,9 @@ function Home() {
             <h1 className="text-3xl font-bold tracking-tight text-primary-foreground">{displayName}</h1>
             <p className="mt-1 text-sm text-primary-foreground/80">Good to see you again!</p>
           </div>
-          <Link to="/inbox" className="relative flex h-11 w-11 items-center justify-center rounded-full bg-white/15 backdrop-blur">
+          <Link to="/notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full bg-white/15 backdrop-blur">
             <Bell className="h-4.5 w-4.5 text-primary-foreground" />
-            <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-gold" />
+            {hasUnreadMessages && <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-gold" />}
           </Link>
         </div>
       </div>

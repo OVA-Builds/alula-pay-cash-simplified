@@ -71,6 +71,12 @@ type Ctx = {
   pendingAmountPaid: number;
   choosePendingPlan: (p: Plan) => void;
   redeemTowardSubscription: (amount: number, voucherLabel: string) => { fullyPaid: boolean; outstanding: number };
+  // Notifications: static tips/marketing messages the client can dismiss.
+  // Transactions are never deletable — only these are.
+  deletedMessageIds: string[];
+  readMessageIds: string[];
+  deleteMessage: (id: string) => void;
+  markMessagesRead: (ids: string[]) => void;
 };
 
 const AppContext = createContext<Ctx | null>(null);
@@ -115,6 +121,7 @@ type Persisted = {
   theme: "light" | "dark"; transactions: Transaction[]; beneficiaries: Beneficiary[];
   freeTransactionsLeft: number; freeTxPeriod: string | null; lastPaidPeriod: string | null;
   pendingPlan: Plan | null; pendingAmountPaid: number;
+  deletedMessageIds: string[]; readMessageIds: string[];
 };
 
 function readStoredState(): Partial<Persisted> | null {
@@ -151,6 +158,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [lastPaidPeriod, setLastPaidPeriod] = useState<string | null>(null);
   const [pendingPlan, setPendingPlan] = useState<Plan | null>(null);
   const [pendingAmountPaid, setPendingAmountPaid] = useState(0);
+  const [deletedMessageIds, setDeletedMessageIds] = useState<string[]>([]);
+  const [readMessageIds, setReadMessageIds] = useState<string[]>([]);
 
   // Apply any persisted state once, after mount. The very first render (both
   // server and the client's hydration pass) always starts from the same
@@ -177,6 +186,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (initial.lastPaidPeriod !== undefined) setLastPaidPeriod(initial.lastPaidPeriod);
       if (initial.pendingPlan !== undefined) setPendingPlan(initial.pendingPlan);
       if (initial.pendingAmountPaid !== undefined) setPendingAmountPaid(initial.pendingAmountPaid);
+      if (initial.deletedMessageIds !== undefined) setDeletedMessageIds(initial.deletedMessageIds);
+      if (initial.readMessageIds !== undefined) setReadMessageIds(initial.readMessageIds);
     }
     setHydrated(true);
   }, []);
@@ -189,10 +200,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         onboarded, signedIn, phone, firstName, balance, verified, plan,
         approvalPin, alulaOn, theme, transactions, beneficiaries,
         freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid,
+        deletedMessageIds, readMessageIds,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch {}
-  }, [hydrated, onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries, freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid]);
+  }, [hydrated, onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries, freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid, deletedMessageIds, readMessageIds]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -325,6 +337,16 @@ const addTransaction = useCallback((t: Transaction) => {
     return { fullyPaid: false, outstanding: +(target - newPaid).toFixed(2) };
   }, [pendingPlan, pendingAmountPaid]);
 
+  const deleteMessage = useCallback((id: string) => {
+    setDeletedMessageIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+  }, []);
+  const markMessagesRead = useCallback((ids: string[]) => {
+    setReadMessageIds((prev) => {
+      const toAdd = ids.filter((id) => !prev.includes(id));
+      return toAdd.length ? [...prev, ...toAdd] : prev;
+    });
+  }, []);
+
   const currentBillingPeriod = getBillingPeriod();
   // freeTransactionsLeft only reflects the current billing period if
   // freeTxPeriod still matches it — otherwise the 2 free transactions have
@@ -347,6 +369,7 @@ const addTransaction = useCallback((t: Transaction) => {
         guideMode, startGuide, stopGuide,
         freeTransactionsLeft: effectiveFreeTransactionsLeft, subscriptionActive, paywallActive,
         pendingPlan, pendingAmountPaid, choosePendingPlan, redeemTowardSubscription,
+        deletedMessageIds, readMessageIds, deleteMessage, markMessagesRead,
       }}
     >
       {children}
