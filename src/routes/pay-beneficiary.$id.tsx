@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Check, Clock, Zap, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,8 +35,14 @@ function PayBeneficiary() {
   const [step, setStep] = useState<Step>("voucher");
   useRequireSubscription({ enabled: step !== "done" });
 
-  const [reference, setReference] = useState(bene?.reference ?? "");
+  // Starts blank rather than reading bene.reference directly — on a fresh
+  // page load, app-state's own localStorage hydration hasn't run yet, so
+  // `beneficiaries` is still its hardcoded default and `bene` (and its
+  // reference) can silently resolve to stale demo data for a render or two.
+  // Sync once the real, hydrated beneficiary is available instead.
+  const [reference, setReference] = useState("");
   const [refError, setRefError] = useState(false);
+  useEffect(() => { if (bene) setReference(bene.reference ?? ""); }, [bene?.id]);
   const [brand, setBrand] = useState<VoucherBrand | null>(null);
   const [code, setCode] = useState("");
   const [pinOpen, setPinOpen] = useState(false);
