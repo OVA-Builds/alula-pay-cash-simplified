@@ -7,7 +7,7 @@ import promoBanner from "@/assets/home-promo-banner.jpg";
 export const Route = createFileRoute("/home")({ component: Home });
 
 function Home() {
-  const { transactions, verified, plan, firstName, balance } = useApp();
+  const { transactions, verified, plan, firstName } = useApp();
   const recent = transactions.slice(0, 3);
   const displayName = firstName?.trim() ? firstName.trim().split(/\s+/)[0] : "there";
 
@@ -177,10 +177,6 @@ function Home() {
           <ChevronRight className="h-4 w-4 shrink-0" />
         </Link>
       </div>
-
-      <p className="pb-2 text-center text-[11px] font-medium text-muted-foreground">
-        Balance: {formatZAR(balance)}
-      </p>
     </AppShell>
   );
 }

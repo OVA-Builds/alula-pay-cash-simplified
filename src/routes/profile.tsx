@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ShieldCheck, ChevronRight, HelpCircle, LogOut, BadgeCheck, Moon, Sparkles, Lock } from "lucide-react";
+import { ShieldCheck, ChevronRight, HelpCircle, LogOut, BadgeCheck, Moon, Compass, Lock } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Switch } from "@/components/ui/switch";
 import { useApp, MONTHLY_FEE, formatZAR } from "@/lib/app-state";
@@ -45,7 +45,7 @@ function Profile() {
 
         <h2 className="mt-7 mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">Preferences</h2>
         <div className="bg-card rounded-2xl border border-border divide-y divide-border">
-          <ToggleRow icon={Sparkles} label="Alula guide" hint="Step-by-step help when sending or redeeming" checked={alulaOn} onChange={setAlulaOn} />
+          <ToggleRow icon={Compass} label="Alula guide" hint="Step-by-step help when sending or redeeming" checked={alulaOn} onChange={setAlulaOn} />
           <ToggleRow icon={Moon} label="Dark mode" hint="Easier on the eyes at night" checked={theme === "dark"} onChange={(v) => setTheme(v ? "dark" : "light")} />
         </div>
 

@@ -1,5 +1,5 @@
 import { useEffect, useState, useLayoutEffect } from "react";
-import { Sparkles, X, ArrowDown, ArrowDownLeft } from "lucide-react";
+import { Compass, X, ArrowDown, ArrowDownLeft } from "lucide-react";
 import { useLocation } from "@tanstack/react-router";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -81,7 +81,7 @@ export function AlulaGuide() {
           className="fixed bottom-24 right-5 z-40 h-14 pl-3 pr-4 rounded-full bg-gradient-gold shadow-gold flex items-center gap-2 active:scale-95 transition-transform"
           aria-label="Alula assistant — Help"
         >
-          <Sparkles className="h-5 w-5 text-gold-foreground" strokeWidth={2.4} />
+          <Compass className="h-5 w-5 text-gold-foreground" strokeWidth={2.4} />
           <span className="text-sm font-bold text-gold-foreground">Help</span>
         </button>
       )}
@@ -90,7 +90,7 @@ export function AlulaGuide() {
         <DialogContent className="rounded-3xl max-w-sm">
           <DialogHeader>
             <div className="mx-auto h-12 w-12 rounded-2xl bg-gradient-gold flex items-center justify-center mb-2">
-              <Sparkles className="h-5 w-5 text-gold-foreground" />
+              <Compass className="h-5 w-5 text-gold-foreground" />
             </div>
             <DialogTitle className="text-center">Hi, I'm Alula</DialogTitle>
             <DialogDescription className="text-center">What would you like to do today?</DialogDescription>
@@ -178,7 +178,7 @@ function GuideStep({ step, index, total }: { step: Step; index: number; total: n
       <div className="absolute left-0 right-0 bottom-0 bg-card text-card-foreground rounded-t-3xl p-5 shadow-card pointer-events-auto">
         <div className="flex items-start gap-3">
           <div className="h-9 w-9 rounded-xl bg-gradient-gold flex items-center justify-center shrink-0">
-            <Sparkles className="h-4 w-4 text-gold-foreground" />
+            <Compass className="h-4 w-4 text-gold-foreground" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-sm">{step.title}</p>
