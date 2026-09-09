@@ -50,6 +50,12 @@ function PayBeneficiary() {
       label: `Sent to ${bene.name}`,
       status: fee?.rail === "RTC" ? "Completed" : "Pending",
       date: "Just now",
+      recipientName: bene.name,
+      bankName: bene.bank,
+      accountNumber: bene.account,
+      reference,
+      sendAmount: amt,
+      fee: fee?.fee ?? 0,
     });
     setDone(true);
   };

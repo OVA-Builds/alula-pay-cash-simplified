@@ -14,6 +14,7 @@ import { Route as BeneficiariesRouteImport } from './routes/beneficiaries'
 import { Route as DemoVouchersRouteImport } from './routes/demo-vouchers'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as HomeRouteImport } from './routes/home'
+import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -50,6 +51,11 @@ const HistoryRoute = HistoryRouteImport.update({
 const HomeRoute = HomeRouteImport.update({
   id: '/home',
   path: '/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InboxRoute = InboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -119,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/demo-vouchers': typeof DemoVouchersRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
+  '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/demo-vouchers': typeof DemoVouchersRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
+  '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/demo-vouchers': typeof DemoVouchersRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
+  '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/demo-vouchers'
     | '/history'
     | '/home'
+    | '/inbox'
     | '/login'
     | '/onboarding'
     | '/profile'
@@ -198,6 +208,7 @@ export interface FileRouteTypes {
     | '/demo-vouchers'
     | '/history'
     | '/home'
+    | '/inbox'
     | '/login'
     | '/onboarding'
     | '/profile'
@@ -217,6 +228,7 @@ export interface FileRouteTypes {
     | '/demo-vouchers'
     | '/history'
     | '/home'
+    | '/inbox'
     | '/login'
     | '/onboarding'
     | '/profile'
@@ -237,6 +249,7 @@ export interface RootRouteChildren {
   DemoVouchersRoute: typeof DemoVouchersRoute
   HistoryRoute: typeof HistoryRoute
   HomeRoute: typeof HomeRoute
+  InboxRoute: typeof InboxRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   ProfileRoute: typeof ProfileRoute
@@ -286,6 +299,13 @@ declare module '@tanstack/react-router' {
       path: '/home'
       fullPath: '/home'
       preLoaderRoute: typeof HomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inbox': {
+      id: '/inbox'
+      path: '/inbox'
+      fullPath: '/inbox'
+      preLoaderRoute: typeof InboxRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -381,6 +401,7 @@ const rootRouteChildren: RootRouteChildren = {
   DemoVouchersRoute: DemoVouchersRoute,
   HistoryRoute: HistoryRoute,
   HomeRoute: HomeRoute,
+  InboxRoute: InboxRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   ProfileRoute: ProfileRoute,

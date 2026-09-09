@@ -19,7 +19,10 @@ function History() {
   const [dest, setDest] = useState("");
   const [sent, setSent] = useState(false);
   const [filter, setFilter] = useState<"all" | "in" | "out">("all");
-  const filtered = transactions.filter((t) =>
+  const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+  const cutoff = Date.now() - THIRTY_DAYS_MS;
+  const recentOnly = transactions.filter((t) => (t.createdAt ?? Date.now()) >= cutoff);
+  const filtered = recentOnly.filter((t) =>
     filter === "all" ? true : filter === "in" ? t.amount > 0 : t.amount < 0
   );
 
@@ -47,7 +50,7 @@ function History() {
           </button>
         </div>
         <h1 className="text-2xl font-bold tracking-tight">Transaction history</h1>
-        <p className="text-sm text-muted-foreground mt-1">Everything that has moved in and out.</p>
+        <p className="text-sm text-muted-foreground mt-1">Everything that has moved in and out in the past 30 days.</p>
 
         {/* 3-month deposit statement card */}
         <div className="mt-5 rounded-2xl border border-border bg-card p-5 shadow-soft">
@@ -97,10 +100,42 @@ function History() {
 
         <div className="mt-3 bg-card rounded-2xl border border-border divide-y divide-border">
           {filtered.length === 0 && (
-            <p className="p-6 text-center text-xs text-muted-foreground">No {filter === "in" ? "incoming" : filter === "out" ? "outgoing" : ""} transactions yet.</p>
+            <p className="p-6 text-center text-xs text-muted-foreground">No {filter === "in" ? "incoming" : filter === "out" ? "outgoing" : ""} transactions in the past 30 days.</p>
           )}
           {filtered.map((t) => {
             const positive = t.amount > 0;
+            const isItemizedTransfer = t.type === "transfer" && !!t.recipientName;
+
+            if (isItemizedTransfer) {
+              return (
+                <div key={t.id} className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="h-11 w-11 rounded-full bg-muted flex items-center justify-center shrink-0">
+                      <ArrowUpRight className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{t.recipientName}</p>
+                      <p className="text-xs text-muted-foreground truncate">{t.bankName} • {t.accountNumber}</p>
+                      {t.reference && <p className="text-xs text-muted-foreground truncate">Ref: {t.reference}</p>}
+                      <p className="text-xs text-muted-foreground mt-0.5">{formatTxDate(t)}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-semibold text-destructive">-{formatZAR(t.sendAmount ?? Math.abs(t.amount))}</p>
+                      <p className={`text-[11px] mt-0.5 ${t.status === "Completed" ? "text-success" : "text-gold-foreground"}`}>
+                        {t.status}
+                      </p>
+                    </div>
+                  </div>
+                  {typeof t.fee === "number" && (
+                    <div className="mt-2.5 flex items-center justify-between rounded-xl bg-muted/50 px-3 py-2">
+                      <span className="text-xs text-muted-foreground">Transaction fee</span>
+                      <span className="text-xs font-semibold text-muted-foreground">-{formatZAR(t.fee)}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <div key={t.id} className="flex items-center gap-3 p-4">
                 <div className={`h-11 w-11 rounded-full flex items-center justify-center ${positive ? "bg-success/10" : "bg-muted"}`}>

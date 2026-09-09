@@ -8,6 +8,14 @@ export type Transaction = {
   status: "Completed" | "Pending";
   date?: string;
   createdAt?: number;
+  // Itemized detail for a "transfer" send — shown separately in the
+  // transaction list so the fee never gets folded silently into one number.
+  recipientName?: string;
+  bankName?: string;
+  accountNumber?: string;
+  reference?: string;
+  sendAmount?: number;
+  fee?: number;
 };
 
 export type Beneficiary = {
@@ -83,7 +91,11 @@ const dateAt = (month: number, day: number, h: number, m: number) =>
 
 const sampleTx: Transaction[] = [
   { id: "t1", type: "redeem", amount: 200, label: "OTT voucher redeemed", status: "Completed", createdAt: todayAt(10, 24) },
-  { id: "t2", type: "transfer", amount: -152.25, label: "Sent to Thandi Nkosi", status: "Completed", createdAt: yesterdayAt(18, 2) },
+  {
+    id: "t2", type: "transfer", amount: -152.25, label: "Sent to Thandi Nkosi", status: "Completed", createdAt: yesterdayAt(18, 2),
+    recipientName: "Thandi Nkosi", bankName: "Capitec Bank", accountNumber: "1234567890", reference: "Rent",
+    sendAmount: 145, fee: 7.25,
+  },
   { id: "t3", type: "redeem", amount: 500, label: "Blu voucher redeemed", status: "Completed", createdAt: dateAt(5, 12, 14, 30) },
 ];
 

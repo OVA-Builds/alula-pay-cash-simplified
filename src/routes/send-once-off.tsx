@@ -50,6 +50,12 @@ function OnceOff() {
       label: `Sent to ${name}`,
       status: fee?.rail === "RTC" ? "Completed" : "Pending",
       date: "Just now",
+      recipientName: name,
+      bankName: bank.name,
+      accountNumber: account,
+      reference,
+      sendAmount: amt,
+      fee: fee?.fee ?? 0,
     });
     setStep("done");
   };
