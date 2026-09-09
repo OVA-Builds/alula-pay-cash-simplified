@@ -1,35 +1,55 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { ArrowLeft, Check, Clock } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Check, Clock, Zap, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AppShell } from "@/components/AppShell";
 import { ApprovalPinDialog } from "@/components/ApprovalPinDialog";
-import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy, MIN_SEND } from "@/lib/app-state";
-import { RailToggle } from "@/components/RailToggle";
+import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy } from "@/lib/app-state";
 import { useRequireSubscription } from "@/hooks/use-require-subscription";
-
+import voucherBlu from "@/assets/voucher-blu.jpg";
+import voucherOtt from "@/assets/voucher-ott.png";
+import voucher1Voucher from "@/assets/voucher-1voucher.png";
 
 export const Route = createFileRoute("/pay-beneficiary/$id")({ component: PayBeneficiary });
+
+type Step = "voucher" | "code" | "confirm" | "done";
+
+type VoucherBrand = { id: "blu" | "1voucher" | "ott"; name: string; length: number; logo: string; amount: number };
+
+// Mock: the value loaded from each voucher brand, matching the amounts used
+// elsewhere in the demo (see redeem.tsx).
+const VOUCHER_BRANDS: VoucherBrand[] = [
+  { id: "blu", name: "Blu Voucher", length: 16, logo: voucherBlu, amount: 10 },
+  { id: "1voucher", name: "1Voucher", length: 16, logo: voucher1Voucher, amount: 50 },
+  { id: "ott", name: "OTT Voucher", length: 12, logo: voucherOtt, amount: 200 },
+];
 
 function PayBeneficiary() {
   const navigate = useNavigate();
   const { id } = Route.useParams();
-  const { beneficiaries, plan, addTransaction, adjustBalance } = useApp();
+  const { beneficiaries, plan, addTransaction } = useApp();
   const bene = beneficiaries.find((b) => b.id === id);
-  const [amount, setAmount] = useState("");
+
+  const [step, setStep] = useState<Step>("voucher");
+  useRequireSubscription({ enabled: step !== "done" });
+
   const [reference, setReference] = useState(bene?.reference ?? "");
+  const [brand, setBrand] = useState<VoucherBrand | null>(null);
+  const [code, setCode] = useState("");
   const [pinOpen, setPinOpen] = useState(false);
-  const [done, setDone] = useState(false);
-  useRequireSubscription({ enabled: !done });
-  // Starts at EFT (matching app-state's own hydration-safe default of
-  // plan="basic") and switches to RTC once the persisted plan hydrates as
-  // "pro" — reading plan directly in the initializer would still see the
-  // pre-hydration default and default Pro users to EFT on every fresh load.
-  const [rail, setRail] = useState<"EFT" | "RTC">("EFT");
-  useEffect(() => { if (plan === "pro") setRail("RTC"); }, [plan]);
-  const activeRail: "EFT" | "RTC" = plan === "pro" ? rail : "EFT";
+
+  // Pro always sends instantly, Basic always via EFT — this flow never asks
+  // the client to choose (see the confirm step below).
+  const activeRail: "EFT" | "RTC" = plan === "pro" ? "RTC" : "EFT";
+
+  const voucherAmount = brand?.amount ?? 0;
+  const fee = voucherAmount > 0 ? calcTransferFee(voucherAmount, plan, activeRail) : null;
+  const netToBank = Math.max(0, +(voucherAmount - (fee?.fee ?? 0)).toFixed(2));
+
+  const digits = code.replace(/\D/g, "");
+  const validCode = !!brand && digits.length === brand.length;
 
   if (!bene) {
     return (
@@ -42,16 +62,15 @@ function PayBeneficiary() {
     );
   }
 
-  const amt = Number(amount) || 0;
-  const fee = amt > 0 ? calcTransferFee(amt, plan, activeRail) : null;
-  const total = amt + (fee?.fee ?? 0);
-
-  const canPay = amt >= MIN_SEND;
+  const submitVoucher = () => {
+    if (!brand || !validCode) return;
+    setStep("confirm");
+  };
 
   const confirm = () => {
-    adjustBalance(-total);
+    if (!brand) return;
     addTransaction({
-      id: crypto.randomUUID(), type: "transfer", amount: -total,
+      id: crypto.randomUUID(), type: "transfer", amount: -voucherAmount,
       label: `Sent to ${bene.name}`,
       status: fee?.rail === "RTC" ? "Completed" : "Pending",
       date: "Just now",
@@ -59,14 +78,14 @@ function PayBeneficiary() {
       bankName: bene.bank,
       accountNumber: bene.account,
       reference,
-      sendAmount: amt,
+      sendAmount: netToBank,
       fee: fee?.fee ?? 0,
       rail: fee?.rail,
     });
-    setDone(true);
+    setStep("done");
   };
 
-  if (done) {
+  if (step === "done") {
     return (
       <AppShell hideNav>
         <div className="flex flex-col items-center justify-center min-h-screen sm:min-h-[860px] p-8 text-center">
@@ -76,8 +95,8 @@ function PayBeneficiary() {
               <Check className="h-12 w-12 text-success-foreground" strokeWidth={3} />
             </div>
           </div>
-          <h1 className="mt-8 text-2xl font-bold">Paid</h1>
-          <p className="mt-2 text-muted-foreground">{formatZAR(amt)} sent to {bene.name}.</p>
+          <h1 className="mt-8 text-2xl font-bold">Sent</h1>
+          <p className="mt-2 text-muted-foreground">{formatZAR(netToBank)} sent to {bene.name}.</p>
           <div className="mt-6 w-full rounded-2xl bg-card border border-border p-4 flex items-center gap-3 text-left">
             <Clock className="h-5 w-5 text-muted-foreground" />
             <div>
@@ -93,62 +112,162 @@ function PayBeneficiary() {
     );
   }
 
+  if (step === "voucher") {
+    return (
+      <AppShell>
+        <div className="p-6">
+          <button onClick={() => navigate({ to: "/beneficiaries" })} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+
+          <div className="mt-6 flex items-center gap-3">
+            <div className="h-14 w-14 rounded-full bg-gradient-brand text-white font-semibold flex items-center justify-center text-lg">
+              {bene.name.split(" ").map((p) => p[0]).slice(0, 2).join("")}
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight">{bene.name}</h1>
+              <p className="text-xs text-muted-foreground">{bene.bank} · •••{bene.account.slice(-4)}</p>
+            </div>
+          </div>
+
+          <h2 className="mt-8 text-xl font-bold tracking-tight">Pay with a voucher</h2>
+          <p className="mt-2 text-muted-foreground text-sm">Choose the brand printed on your voucher slip.</p>
+
+          <div className="mt-6 grid grid-cols-3 gap-3">
+            {VOUCHER_BRANDS.map((v) => (
+              <button
+                key={v.id}
+                onClick={() => { setBrand(v); setStep("code"); }}
+                className="flex flex-col items-center gap-2 rounded-3xl border border-border bg-card p-3 shadow-card active:scale-[0.97]"
+              >
+                <span className="flex h-14 w-full items-center justify-center rounded-2xl bg-white p-2">
+                  <img src={v.logo} alt={v.name} className="h-full w-full object-contain" />
+                </span>
+                <span className="text-center text-[11px] font-semibold leading-tight">{v.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (step === "code" && brand) {
+    return (
+      <AppShell>
+        <div className="p-6">
+          <button onClick={() => setStep("voucher")} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <div className="mt-6 flex items-center gap-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-card">
+              <img src={brand.logo} alt={brand.name} className="h-8 w-8 object-contain" />
+            </span>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight">{brand.name}</h1>
+              <p className="text-xs text-muted-foreground">Enter your {brand.length}-digit voucher pin</p>
+            </div>
+          </div>
+
+          <Input
+            placeholder={"•".repeat(brand.length)}
+            value={code}
+            inputMode="numeric"
+            maxLength={brand.length}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+            className="mt-6 h-16 rounded-2xl text-center font-mono text-lg tracking-[0.25em]"
+          />
+          <p className="mt-3 text-center text-xs text-muted-foreground">{digits.length}/{brand.length} digits</p>
+
+          <Button
+            size="lg" disabled={!validCode} onClick={submitVoucher}
+            className="mt-6 h-14 w-full rounded-2xl text-base shadow-button"
+          >
+            Confirm voucher
+          </Button>
+        </div>
+      </AppShell>
+    );
+  }
+
+  // confirm
   return (
     <AppShell>
       <div className="p-6">
-        <button onClick={() => navigate({ to: "/beneficiaries" })} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
+        <button onClick={() => setStep("code")} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
           <ArrowLeft className="h-4 w-4" />
         </button>
+        <h1 className="mt-6 text-2xl font-bold tracking-tight">Confirm payment</h1>
 
-        <div className="mt-6 flex items-center gap-3">
-          <div className="h-14 w-14 rounded-full bg-gradient-brand text-white font-semibold flex items-center justify-center text-lg">
-            {bene.name.split(" ").map((p) => p[0]).slice(0, 2).join("")}
-          </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">{bene.name}</h1>
-            <p className="text-xs text-muted-foreground">Saved beneficiary</p>
-          </div>
+        <div className="mt-5 rounded-2xl bg-card border border-border p-4 space-y-2">
+          <Row label="Name" value={bene.name} muted />
+          <Row label="Bank" value={bene.bank} muted />
+          <Row label="Branch code" value={bene.branch} muted />
+          <Row label="Account" value={bene.account} muted />
         </div>
 
-        <div className="mt-6 bg-muted/50 rounded-2xl p-4 space-y-2 border border-border">
-          <Greyed label="Bank" value={bene.bank} />
-          <Greyed label="Branch" value={bene.branch} />
-          <Greyed label="Account" value={bene.account} />
-        </div>
-
-        <div className="mt-5 space-y-4">
-          <div>
-            <Label htmlFor="amt">Amount (ZAR)</Label>
-            <Input id="amt" inputMode="decimal" placeholder="0.00" value={amount}
-              onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ""))}
-              className="mt-2 h-14 rounded-2xl text-xl font-semibold" autoFocus />
-          </div>
-          <div>
-            <Label htmlFor="ref">Reference</Label>
-            <Input id="ref" value={reference} onChange={(e) => setReference(e.target.value)}
-              className="mt-2 h-12 rounded-2xl" maxLength={20} />
-          </div>
+        <div className="mt-4">
+          <Label>Reference (shown on their statement)</Label>
+          <Input value={reference} onChange={(e) => setReference(e.target.value)} maxLength={20}
+            placeholder="e.g. Rent" className="mt-2 h-12 rounded-2xl" />
         </div>
 
         <div className="mt-5">
-          <RailToggle amount={amt} plan={plan} value={activeRail} onChange={setRail} />
+          {plan === "pro" ? (
+            <div className="rounded-2xl border border-primary bg-primary/5 p-4 flex items-center gap-3 shadow-soft">
+              <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                <Zap className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold flex items-center gap-2">
+                  Immediate payment
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/15 text-primary px-1.5 py-0.5 rounded-full">Pro</span>
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">Lands within 10 minutes</p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">How should it be sent?</p>
+              <div className="rounded-2xl border border-primary bg-primary/5 p-4 flex items-center gap-3 shadow-soft">
+                <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                  <Clock className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold">Basic EFT</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Lands in 1–2 working days</p>
+                </div>
+              </div>
+              <div className="rounded-2xl border border-border bg-card p-4 flex items-center gap-3 opacity-50">
+                <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                  <Lock className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold flex items-center gap-2">
+                    Immediate payment
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-gold/25 text-gold-foreground px-1.5 py-0.5 rounded-full">Pro only</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Upgrade to Pro to send immediately</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {amt > 0 && fee && (
-
+        {fee && (
           <div className="mt-5 rounded-2xl bg-card border border-border p-4 space-y-2 animate-float-up">
-            <Row label={`Fee (${railLabel(fee.rail)})`} value={formatZAR(fee.fee)} muted />
-            <Row label="Total" value={formatZAR(total)} bold />
+            <Row label="Voucher value" value={formatZAR(voucherAmount)} muted />
+            <Row label={`Fee (${railLabel(fee.rail)})`} value={`-${formatZAR(fee.fee)}`} muted />
+            <div className="border-t border-border pt-2 flex items-center justify-between">
+              <span className="text-sm font-medium">Sent to their bank account</span>
+              <span className="text-base font-bold">{formatZAR(netToBank)}</span>
+            </div>
           </div>
         )}
 
-        {amt > 0 && amt < MIN_SEND && (
-          <p className="mt-3 text-xs text-destructive text-center">Minimum send amount is {formatZAR(MIN_SEND)}.</p>
-        )}
-
-        <Button size="lg" disabled={!canPay} onClick={() => setPinOpen(true)}
-          className="mt-8 h-14 w-full rounded-2xl text-base shadow-button">
-          Pay {amt > 0 ? formatZAR(amt) : ""}
+        <Button size="lg" onClick={() => setPinOpen(true)}
+          className="mt-6 h-14 w-full rounded-2xl text-base shadow-button">
+          Pay {formatZAR(netToBank)}
         </Button>
       </div>
 
@@ -156,20 +275,12 @@ function PayBeneficiary() {
         open={pinOpen}
         onOpenChange={setPinOpen}
         onApprove={confirm}
-        summary={{ recipient: bene.name, amount: amt, fee: fee?.fee ?? 0, total }}
+        summary={{ recipient: bene.name, amount: voucherAmount, fee: fee?.fee ?? 0, total: netToBank }}
       />
     </AppShell>
   );
 }
 
-function Greyed({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between text-sm">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium text-muted-foreground/80">{value}</span>
-    </div>
-  );
-}
 function Row({ label, value, bold, muted }: { label: string; value: string; bold?: boolean; muted?: boolean }) {
   return (
     <div className="flex justify-between items-center text-sm">
