@@ -110,7 +110,7 @@ const sampleBenes: Beneficiary[] = [
   { id: "b1", name: "Thandi Nkosi", bank: "Capitec Bank", branch: "470010", account: "1234567890", reference: "Rent" },
   { id: "b2", name: "Sipho Dlamini", bank: "FNB / RMB", branch: "250655", account: "62012345678", reference: "Groceries" },
   { id: "b3", name: "Ayanda Mthembu", bank: "Standard Bank", branch: "051001", account: "087654321", reference: "School fees" },
-  { id: "b4", name: "Lerato Mokoena", bank: "TymeBank", branch: "678910", account: "5300012345", reference: "Mom" },
+  { id: "b4", name: "Lerato Mokoena", bank: "GoTyme", branch: "678910", account: "5300012345", reference: "Mom" },
   { id: "b5", name: "Nomvula Khumalo", bank: "Nedbank", branch: "198765", account: "1098765432", reference: "Sister" },
 ];
 

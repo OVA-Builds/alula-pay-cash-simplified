@@ -1,7 +1,7 @@
 import capitecLogo from "@/assets/banks/capitec.png";
-import fnbLogo from "@/assets/banks/fnb.jpg";
-import nedbankLogo from "@/assets/banks/nedbank.png";
-import tymebankLogo from "@/assets/banks/tymebank.jpg";
+import fnbLogo from "@/assets/banks/fnb.png";
+import nedbankLogo from "@/assets/banks/nedbank.jpg";
+import gotymeLogo from "@/assets/banks/tymebank.jpg";
 import discoveryLogo from "@/assets/banks/discovery.jpg";
 import africanBankLogo from "@/assets/banks/african-bank.jpg";
 import bankZeroLogo from "@/assets/banks/bank-zero.jpg";
@@ -26,11 +26,10 @@ export const SA_BANKS: Bank[] = [
   { name: "Standard Bank", branch: "051001", logo: standardBankLogo, color: "bg-blue-700" },
   { name: "FNB / RMB", branch: "250655", logo: fnbLogo, color: "bg-emerald-700" },
   { name: "Nedbank", branch: "198765", logo: nedbankLogo, color: "bg-teal-600" },
-  { name: "TymeBank", branch: "678910", logo: tymebankLogo, color: "bg-cyan-600" },
+  { name: "GoTyme", branch: "678910", logo: gotymeLogo, color: "bg-cyan-600" },
   { name: "Discovery Bank", branch: "679000", logo: discoveryLogo, color: "bg-yellow-500" },
   { name: "African Bank", branch: "430000", logo: africanBankLogo, color: "bg-orange-600" },
   { name: "Investec", branch: "580105", logo: investecLogo, color: "bg-slate-800" },
   { name: "Bidvest Bank", branch: "462005", logo: bidvestLogo, color: "bg-indigo-900" },
   { name: "Bank Zero", branch: "888000", logo: bankZeroLogo, color: "bg-neutral-800" },
-  { name: "Sasfin Bank", branch: "683000", color: "bg-purple-700" },
 ];
