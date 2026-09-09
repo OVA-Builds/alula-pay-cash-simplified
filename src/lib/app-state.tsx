@@ -241,6 +241,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setLastPaidPeriod(null);
     setPendingPlan(null);
     setPendingAmountPaid(0);
+    // Demo convenience: every signup gets the messages fresh again, deleted
+    // or read ones included. To be reduced to a one-time reset before the
+    // app ships.
+    setDeletedMessageIds([]);
+    setReadMessageIds([]);
   }, []);
   const signOut = useCallback(() => {
     // Signing out returns the user to onboarding for the demo.

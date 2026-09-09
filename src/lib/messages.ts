@@ -1,4 +1,5 @@
-import { ShieldCheck, Landmark, Megaphone } from "lucide-react";
+import { ShieldCheck, Landmark, Megaphone, Newspaper } from "lucide-react";
+import alulaLogo from "@/assets/alula-logo-newsletter.jpg";
 
 export type Message = {
   id: string;
@@ -8,6 +9,9 @@ export type Message = {
   date: string;
   // Full write-up shown when the client opens the message, as paragraphs.
   newsletter: string[];
+  // Optional letterhead image shown at the top of the detail page instead
+  // of the usual icon badge — used for official Alula Pay newsletters.
+  logo?: string;
 };
 
 export const MESSAGES: Message[] = [
@@ -48,6 +52,21 @@ export const MESSAGES: Message[] = [
       "The fee is a flat 5% of the amount you send, with a R20 minimum per transaction — the same rate whether you're on Basic or Pro. What changes between plans is how fast the money arrives, not what you're charged to send it.",
       "Once a send goes through, you can always look back at exactly what you sent and what you paid in fees: open Notifications or Transaction history and every send lists the recipient, their bank details, your reference, the amount sent, and the fee, kept as separate lines rather than one lump total.",
       "If a number ever looks off, that itemized breakdown is the first place to check.",
+    ],
+  },
+  {
+    id: "m4",
+    icon: Newspaper,
+    logo: alulaLogo,
+    title: "Turning cash into digital access",
+    body: "A simpler way to move your money to your bank account — see how Alula Pay is building financial freedom for every South African.",
+    date: "This week",
+    newsletter: [
+      "Real people. Real solutions. Alula Pay exists to turn cash into digital access — a simpler way to move your money to your bank account and build your financial future, wherever you're starting from.",
+      "Here's how it works: buy a voucher for cash at a local retail partner, redeem the code in the Alula Pay app, then send it straight to any South African bank account. Alula Pay is not a bank — we're the bridge between the cash in your hand and your bank account.",
+      "Every send builds your track record. Pro subscribers can download a 3-month transaction statement — scannable proof of your Alula Pay activity for rentals, credit applications, or opening other accounts.",
+      "Basic is R10/month: 5% per send, a R5,000 monthly limit, and EFT transfers that land in 1–2 working days. Pro is R20/month: the same 5% per send, a R10,000 daily limit, a R49,999.99 monthly limit, instant payments, and that 3-month scannable statement.",
+      "Over 11 million South Africans are financially excluded from formal banking. With a flat 5% transaction fee and a R20 minimum send, we're building the access to close that gap — together, we build stronger communities.",
     ],
   },
 ];

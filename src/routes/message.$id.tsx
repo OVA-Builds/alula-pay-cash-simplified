@@ -35,9 +35,13 @@ function MessageDetail() {
         ) : (
           <>
             <div className="flex items-start gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <message.icon className="h-5 w-5" />
-              </span>
+              {message.logo ? (
+                <img src={message.logo} alt="Alula Pay" className="h-14 w-14 shrink-0 rounded-2xl object-cover shadow-card" />
+              ) : (
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <message.icon className="h-5 w-5" />
+                </span>
+              )}
               <div className="min-w-0 flex-1 pt-1">
                 <h1 className="text-xl font-bold tracking-tight">{message.title}</h1>
                 <p className="mt-0.5 text-xs text-muted-foreground">{message.date}</p>
