@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowDownLeft, ArrowUpRight, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, ArrowDownLeft, ArrowUpRight, ChevronRight, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useApp, formatZAR, formatTxDate } from "@/lib/app-state";
 import { MESSAGES } from "@/lib/messages";
@@ -11,15 +11,10 @@ type Tab = "transactions" | "messages";
 
 function Notifications() {
   const router = useRouter();
-  const { transactions, deletedMessageIds, markMessagesRead, deleteMessage } = useApp();
+  const { transactions, deletedMessageIds, readMessageIds, deleteMessage } = useApp();
   const [tab, setTab] = useState<Tab>("transactions");
 
   const messages = MESSAGES.filter((m) => !deletedMessageIds.includes(m.id));
-
-  // Opening this page is what clears the bell's unread dot.
-  useEffect(() => {
-    markMessagesRead(MESSAGES.map((m) => m.id));
-  }, [markMessagesRead]);
 
   const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
   const cutoff = Date.now() - THIRTY_DAYS_MS;
@@ -97,25 +92,36 @@ function Notifications() {
             {messages.length === 0 ? (
               <p className="p-6 text-center text-xs text-muted-foreground">No messages.</p>
             ) : (
-              messages.map((m) => (
-                <div key={m.id} className="flex items-start gap-3 p-4">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <m.icon className="h-4.5 w-4.5" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold">{m.title}</p>
-                    <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{m.body}</p>
-                    <p className="mt-1 text-[11px] text-muted-foreground">{m.date}</p>
-                  </div>
-                  <button
-                    aria-label="Delete message"
-                    onClick={() => deleteMessage(m.id)}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              messages.map((m) => {
+                const unread = !readMessageIds.includes(m.id);
+                return (
+                  <div
+                    key={m.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => router.navigate({ to: "/message/$id", params: { id: m.id } })}
+                    onKeyDown={(e) => { if (e.key === "Enter") router.navigate({ to: "/message/$id", params: { id: m.id } }); }}
+                    className="flex cursor-pointer items-start gap-3 p-4"
                   >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              ))
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <m.icon className="h-4.5 w-4.5" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className={`text-sm ${unread ? "font-bold" : "font-normal"}`}>{m.title}</p>
+                      <p className={`mt-0.5 text-xs leading-relaxed text-muted-foreground ${unread ? "font-semibold" : "font-normal"}`}>{m.body}</p>
+                      <p className="mt-1 text-[11px] text-muted-foreground">{m.date}</p>
+                    </div>
+                    <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground" />
+                    <button
+                      aria-label="Delete message"
+                      onClick={(e) => { e.stopPropagation(); deleteMessage(m.id); }}
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                );
+              })
             )}
           </div>
         )}

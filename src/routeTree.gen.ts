@@ -26,6 +26,7 @@ import { Route as SetupPinRouteImport } from './routes/setup-pin'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SubscribeRouteImport } from './routes/subscribe'
 import { Route as VerifyRouteImport } from './routes/verify'
+import { Route as MessageIdRouteImport } from './routes/message.$id'
 import { Route as PayBeneficiaryIdRouteImport } from './routes/pay-beneficiary.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -113,6 +114,11 @@ const VerifyRoute = VerifyRouteImport.update({
   path: '/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MessageIdRoute = MessageIdRouteImport.update({
+  id: '/message/$id',
+  path: '/message/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PayBeneficiaryIdRoute = PayBeneficiaryIdRouteImport.update({
   id: '/pay-beneficiary/$id',
   path: '/pay-beneficiary/$id',
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/subscribe': typeof SubscribeRoute
   '/verify': typeof VerifyRoute
+  '/message/$id': typeof MessageIdRoute
   '/pay-beneficiary/$id': typeof PayBeneficiaryIdRoute
 }
 export interface FileRoutesByTo {
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/subscribe': typeof SubscribeRoute
   '/verify': typeof VerifyRoute
+  '/message/$id': typeof MessageIdRoute
   '/pay-beneficiary/$id': typeof PayBeneficiaryIdRoute
 }
 export interface FileRoutesById {
@@ -178,6 +186,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/subscribe': typeof SubscribeRoute
   '/verify': typeof VerifyRoute
+  '/message/$id': typeof MessageIdRoute
   '/pay-beneficiary/$id': typeof PayBeneficiaryIdRoute
 }
 export interface FileRouteTypes {
@@ -200,6 +209,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/subscribe'
     | '/verify'
+    | '/message/$id'
     | '/pay-beneficiary/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -220,6 +230,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/subscribe'
     | '/verify'
+    | '/message/$id'
     | '/pay-beneficiary/$id'
   id:
     | '__root__'
@@ -240,6 +251,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/subscribe'
     | '/verify'
+    | '/message/$id'
     | '/pay-beneficiary/$id'
   fileRoutesById: FileRoutesById
 }
@@ -261,6 +273,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   SubscribeRoute: typeof SubscribeRoute
   VerifyRoute: typeof VerifyRoute
+  MessageIdRoute: typeof MessageIdRoute
   PayBeneficiaryIdRoute: typeof PayBeneficiaryIdRoute
 }
 
@@ -385,6 +398,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/message/$id': {
+      id: '/message/$id'
+      path: '/message/$id'
+      fullPath: '/message/$id'
+      preLoaderRoute: typeof MessageIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pay-beneficiary/$id': {
       id: '/pay-beneficiary/$id'
       path: '/pay-beneficiary/$id'
@@ -413,6 +433,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   SubscribeRoute: SubscribeRoute,
   VerifyRoute: VerifyRoute,
+  MessageIdRoute: MessageIdRoute,
   PayBeneficiaryIdRoute: PayBeneficiaryIdRoute,
 }
 export const routeTree = rootRouteImport
