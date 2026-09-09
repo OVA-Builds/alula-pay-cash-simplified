@@ -7,7 +7,7 @@ import promoBanner from "@/assets/home-promo-banner.jpg";
 export const Route = createFileRoute("/home")({ component: Home });
 
 function Home() {
-  const { transactions, verified, plan, firstName } = useApp();
+  const { transactions, verified, plan, firstName, subscriptionActive, freeTransactionsLeft } = useApp();
   const recent = transactions.slice(0, 3);
   const displayName = firstName?.trim() ? firstName.trim().split(/\s+/)[0] : "there";
 
@@ -36,53 +36,83 @@ function Home() {
       </div>
 
       <div className="relative -mt-8 px-6">
-        <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
-          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Monthly limit</p>
-          <p className="mt-1 text-2xl font-bold tracking-tight">
-            {formatZAR(moneyOut)} <span className="text-base font-normal text-muted-foreground">of {formatZAR(limitTotal)}</span>
-          </p>
+        {subscriptionActive ? (
+          <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Monthly limit</p>
+            <p className="mt-1 text-2xl font-bold tracking-tight">
+              {formatZAR(moneyOut)} <span className="text-base font-normal text-muted-foreground">of {formatZAR(limitTotal)}</span>
+            </p>
 
-          <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-muted">
-            <div className="h-full rounded-full bg-gold transition-[width] duration-700" style={{ width: `${usedPct}%` }} />
-          </div>
-
-          <div className="mt-4 grid grid-cols-[0.85fr_auto_1.5fr] items-center gap-2.5">
-            <div className="flex items-center gap-2">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">
-                <ArrowUpRight className="h-4 w-4" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-bold leading-tight">{formatZAR(remaining)}</p>
-                <p className="text-xs text-muted-foreground">Remaining</p>
-              </div>
+            <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-muted">
+              <div className="h-full rounded-full bg-gold transition-[width] duration-700" style={{ width: `${usedPct}%` }} />
             </div>
 
-            <span className="h-9 w-px bg-border" />
-
-            {verified ? (
+            <div className="mt-4 grid grid-cols-[0.85fr_auto_1.5fr] items-center gap-2.5">
               <div className="flex items-center gap-2">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <ShieldCheck className="h-4 w-4" />
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">
+                  <ArrowUpRight className="h-4 w-4" />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-sm font-bold leading-tight">Pro plan</p>
-                  <p className="text-xs text-muted-foreground">Instant payments</p>
+                  <p className="text-sm font-bold leading-tight">{formatZAR(remaining)}</p>
+                  <p className="text-xs text-muted-foreground">Remaining</p>
                 </div>
               </div>
-            ) : (
-              <Link to="/verify" className="flex items-center gap-2">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <ShieldCheck className="h-4 w-4" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="whitespace-nowrap text-[13px] font-bold leading-tight">Upgrade to Pro</p>
-                  <p className="text-xs leading-snug text-muted-foreground">Higher limits, instant payments.</p>
+
+              <span className="h-9 w-px bg-border" />
+
+              {verified ? (
+                <div className="flex items-center gap-2">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <ShieldCheck className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold leading-tight">Pro plan</p>
+                    <p className="text-xs text-muted-foreground">Instant payments</p>
+                  </div>
                 </div>
-                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-              </Link>
-            )}
+              ) : (
+                <Link to="/verify" className="flex items-center gap-2">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <ShieldCheck className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="whitespace-nowrap text-[13px] font-bold leading-tight">Upgrade to Pro</p>
+                    <p className="text-xs leading-snug text-muted-foreground">Higher limits, instant payments.</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Link>
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Free transactions</p>
+            <p className="mt-1 text-2xl font-bold tracking-tight">
+              {freeTransactionsLeft} <span className="text-base font-normal text-muted-foreground">of 2 left this month</span>
+            </p>
+
+            <div className="mt-3 flex gap-2">
+              {[0, 1].map((i) => (
+                <div
+                  key={i}
+                  className={`h-2.5 flex-1 rounded-full transition-colors duration-500 ${i < freeTransactionsLeft ? "bg-gold" : "bg-muted"}`}
+                />
+              ))}
+            </div>
+
+            <div className="mt-4 flex items-center gap-2.5 rounded-2xl bg-muted/50 p-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <ShieldCheck className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold leading-tight">No plan chosen yet</p>
+                <p className="text-xs text-muted-foreground">
+                  Your limit will show here once you pick Basic or Pro.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="mt-4 grid grid-cols-[1.55fr_1fr] gap-2.5 px-6">
