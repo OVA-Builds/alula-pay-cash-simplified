@@ -1,6 +1,7 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, Flame, Check, PartyPopper, Bell, RotateCcw } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Flame, Check, PartyPopper, Bell, RotateCcw } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { HustleHeader } from "@/components/HustleHeader";
 import { Button } from "@/components/ui/button";
 import { useApp, CHALLENGE_LENGTHS, type ChallengeLength } from "@/lib/app-state";
 
@@ -9,16 +10,13 @@ export const Route = createFileRoute("/hustle/challenge")({ component: Challenge
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function ChallengePage() {
-  const router = useRouter();
   const { challenge, startChallenge, endChallenge } = useApp();
-
-  const back = () => (router.history.canGoBack() ? router.history.back() : router.navigate({ to: "/hustle" }));
 
   if (!challenge) {
     return (
       <AppShell hideNav>
         <div className="flex min-h-full flex-col bg-neutral-950">
-          <Header onBack={back} />
+          <HustleHeader fallbackTo="/hustle" title="Build the streak." subtitle="Send money, strike the day. Simple as that." />
           <div className="-mt-4 flex-1 rounded-t-[2rem] bg-background p-6 shadow-[0_-12px_40px_rgba(0,0,0,0.35)]">
             <div className="rounded-3xl border border-border bg-card p-6 text-center shadow-card">
               <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gold/15">
@@ -60,7 +58,7 @@ function ChallengePage() {
   return (
     <AppShell hideNav>
       <div className="flex min-h-full flex-col bg-neutral-950">
-        <Header onBack={back} />
+        <HustleHeader fallbackTo="/hustle" title="Build the streak." subtitle="Send money, strike the day. Simple as that." />
         <div className="-mt-4 flex-1 rounded-t-[2rem] bg-background p-6 shadow-[0_-12px_40px_rgba(0,0,0,0.35)]">
           {allDone ? (
             <div className="rounded-3xl border border-success/30 bg-success/10 p-6 text-center shadow-card">
@@ -136,29 +134,5 @@ function ChallengePage() {
         </div>
       </div>
     </AppShell>
-  );
-}
-
-function Header({ onBack }: { onBack: () => void }) {
-  return (
-    <div className="sticky top-0 z-10 overflow-hidden bg-gradient-to-br from-neutral-900 via-neutral-950 to-black pb-8 pt-8 shadow-lg">
-      <div className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-gold/10" />
-      <div className="relative flex items-center gap-3 px-6">
-        <button
-          onClick={onBack}
-          aria-label="Back"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur active:scale-95 transition-transform"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-gold">
-          <Flame className="h-3 w-3" /> Challenge
-        </span>
-      </div>
-      <div className="relative mt-5 px-6">
-        <h1 className="text-2xl font-bold tracking-tight text-white">Build the streak.</h1>
-        <p className="mt-2 text-sm text-white/60">Send money, strike the day. Simple as that.</p>
-      </div>
-    </div>
   );
 }

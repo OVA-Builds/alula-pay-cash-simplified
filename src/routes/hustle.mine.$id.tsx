@@ -1,23 +1,28 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Plus, BadgeCheck, Trash2, Boxes, Package, TrendingUp, Thermometer } from "lucide-react";
+import { Plus, BadgeCheck, Trash2, Boxes, Package, TrendingUp, Thermometer } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, Bar, BarChart, XAxis, YAxis, CartesianGrid } from "recharts";
 import { AppShell } from "@/components/AppShell";
+import { HustleHeader } from "@/components/HustleHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BottomSheet } from "@/components/BottomSheet";
-import { useApp, formatZAR, type BusinessExpense, type BusinessEntry, type BusinessLogType } from "@/lib/app-state";
+import { useApp, formatZAR, type BusinessLineItem, type BusinessEntry, type BusinessLogType } from "@/lib/app-state";
 
 export const Route = createFileRoute("/hustle/mine/$id")({ component: HustleDashboard });
 
-const PIE_COLORS = ["var(--color-destructive)", "var(--color-gold)", "var(--color-primary)"];
+const PIE_COLORS = ["var(--color-destructive)", "var(--color-primary)"];
 
-const TYPE_META: Record<BusinessLogType, { icon: typeof Package; label: string }> = {
-  ingredients: { icon: Package, label: "Ingredients" },
-  supplies: { icon: Boxes, label: "Supplies" },
-  profit: { icon: TrendingUp, label: "Profit" },
+const TYPE_META: Record<BusinessLogType, { icon: typeof Package; label: string; placeholder: string }> = {
+  ingredients: { icon: Package, label: "Ingredients", placeholder: "e.g. Meat" },
+  supplies: { icon: Boxes, label: "Supplies", placeholder: "e.g. Packaging" },
+  profit: { icon: TrendingUp, label: "Profit", placeholder: "e.g. Morning sales" },
 };
+
+function entryTotal(e: BusinessEntry) {
+  return e.items.reduce((s, i) => s + i.amount, 0);
+}
 
 function isSameDay(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
@@ -44,12 +49,12 @@ function HustleDashboard() {
 
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<BusinessLogType>("ingredients");
-  const [amount, setAmount] = useState("");
-  const [expenses, setExpenses] = useState<BusinessExpense[]>([]);
-  const [expLabel, setExpLabel] = useState("");
-  const [expAmount, setExpAmount] = useState("");
+  const [items, setItems] = useState<BusinessLineItem[]>([]);
+  const [itemLabel, setItemLabel] = useState("");
+  const [itemAmount, setItemAmount] = useState("");
   const [savePct, setSavePct] = useState("10");
   const [limitHit, setLimitHit] = useState(false);
+  const [dayDetail, setDayDetail] = useState<{ date: Date; entries: BusinessEntry[] } | null>(null);
 
   const entries = hustle?.entries ?? [];
 
@@ -60,11 +65,9 @@ function HustleDashboard() {
   const dayLimitReached = loggedTodayCount >= 2;
 
   const totals = useMemo(() => {
-    const costEntries = entries.filter((e) => e.type !== "profit");
-    const cost = costEntries.reduce((s, e) => s + e.amount, 0);
-    const other = costEntries.reduce((s, e) => s + e.otherExpenses.reduce((a, x) => a + x.amount, 0), 0);
-    const profitSum = entries.filter((e) => e.type === "profit").reduce((s, e) => s + e.amount, 0);
-    return { cost, other, profit: profitSum, revenue: cost + other + profitSum };
+    const cost = entries.filter((e) => e.type !== "profit").reduce((s, e) => s + entryTotal(e), 0);
+    const profit = entries.filter((e) => e.type === "profit").reduce((s, e) => s + entryTotal(e), 0);
+    return { cost, profit, revenue: cost + profit };
   }, [entries]);
 
   const avgMargin = totals.revenue > 0 ? (totals.profit / totals.revenue) * 100 : null;
@@ -93,13 +96,12 @@ function HustleDashboard() {
   }, [entries.length, avgMargin]);
 
   const pieData = [
-    { name: "Cost of goods", value: totals.cost },
-    { name: "Other expenses", value: totals.other },
+    { name: "Operational costs", value: totals.cost },
     { name: "Profit", value: totals.profit },
   ].filter((d) => d.value > 0);
 
   const profitBars = useMemo(
-    () => [...entries].filter((e) => e.type === "profit").reverse().map((e, i) => ({ i: i + 1, profit: e.amount })),
+    () => [...entries].filter((e) => e.type === "profit").reverse().map((e, i) => ({ i: i + 1, profit: entryTotal(e) })),
     [entries]
   );
 
@@ -114,29 +116,27 @@ function HustleDashboard() {
     return Array.from(map.values()).map((list) => ({ key: String(list[0].createdAt), date: new Date(list[0].createdAt), entries: list }));
   }, [entries]);
 
-  const addExpenseLine = () => {
-    const amt = Number(expAmount) || 0;
-    if (!expLabel.trim() || amt <= 0) return;
-    setExpenses((prev) => [...prev, { label: expLabel.trim(), amount: amt }]);
-    setExpLabel("");
-    setExpAmount("");
+  const addItem = () => {
+    const amt = Number(itemAmount) || 0;
+    if (!itemLabel.trim() || amt <= 0) return;
+    setItems((prev) => [...prev, { label: itemLabel.trim(), amount: amt }]);
+    setItemLabel("");
+    setItemAmount("");
   };
-  const removeExpenseLine = (i: number) => setExpenses((prev) => prev.filter((_, idx) => idx !== i));
+  const removeItem = (i: number) => setItems((prev) => prev.filter((_, idx) => idx !== i));
 
-  const amountNum = Number(amount) || 0;
+  const itemsTotal = items.reduce((s, i) => s + i.amount, 0);
   const savePctNum = Math.max(0, Math.min(100, Number(savePct) || 0));
-  const canSubmit = !dayLimitReached && (type === "profit" ? amountNum !== 0 : amountNum > 0);
+  const canSubmit = !dayLimitReached && items.length > 0;
 
   const reset = () => {
-    setType("ingredients"); setAmount(""); setExpenses([]);
-    setExpLabel(""); setExpAmount(""); setSavePct("10"); setLimitHit(false);
+    setType("ingredients"); setItems([]); setItemLabel(""); setItemAmount(""); setSavePct("10"); setLimitHit(false);
   };
 
   const submit = () => {
     if (!hustle || !canSubmit) return;
     const created = addBusinessEntry(hustle.id, {
-      type, amount: amountNum,
-      otherExpenses: type === "profit" ? [] : expenses,
+      type, items,
       savePct: type === "profit" ? savePctNum : 0,
     });
     if (!created) { setLimitHit(true); return; }
@@ -158,31 +158,25 @@ function HustleDashboard() {
   return (
     <AppShell hideNav>
       <div className="flex min-h-full flex-col bg-neutral-950">
-        <div className="sticky top-0 z-10 overflow-hidden bg-gradient-to-br from-neutral-900 via-neutral-950 to-black pb-8 pt-8 shadow-lg">
-          <div className="relative flex items-center justify-between px-6">
-            <button
-              onClick={() => (router.history.canGoBack() ? router.history.back() : router.navigate({ to: "/hustle/mine" }))}
-              aria-label="Back"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur active:scale-95 transition-transform"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </button>
+        <HustleHeader
+          fallbackTo="/hustle/mine"
+          title={
+            <span className="flex items-center gap-1.5">
+              <span className="truncate">{hustle.name}</span>
+              {hustle.registered && <BadgeCheck className="h-4 w-4 shrink-0 text-primary" />}
+            </span>
+          }
+          subtitle={hustle.description}
+          right={
             <button
               onClick={() => setOpen(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-gold text-gold-foreground shadow-gold active:scale-95 transition-transform"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-gold text-gold-foreground shadow-gold active:scale-95 transition-transform"
               aria-label="Log a day"
             >
               <Plus className="h-5 w-5" strokeWidth={2.5} />
             </button>
-          </div>
-          <div className="relative mt-5 px-6">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight text-white">{hustle.name}</h1>
-              {hustle.registered && <BadgeCheck className="h-5 w-5 text-primary" />}
-            </div>
-            <p className="mt-1 text-sm text-white/60">{hustle.description}</p>
-          </div>
-        </div>
+          }
+        />
 
         <div className="-mt-4 flex-1 space-y-4 rounded-t-[2rem] bg-background p-6 shadow-[0_-12px_40px_rgba(0,0,0,0.35)]">
           {/* Health thermometer */}
@@ -261,49 +255,74 @@ function HustleDashboard() {
               </div>
             ) : (
               <div className="space-y-2.5">
-                {dayGroups.map((g) => (
-                  <div key={g.key} className="rounded-2xl border border-border bg-card p-4 shadow-soft">
-                    <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{formatDay(g.date)}</p>
-                    <div className="mt-2.5 divide-y divide-border">
-                      {g.entries.map((e) => {
-                        const meta = TYPE_META[e.type];
-                        const Icon = meta.icon;
-                        const otherTotal = e.otherExpenses.reduce((s, x) => s + x.amount, 0);
-                        return (
-                          <div key={e.id} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
-                            <div className="flex items-center gap-2.5">
-                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
-                                <Icon className="h-4 w-4 text-muted-foreground" />
-                              </span>
-                              <div>
-                                <p className="text-xs font-semibold">{meta.label}</p>
-                                <p className="text-[11px] text-muted-foreground">{formatTime(new Date(e.createdAt))}</p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className={`text-sm font-bold ${e.type === "profit" ? "text-success" : "text-foreground"}`}>
-                                {e.type === "profit" ? "+" : "-"}{formatZAR(e.amount)}
-                              </p>
-                              {otherTotal > 0 && <p className="text-[11px] text-muted-foreground">+{formatZAR(otherTotal)} other</p>}
-                              {e.type === "profit" && <p className="text-[11px] text-muted-foreground">Saving {e.savePct}%</p>}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
+                {dayGroups.map((g) => {
+                  const dayCost = g.entries.filter((e) => e.type !== "profit").reduce((s, e) => s + entryTotal(e), 0);
+                  const dayProfit = g.entries.filter((e) => e.type === "profit").reduce((s, e) => s + entryTotal(e), 0);
+                  return (
+                    <button
+                      key={g.key}
+                      onClick={() => setDayDetail(g)}
+                      className="flex w-full items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4 text-left shadow-soft transition-transform active:scale-[0.98]"
+                    >
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{formatDay(g.date)}</p>
+                        <p className="mt-1 text-[11px] text-muted-foreground">{g.entries.length} {g.entries.length === 1 ? "log" : "logs"} — tap to see details</p>
+                      </div>
+                      <div className="text-right">
+                        {dayCost > 0 && <p className="text-xs font-semibold text-foreground">-{formatZAR(dayCost)}</p>}
+                        {dayProfit > 0 && <p className="text-sm font-bold text-success">+{formatZAR(dayProfit)}</p>}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
         </div>
       </div>
 
+      {/* Day detail popup */}
+      <BottomSheet open={!!dayDetail} onClose={() => setDayDetail(null)}>
+        <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-muted" />
+        <div className="max-h-[80vh] overflow-y-auto px-6 pb-8 pt-5">
+          <h2 className="text-xl font-bold">{dayDetail ? formatDay(dayDetail.date) : ""}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Everything logged that day, all in one place.</p>
+
+          <div className="mt-5 space-y-4">
+            {(["ingredients", "supplies", "profit"] as BusinessLogType[]).map((t) => {
+              const lines = (dayDetail?.entries ?? []).filter((e) => e.type === t).flatMap((e) => e.items);
+              if (lines.length === 0) return null;
+              const meta = TYPE_META[t];
+              const Icon = meta.icon;
+              const subtotal = lines.reduce((s, l) => s + l.amount, 0);
+              return (
+                <div key={t}>
+                  <div className="flex items-center gap-2">
+                    <Icon className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{meta.label}</p>
+                    <p className="ml-auto text-xs font-bold text-foreground">{formatZAR(subtotal)}</p>
+                  </div>
+                  <div className="mt-2 space-y-1.5">
+                    {lines.map((l, i) => (
+                      <div key={i} className="flex items-center justify-between rounded-xl bg-muted/60 px-3 py-2">
+                        <span className="text-xs font-medium">{l.label}</span>
+                        <span className="text-xs font-semibold">{formatZAR(l.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </BottomSheet>
+
+      {/* Log form */}
       <BottomSheet open={open} onClose={() => { setOpen(false); reset(); }}>
         <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-muted" />
         <div className="max-h-[80vh] overflow-y-auto px-6 pt-5">
           <h2 className="text-xl font-bold">Log today</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Log one thing at a time — up to two entries a day.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Add each cost or sale to the list — up to two logs a day.</p>
 
           {(dayLimitReached || limitHit) && (
             <div className="mt-4 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3">
@@ -322,7 +341,7 @@ function HustleDashboard() {
                 return (
                   <button
                     key={t}
-                    onClick={() => setType(t)}
+                    onClick={() => { setType(t); setItems([]); }}
                     className={`flex h-16 flex-col items-center justify-center gap-1 rounded-2xl border text-xs font-semibold transition-colors ${
                       type === t ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
                     }`}
@@ -335,42 +354,37 @@ function HustleDashboard() {
           </div>
 
           <div className="mt-4">
-            <Label>{type === "profit" ? "Profit made today (ZAR)" : `${TYPE_META[type].label} cost (ZAR)`}</Label>
-            <Input value={amount} inputMode="decimal" placeholder="0.00"
-              onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ""))}
-              className="mt-2 h-12 rounded-2xl" autoFocus />
-          </div>
-
-          {type !== "profit" && (
-            <div className="mt-4">
-              <Label>Other expenses</Label>
-              {expenses.length > 0 && (
-                <div className="mt-2 space-y-1.5">
-                  {expenses.map((ex, i) => (
-                    <div key={i} className="flex items-center justify-between rounded-xl bg-muted/60 px-3 py-2">
-                      <span className="text-xs font-medium">{ex.label}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold">{formatZAR(ex.amount)}</span>
-                        <button onClick={() => removeExpenseLine(i)} aria-label="Remove expense">
-                          <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-                        </button>
-                      </div>
+            <Label>{TYPE_META[type].label}</Label>
+            {items.length > 0 && (
+              <div className="mt-2 space-y-1.5">
+                {items.map((it, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-xl bg-muted/60 px-3 py-2">
+                    <span className="text-xs font-medium">{it.label}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold">{formatZAR(it.amount)}</span>
+                      <button onClick={() => removeItem(i)} aria-label="Remove item">
+                        <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                      </button>
                     </div>
-                  ))}
+                  </div>
+                ))}
+                <div className="flex items-center justify-between px-1 pt-0.5">
+                  <span className="text-[11px] font-semibold text-muted-foreground">Total</span>
+                  <span className="text-xs font-bold">{formatZAR(itemsTotal)}</span>
                 </div>
-              )}
-              <div className="mt-2 flex gap-2">
-                <Input value={expLabel} onChange={(e) => setExpLabel(e.target.value)} placeholder="e.g. Rent"
-                  className="h-11 flex-1 rounded-2xl" />
-                <Input value={expAmount} inputMode="decimal" placeholder="R0"
-                  onChange={(e) => setExpAmount(e.target.value.replace(/[^\d.]/g, ""))}
-                  className="h-11 w-24 rounded-2xl" />
-                <Button variant="secondary" onClick={addExpenseLine} className="h-11 rounded-2xl px-3">
-                  <Plus className="h-4 w-4" />
-                </Button>
               </div>
+            )}
+            <div className="mt-2 flex gap-2">
+              <Input value={itemLabel} onChange={(e) => setItemLabel(e.target.value)} placeholder={TYPE_META[type].placeholder}
+                className="h-11 flex-1 rounded-2xl" autoFocus />
+              <Input value={itemAmount} inputMode="decimal" placeholder="R0"
+                onChange={(e) => setItemAmount(e.target.value.replace(/[^\d.]/g, ""))}
+                className="h-11 w-24 rounded-2xl" />
+              <Button variant="secondary" onClick={addItem} className="h-11 rounded-2xl px-3">
+                <Plus className="h-4 w-4" />
+              </Button>
             </div>
-          )}
+          </div>
 
           {type === "profit" && (
             <div className="mt-4">
@@ -378,8 +392,8 @@ function HustleDashboard() {
               <Input value={savePct} inputMode="numeric" placeholder="10"
                 onChange={(e) => setSavePct(e.target.value.replace(/\D/g, ""))}
                 className="mt-2 h-12 rounded-2xl" />
-              {amountNum > 0 && (
-                <p className="mt-1.5 text-xs text-muted-foreground">That's {formatZAR((amountNum * savePctNum) / 100)} to put aside.</p>
+              {itemsTotal > 0 && (
+                <p className="mt-1.5 text-xs text-muted-foreground">That's {formatZAR((itemsTotal * savePctNum) / 100)} to put aside.</p>
               )}
             </div>
           )}

@@ -41,20 +41,21 @@ export type Goal = {
   createdAt: number;
 };
 
-export type BusinessExpense = { label: string; amount: number };
+export type BusinessLineItem = { label: string; amount: number };
 
 // A single log is ONE of ingredients cost, supplies cost, or profit — never
 // all three at once — so a hustler can log a cost in the morning and their
 // profit later that day. Up to 2 logs per calendar day (see addBusinessEntry).
+// Each log is itself a small list of line items (e.g. "Meat R400", "Spices
+// R100" under an Ingredients log) so several costs/sales can be added under
+// one log without needing a separate log for each.
 export type BusinessLogType = "ingredients" | "supplies" | "profit";
 
 export type BusinessEntry = {
   id: string;
   createdAt: number;
   type: BusinessLogType;
-  amount: number;
-  // Only meaningful for ingredients/supplies logs.
-  otherExpenses: BusinessExpense[];
+  items: BusinessLineItem[];
   // Only meaningful for profit logs.
   savePct: number;
 };

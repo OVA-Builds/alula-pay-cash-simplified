@@ -1,7 +1,8 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, ChevronDown, Flame, Scissors, Drumstick, UtensilsCrossed, Car, Wrench, TrendingUp } from "lucide-react";
+import { ChevronDown, Flame, Scissors, Drumstick, UtensilsCrossed, Car } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { HustleHeader } from "@/components/HustleHeader";
 import { formatZAR } from "@/lib/app-state";
 
 export const Route = createFileRoute("/hustle/tips")({ component: Tips });
@@ -85,17 +86,16 @@ const TIPS: Tip[] = [
     subtitle: "Low cost in, steady cash out",
     hook: "Everyone wants chips with their meal — this pairs with almost any other stand.",
     stats: [
-      { label: "Small (3 potatoes)", value: formatZAR(15) },
-      { label: "Medium (5 potatoes)", value: formatZAR(20) },
-      { label: "Large (7 potatoes)", value: formatZAR(25) },
+      { label: "Small", value: formatZAR(15) },
+      { label: "Medium", value: formatZAR(20) },
+      { label: "Large", value: formatZAR(25) },
     ],
     body: [
-      "A 10kg bag of potatoes costs about R60 and holds roughly 80 medium potatoes (about 125g each — smaller or bigger potatoes will shift this a bit).",
-      "Working with two bags (160 potatoes, R120), plus a 5L bottle of cooking oil (R150) and salt, spices and sauces (about R200), your ingredient cost for the day lands around R470. Foam packaging adds roughly 90c a plate on top.",
-      "Selling 10 plates of each size a day — 10 small, 10 medium, 10 large — uses about 150 potatoes and brings in R600 in sales. After ingredients and packaging (about R497 all in), that's roughly R100 clear profit for the day, and it only grows as you sell more.",
+      "Potatoes, a bottle of cooking oil, and salt, spices and sauces are your core ingredients — buy in bulk where you can to keep your cost per packet down.",
+      "Sell in three sizes — small, medium, and large — so there's a price for every customer, from a quick snack to a full side.",
       "Pairs perfectly with a chicken dust or cow head stand — chips are the side nobody says no to.",
     ],
-    operatingCost: "About R470 in ingredients to run a full day at this scale.",
+    operatingCost: "Ingredients scale with how much you sell — start small and restock as you grow.",
   },
   {
     id: "carwash",
@@ -119,33 +119,16 @@ const TIPS: Tip[] = [
 ];
 
 function Tips() {
-  const router = useRouter();
   const [openId, setOpenId] = useState<string | null>(TIPS[0].id);
 
   return (
     <AppShell hideNav>
       <div className="flex min-h-full flex-col bg-neutral-950">
-        <div className="sticky top-0 z-10 overflow-hidden bg-gradient-to-br from-neutral-900 via-neutral-950 to-black pb-8 pt-8 shadow-lg">
-          <div className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-gold/10" />
-          <div className="relative flex items-center gap-3 px-6">
-            <button
-              onClick={() => (router.history.canGoBack() ? router.history.back() : router.navigate({ to: "/hustle" }))}
-              aria-label="Back"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur active:scale-95 transition-transform"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-gold">
-              <TrendingUp className="h-3 w-3" /> Side Hustle Tips
-            </span>
-          </div>
-          <div className="relative mt-5 px-6">
-            <h1 className="text-2xl font-bold tracking-tight text-white">Real business ideas, real numbers.</h1>
-            <p className="mt-2 text-sm text-white/60">
-              Township-tested hustles — the setup, the cost, and roughly what you can expect to make.
-            </p>
-          </div>
-        </div>
+        <HustleHeader
+          fallbackTo="/hustle"
+          title="Real business ideas, real numbers."
+          subtitle="Township-tested hustles — the setup, the cost, and roughly what you can expect to make."
+        />
 
         <div className="-mt-4 flex-1 space-y-4 rounded-t-[2rem] bg-background p-6 shadow-[0_-12px_40px_rgba(0,0,0,0.35)]">
           {TIPS.map((tip) => {
@@ -194,35 +177,6 @@ function Tips() {
               </div>
             );
           })}
-
-          {/* General skills tip */}
-          <div className="rounded-3xl border border-gold/30 bg-gold/10 p-5 shadow-card">
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-gold text-gold-foreground shadow-gold">
-              <Wrench className="h-5.5 w-5.5" />
-            </span>
-            <p className="mt-3 font-bold">Got a skill? That's a hustle too.</p>
-            <div className="mt-3 space-y-2.5 text-xs leading-relaxed text-foreground/80">
-              <p>
-                You don't need a stand or a stall to start earning. Hairdressing, phone and electronics repair,
-                sewing and alterations, welding, plumbing, painting, tutoring, makeup artistry, photography, car
-                detailing, gardening — if people already pay for it, you can offer it.
-              </p>
-              <p>
-                <b>The advantage:</b> little to no stock to buy, low starting cost, and you set your own price based
-                on your skill level. Word of mouth in your area does most of the marketing for you.
-              </p>
-              <p>
-                <b>Tips for starting:</b> start with people you know so your first few jobs come with trust already
-                built in, keep your pricing consistent so clients know what to expect, and reinvest your first
-                earnings into better tools before you scale up.
-              </p>
-              <p>
-                Whatever you charge, however you get paid in cash — save your profit the same day. Load it as a
-                voucher on Alula Pay and send it straight to your bank, so the money is working for you instead of
-                sitting in a pocket.
-              </p>
-            </div>
-          </div>
 
           <p className="px-1 pt-1 text-center text-[11px] leading-relaxed text-muted-foreground">
             Figures above are illustrative estimates to help you plan — actual costs, prices and demand vary by
