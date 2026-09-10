@@ -37,7 +37,7 @@ const TIPS: Tip[] = [
       "One cow head, properly cooked and sold, brings a clean profit of around R500 — after ingredients and after paying your worker's daily wage of around R200, if you've got someone running the stand for you.",
       "Location is everything. Find a busy spot with no competitor camped nearby — near work offices, taxi ranks, or construction sites. Rule of thumb: anywhere you see a crane, you've struck gold. Builders eat well and eat often.",
       "On turf: this game rewards respect. Scope the area first, don't set up shoulder-to-shoulder with someone already established, and you'll build steady regulars instead of friction. A good spot, held well, outlasts a fight over someone else's.",
-      "Run it yourself, or hire someone and make it passive income: your worker deducts the cost of supplies and their day's wage, then buys a voucher for what's left and sends it to you. You redeem it on Alula Pay and it lands straight in your bank — no cash changing hands, no risk of it walking off.",
+      "Run it yourself, or hire someone and make it passive income: your worker deducts the cost of supplies and their day's wage, then buys a voucher for what's left and sends it to you. You load it in Alula Pay and it lands straight in your bank — no cash changing hands, no risk of it walking off.",
     ],
     operatingCost: "From R800 to get a stand going.",
   },
@@ -56,7 +56,7 @@ const TIPS: Tip[] = [
     ],
     body: [
       "Find a busy spot with no barber shop already nearby, buy two clipper machines, and hire one or two guys who know what they're doing.",
-      "Rough estimate: 20 clients a day, spread across cuts and shaves, brings in around R500 in a day. Pay your barber a fair daily wage — say R200 — and the rest, roughly R300, is your voucher to redeem and send to your bank.",
+      "Rough estimate: 20 clients a day, spread across cuts and shaves, brings in around R500 in a day. Pay your barber a fair daily wage — say R200 — and the rest, roughly R300, is your voucher to load and send to your bank.",
       "Two chairs running instead of one roughly doubles that, if the foot traffic is there to support it.",
     ],
     operatingCost: "R600 for a decent clipper and a second-hand barber stool.",
@@ -120,7 +120,7 @@ const TIPS: Tip[] = [
 ];
 
 function Tips() {
-  const [openId, setOpenId] = useState<string | null>(TIPS[0].id);
+  const [openId, setOpenId] = useState<string | null>(null);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const toggle = (id: string) => {
