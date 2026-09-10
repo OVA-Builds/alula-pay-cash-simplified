@@ -47,7 +47,7 @@ function Home() {
             <h1 className="text-3xl font-bold tracking-tight text-primary-foreground">{displayName}</h1>
             <p className="mt-1 text-sm text-primary-foreground/80">Good to see you again!</p>
           </div>
-          <Link to="/notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full bg-white/15 backdrop-blur">
+          <Link to="/notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full border border-white/40 bg-white/25 shadow-soft backdrop-blur">
             <Bell className="h-4.5 w-4.5 text-primary-foreground" />
             {hasUnreadMessages && <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-gold" />}
           </Link>
