@@ -56,23 +56,48 @@ export function StoryViewer({
     return wasHold;
   };
 
+  // onClose is an inline closure from the caller (a fresh reference every
+  // render), so it can't sit in an effect's dependency array here — the
+  // history push below must fire exactly once per open, not once per
+  // render. A ref sidesteps that: it's kept current every render but never
+  // triggers the effect itself.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  // Push a history entry while the story is open, so the device/browser
+  // back button closes the story instead of falling through to whatever
+  // page was open before Home. requestClose() (used by every UI trigger —
+  // X button, Escape, swiping past the last slide) goes through
+  // history.back() rather than calling onClose directly, so that press
+  // consumes this entry; the popstate handler is what actually closes the
+  // viewer, whether triggered by that call or a real back-button press.
+  useEffect(() => {
+    if (!open) return;
+    window.history.pushState({ storyViewer: true }, "");
+    const onPopState = () => onCloseRef.current();
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [open]);
+
+  const requestClose = () => window.history.back();
+
   useEffect(() => {
     if (!open) return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const onKeyDown = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const onKeyDown = (e: KeyboardEvent) => { if (e.key === "Escape") requestClose(); };
     window.addEventListener("keydown", onKeyDown);
     return () => {
       document.body.style.overflow = prevOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (typeof document === "undefined" || !open || stories.length === 0) return null;
 
   const goTo = (i: number) => {
     if (i < 0) { setIndex(0); setRestartKey((k) => k + 1); return; }
-    if (i >= stories.length) { onClose(); return; }
+    if (i >= stories.length) { requestClose(); return; }
     setIndex(i);
     setRestartKey((k) => k + 1);
   };
@@ -153,7 +178,7 @@ export function StoryViewer({
             </div>
             <button
               aria-label="Close"
-              onClick={onClose}
+              onClick={requestClose}
               className="flex h-8 w-8 items-center justify-center rounded-full bg-black/30 text-white active:scale-95"
             >
               <X className="h-4.5 w-4.5" />
