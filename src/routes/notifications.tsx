@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { ArrowLeft, ArrowDownLeft, ArrowUpRight, Trash2, Eye } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useApp, formatZAR, formatTxDate, threeMonthsAgo } from "@/lib/app-state";
@@ -16,11 +17,14 @@ export const Route = createFileRoute("/notifications")({
 function Notifications() {
   const router = useRouter();
   const { tab = "transactions" } = Route.useSearch();
-  const { transactions, deletedMessageIds, readMessageIds, deleteMessage } = useApp();
+  const { transactions, deletedMessageIds, readMessageIds, deleteMessage, markAlertsSeen } = useApp();
   // The active tab lives in the URL (not local state) so that pressing back
   // after opening a message returns to whichever tab you were actually on,
   // instead of resetting to the default every time this route remounts.
   const setTab = (t: Tab) => router.navigate({ to: "/notifications", search: { tab: t }, replace: true });
+
+  // Clears the bottom nav's "new transactions" alert count now that they've been seen here.
+  useEffect(() => { markAlertsSeen(); }, [markAlertsSeen]);
 
   const messages = MESSAGES.filter((m) => !deletedMessageIds.includes(m.id));
   const unreadCount = messages.filter((m) => !readMessageIds.includes(m.id)).length;

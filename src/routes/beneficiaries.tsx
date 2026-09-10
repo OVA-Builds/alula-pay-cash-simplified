@@ -23,7 +23,7 @@ function Beneficiaries() {
   return (
     <AppShell>
       <div className="p-6">
-        <button onClick={() => navigate({ to: "/send" })} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
+        <button onClick={() => navigate({ to: "/home" })} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
           <ArrowLeft className="h-4 w-4" />
         </button>
         <div className="mt-6 flex items-center justify-between gap-3">

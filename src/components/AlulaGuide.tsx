@@ -34,16 +34,9 @@ const withdrawSteps: Step[] = [
   {
     path: "/home",
     targetId: "guide-send",
-    title: "Step 1 — Tap Send to Bank",
-    body: "This card starts a payment to any South African bank account.",
+    title: "Tap Send to Bank",
+    body: "This opens a menu — send to someone new (once-off) or choose from your saved beneficiaries.",
     cta: "Tap the highlighted card to continue →",
-  },
-  {
-    path: "/send",
-    targetId: "guide-send-options",
-    title: "Step 2 — Pick a recipient",
-    body: "Send to someone new (once-off) or choose from your saved beneficiaries.",
-    cta: "Tap an option to continue →",
   },
 ];
 

@@ -21,7 +21,6 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as RedeemRouteImport } from './routes/redeem'
 import { Route as ResetPinRouteImport } from './routes/reset-pin'
-import { Route as SendRouteImport } from './routes/send'
 import { Route as SendOnceOffRouteImport } from './routes/send-once-off'
 import { Route as SetupPinRouteImport } from './routes/setup-pin'
 import { Route as SignupRouteImport } from './routes/signup'
@@ -98,11 +97,6 @@ const RedeemRoute = RedeemRouteImport.update({
 const ResetPinRoute = ResetPinRouteImport.update({
   id: '/reset-pin',
   path: '/reset-pin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SendRoute = SendRouteImport.update({
-  id: '/send',
-  path: '/send',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SendOnceOffRoute = SendOnceOffRouteImport.update({
@@ -204,7 +198,6 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
   '/reset-pin': typeof ResetPinRoute
-  '/send': typeof SendRoute
   '/send-once-off': typeof SendOnceOffRoute
   '/setup-pin': typeof SetupPinRoute
   '/signup': typeof SignupRoute
@@ -235,7 +228,6 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
   '/reset-pin': typeof ResetPinRoute
-  '/send': typeof SendRoute
   '/send-once-off': typeof SendOnceOffRoute
   '/setup-pin': typeof SetupPinRoute
   '/signup': typeof SignupRoute
@@ -267,7 +259,6 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
   '/reset-pin': typeof ResetPinRoute
-  '/send': typeof SendRoute
   '/send-once-off': typeof SendOnceOffRoute
   '/setup-pin': typeof SetupPinRoute
   '/signup': typeof SignupRoute
@@ -301,7 +292,6 @@ export interface FileRouteTypes {
     | '/profile'
     | '/redeem'
     | '/reset-pin'
-    | '/send'
     | '/send-once-off'
     | '/setup-pin'
     | '/signup'
@@ -332,7 +322,6 @@ export interface FileRouteTypes {
     | '/profile'
     | '/redeem'
     | '/reset-pin'
-    | '/send'
     | '/send-once-off'
     | '/setup-pin'
     | '/signup'
@@ -363,7 +352,6 @@ export interface FileRouteTypes {
     | '/profile'
     | '/redeem'
     | '/reset-pin'
-    | '/send'
     | '/send-once-off'
     | '/setup-pin'
     | '/signup'
@@ -396,7 +384,6 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   RedeemRoute: typeof RedeemRoute
   ResetPinRoute: typeof ResetPinRoute
-  SendRoute: typeof SendRoute
   SendOnceOffRoute: typeof SendOnceOffRoute
   SetupPinRoute: typeof SetupPinRoute
   SignupRoute: typeof SignupRoute
@@ -491,13 +478,6 @@ declare module '@tanstack/react-router' {
       path: '/reset-pin'
       fullPath: '/reset-pin'
       preLoaderRoute: typeof ResetPinRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/send': {
-      id: '/send'
-      path: '/send'
-      fullPath: '/send'
-      preLoaderRoute: typeof SendRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/send-once-off': {
@@ -672,7 +652,6 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   RedeemRoute: RedeemRoute,
   ResetPinRoute: ResetPinRoute,
-  SendRoute: SendRoute,
   SendOnceOffRoute: SendOnceOffRoute,
   SetupPinRoute: SetupPinRoute,
   SignupRoute: SignupRoute,

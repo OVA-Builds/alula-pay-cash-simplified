@@ -140,6 +140,11 @@ type Ctx = {
   readMessageIds: string[];
   deleteMessage: (id: string) => void;
   markMessagesRead: (ids: string[]) => void;
+  // Transactions created after this timestamp count as "new" for the bottom
+  // nav's Alerts badge, alongside unread messages. Updated whenever the
+  // Notifications page is opened.
+  lastAlertsSeenAt: number;
+  markAlertsSeen: () => void;
   // True for the whole session after signUp(), false once the client has
   // signed back in as a returning user — lets Home greet a brand-new
   // client differently from a returning one without flipping mid-session.
@@ -201,6 +206,7 @@ type Persisted = {
   freeTransactionsLeft: number; freeTxPeriod: string | null; lastPaidPeriod: string | null;
   pendingPlan: Plan | null; pendingAmountPaid: number;
   deletedMessageIds: string[]; readMessageIds: string[];
+  lastAlertsSeenAt: number;
   isNewSignup: boolean;
   goals: Goal[]; sideHustles: SideHustle[]; challenge: Challenge | null;
 };
@@ -241,6 +247,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [pendingAmountPaid, setPendingAmountPaid] = useState(0);
   const [deletedMessageIds, setDeletedMessageIds] = useState<string[]>([]);
   const [readMessageIds, setReadMessageIds] = useState<string[]>([]);
+  const [lastAlertsSeenAt, setLastAlertsSeenAt] = useState(0);
   const [isNewSignup, setIsNewSignup] = useState(false);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [sideHustles, setSideHustles] = useState<SideHustle[]>([]);
@@ -273,6 +280,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (initial.pendingAmountPaid !== undefined) setPendingAmountPaid(initial.pendingAmountPaid);
       if (initial.deletedMessageIds !== undefined) setDeletedMessageIds(initial.deletedMessageIds);
       if (initial.readMessageIds !== undefined) setReadMessageIds(initial.readMessageIds);
+      if (initial.lastAlertsSeenAt !== undefined) setLastAlertsSeenAt(initial.lastAlertsSeenAt);
       if (initial.isNewSignup !== undefined) setIsNewSignup(initial.isNewSignup);
       if (initial.goals !== undefined) setGoals(initial.goals);
       if (initial.sideHustles !== undefined) setSideHustles(initial.sideHustles);
@@ -289,12 +297,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         onboarded, signedIn, phone, firstName, balance, verified, plan,
         approvalPin, alulaOn, theme, transactions, beneficiaries,
         freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid,
-        deletedMessageIds, readMessageIds, isNewSignup,
+        deletedMessageIds, readMessageIds, lastAlertsSeenAt, isNewSignup,
         goals, sideHustles, challenge,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch {}
-  }, [hydrated, onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries, freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid, deletedMessageIds, readMessageIds, isNewSignup, goals, sideHustles, challenge]);
+  }, [hydrated, onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries, freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid, deletedMessageIds, readMessageIds, lastAlertsSeenAt, isNewSignup, goals, sideHustles, challenge]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -337,6 +345,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // app ships.
     setDeletedMessageIds([]);
     setReadMessageIds([]);
+    setLastAlertsSeenAt(0);
     setIsNewSignup(true);
     setGoals([]);
     setSideHustles([]);
@@ -457,6 +466,7 @@ const addTransaction = useCallback((t: Transaction) => {
       return toAdd.length ? [...prev, ...toAdd] : prev;
     });
   }, []);
+  const markAlertsSeen = useCallback(() => setLastAlertsSeenAt(Date.now()), []);
 
   // Hustle tool ---------------------------------------------------------
   const addGoal = useCallback((g: Omit<Goal, "id" | "createdAt">) => {
@@ -539,6 +549,7 @@ const addTransaction = useCallback((t: Transaction) => {
         freeTransactionsLeft: effectiveFreeTransactionsLeft, subscriptionActive, paywallActive,
         pendingPlan, pendingAmountPaid, choosePendingPlan, redeemTowardSubscription,
         deletedMessageIds, readMessageIds, deleteMessage, markMessagesRead,
+        lastAlertsSeenAt, markAlertsSeen,
         isNewSignup,
         goals, addGoal, deleteGoal,
         sideHustles, addSideHustle, addBusinessEntry, updateBusinessEntry,
