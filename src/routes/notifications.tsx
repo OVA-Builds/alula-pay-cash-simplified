@@ -143,7 +143,7 @@ function Notifications() {
                       )}
                       <div className="min-w-0 flex-1">
                         <p className={`text-sm ${unread ? "font-bold text-primary" : "font-normal text-muted-foreground"}`}>{m.title}</p>
-                        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{m.body}</p>
+                        <p className={`mt-0.5 text-xs leading-relaxed ${unread ? "text-foreground" : "text-muted-foreground"}`}>{m.body}</p>
                         <div className="mt-1 flex items-center gap-1">
                           <p className="text-[11px] text-muted-foreground">{m.date}</p>
                           {!unread && <Eye className="h-3 w-3 text-muted-foreground" aria-label="Seen" />}
