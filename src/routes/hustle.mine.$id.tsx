@@ -13,8 +13,9 @@ import { useApp, formatZAR, type BusinessLineItem, type BusinessEntry, type Busi
 export const Route = createFileRoute("/hustle/mine/$id")({ component: HustleDashboard });
 
 // Ingredients and supplies are both "cost" categories and share our blue;
-// profit is our deep gold — consistent everywhere this shows up: the pie
-// chart, the costs-vs-profit bar, and every icon/amount below.
+// profit is our deep gold. Color goes on category headings and icons only —
+// never on the Rand figures themselves. The pie chart is the one exception:
+// it uses red for costs / green for profit instead (see pieData below).
 const TYPE_META: Record<BusinessLogType, { icon: typeof Package; label: string; placeholder: string; color: string }> = {
   ingredients: { icon: Package, label: "Ingredients", placeholder: "e.g. Meat", color: "text-primary" },
   supplies: { icon: Boxes, label: "Supplies", placeholder: "e.g. Packaging", color: "text-primary" },
@@ -69,7 +70,7 @@ function LineItemSection({
     <div className="mt-4">
       <div className="flex items-center gap-2">
         <Icon className={`h-4 w-4 ${meta.color}`} />
-        <Label>{meta.label}</Label>
+        <Label className={meta.color}>{meta.label}</Label>
       </div>
       {items.length > 0 && (
         <div className="mt-2 space-y-1.5">
@@ -86,7 +87,7 @@ function LineItemSection({
           ))}
           <div className="flex items-center justify-between px-1 pt-0.5">
             <span className="text-[11px] font-semibold text-muted-foreground">Total</span>
-            <span className={`text-xs font-bold ${meta.color}`}>{formatZAR(sum(items))}</span>
+            <span className="text-xs font-bold text-foreground">{formatZAR(sum(items))}</span>
           </div>
         </div>
       )}
@@ -155,8 +156,8 @@ function HustleDashboard() {
   }, [entries.length, avgMargin]);
 
   const pieData = [
-    { name: "Operational costs", value: totals.cost, color: "var(--color-primary)" },
-    { name: "Profit", value: totals.profit, color: "var(--color-gold)" },
+    { name: "Operational costs", value: totals.cost, color: "var(--color-destructive)" },
+    { name: "Profit", value: totals.profit, color: "var(--color-success)" },
   ].filter((d) => d.value > 0);
 
   const dayGroups = useMemo(() => {
@@ -332,8 +333,8 @@ function HustleDashboard() {
                         <p className="mt-1 text-[11px] text-muted-foreground">{g.entries.length} {g.entries.length === 1 ? "log" : "logs"} — tap to see details</p>
                       </div>
                       <div className="text-right">
-                        {dayCost > 0 && <p className="text-xs font-semibold text-primary">-{formatZAR(dayCost)}</p>}
-                        {dayProfit > 0 && <p className="text-sm font-bold text-gold">+{formatZAR(dayProfit)}</p>}
+                        {dayCost > 0 && <p className="text-xs font-semibold text-foreground">-{formatZAR(dayCost)}</p>}
+                        {dayProfit > 0 && <p className="text-sm font-bold text-foreground">+{formatZAR(dayProfit)}</p>}
                       </div>
                     </button>
                   );
@@ -374,8 +375,8 @@ function HustleDashboard() {
                       <div key={t}>
                         <div className="flex items-center gap-2">
                           <Icon className={`h-4 w-4 ${meta.color}`} />
-                          <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{meta.label}</p>
-                          <p className={`ml-auto text-xs font-bold ${meta.color}`}>{formatZAR(sum(lines))}</p>
+                          <p className={`text-xs font-bold uppercase tracking-wide ${meta.color}`}>{meta.label}</p>
+                          <p className="ml-auto text-xs font-bold text-foreground">{formatZAR(sum(lines))}</p>
                         </div>
                         <div className="mt-1.5 space-y-1">
                           {lines.map((l, i) => (
