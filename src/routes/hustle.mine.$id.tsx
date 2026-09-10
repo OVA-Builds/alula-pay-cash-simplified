@@ -1,17 +1,40 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Plus, BadgeCheck, Trash2, Boxes, Package, Thermometer } from "lucide-react";
+import { ArrowLeft, Plus, BadgeCheck, Trash2, Boxes, Package, TrendingUp, Thermometer } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, Bar, BarChart, XAxis, YAxis, CartesianGrid } from "recharts";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BottomSheet } from "@/components/BottomSheet";
-import { useApp, formatZAR, type BusinessExpense } from "@/lib/app-state";
+import { useApp, formatZAR, type BusinessExpense, type BusinessEntry, type BusinessLogType } from "@/lib/app-state";
 
 export const Route = createFileRoute("/hustle/mine/$id")({ component: HustleDashboard });
 
 const PIE_COLORS = ["var(--color-destructive)", "var(--color-gold)", "var(--color-primary)"];
+
+const TYPE_META: Record<BusinessLogType, { icon: typeof Package; label: string }> = {
+  ingredients: { icon: Package, label: "Ingredients" },
+  supplies: { icon: Boxes, label: "Supplies" },
+  profit: { icon: TrendingUp, label: "Profit" },
+};
+
+function isSameDay(a: Date, b: Date) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+function formatDay(d: Date) {
+  const now = new Date();
+  if (isSameDay(d, now)) return "Today";
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (isSameDay(d, yesterday)) return "Yesterday";
+  return d.toLocaleDateString("en-ZA", { weekday: "short", day: "numeric", month: "short" });
+}
+
+function formatTime(d: Date) {
+  return d.toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" });
+}
 
 function HustleDashboard() {
   const router = useRouter();
@@ -20,21 +43,27 @@ function HustleDashboard() {
   const hustle = sideHustles.find((h) => h.id === id);
 
   const [open, setOpen] = useState(false);
-  const [costType, setCostType] = useState<"ingredients" | "supplies">("ingredients");
-  const [costOfGoods, setCostOfGoods] = useState("");
+  const [type, setType] = useState<BusinessLogType>("ingredients");
+  const [amount, setAmount] = useState("");
   const [expenses, setExpenses] = useState<BusinessExpense[]>([]);
   const [expLabel, setExpLabel] = useState("");
   const [expAmount, setExpAmount] = useState("");
-  const [profit, setProfit] = useState("");
   const [savePct, setSavePct] = useState("10");
+  const [limitHit, setLimitHit] = useState(false);
 
   const entries = hustle?.entries ?? [];
-  const chronological = useMemo(() => [...entries].reverse(), [entries]);
+
+  const loggedTodayCount = useMemo(() => {
+    const now = new Date();
+    return entries.filter((e) => isSameDay(new Date(e.createdAt), now)).length;
+  }, [entries]);
+  const dayLimitReached = loggedTodayCount >= 2;
 
   const totals = useMemo(() => {
-    const cost = entries.reduce((s, e) => s + e.costOfGoods, 0);
-    const other = entries.reduce((s, e) => s + e.otherExpenses.reduce((a, x) => a + x.amount, 0), 0);
-    const profitSum = entries.reduce((s, e) => s + e.profit, 0);
+    const costEntries = entries.filter((e) => e.type !== "profit");
+    const cost = costEntries.reduce((s, e) => s + e.amount, 0);
+    const other = costEntries.reduce((s, e) => s + e.otherExpenses.reduce((a, x) => a + x.amount, 0), 0);
+    const profitSum = entries.filter((e) => e.type === "profit").reduce((s, e) => s + e.amount, 0);
     return { cost, other, profit: profitSum, revenue: cost + other + profitSum };
   }, [entries]);
 
@@ -69,6 +98,22 @@ function HustleDashboard() {
     { name: "Profit", value: totals.profit },
   ].filter((d) => d.value > 0);
 
+  const profitBars = useMemo(
+    () => [...entries].filter((e) => e.type === "profit").reverse().map((e, i) => ({ i: i + 1, profit: e.amount })),
+    [entries]
+  );
+
+  const dayGroups = useMemo(() => {
+    const map = new Map<string, BusinessEntry[]>();
+    for (const e of entries) {
+      const d = new Date(e.createdAt);
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(e);
+    }
+    return Array.from(map.values()).map((list) => ({ key: String(list[0].createdAt), date: new Date(list[0].createdAt), entries: list }));
+  }, [entries]);
+
   const addExpenseLine = () => {
     const amt = Number(expAmount) || 0;
     if (!expLabel.trim() || amt <= 0) return;
@@ -78,21 +123,23 @@ function HustleDashboard() {
   };
   const removeExpenseLine = (i: number) => setExpenses((prev) => prev.filter((_, idx) => idx !== i));
 
-  const costNum = Number(costOfGoods) || 0;
-  const profitNum = Number(profit) || 0;
+  const amountNum = Number(amount) || 0;
   const savePctNum = Math.max(0, Math.min(100, Number(savePct) || 0));
-  const canSubmit = costNum >= 0 && profitNum !== 0;
+  const canSubmit = !dayLimitReached && (type === "profit" ? amountNum !== 0 : amountNum > 0);
 
   const reset = () => {
-    setCostType("ingredients"); setCostOfGoods(""); setExpenses([]);
-    setExpLabel(""); setExpAmount(""); setProfit(""); setSavePct("10");
+    setType("ingredients"); setAmount(""); setExpenses([]);
+    setExpLabel(""); setExpAmount(""); setSavePct("10"); setLimitHit(false);
   };
 
   const submit = () => {
     if (!hustle || !canSubmit) return;
-    addBusinessEntry(hustle.id, {
-      costType, costOfGoods: costNum, otherExpenses: expenses, profit: profitNum, savePct: savePctNum,
+    const created = addBusinessEntry(hustle.id, {
+      type, amount: amountNum,
+      otherExpenses: type === "profit" ? [] : expenses,
+      savePct: type === "profit" ? savePctNum : 0,
     });
+    if (!created) { setLimitHit(true); return; }
     reset();
     setOpen(false);
   };
@@ -110,8 +157,8 @@ function HustleDashboard() {
 
   return (
     <AppShell hideNav>
-      <div className="min-h-screen bg-neutral-950 pb-10">
-        <div className="relative overflow-hidden bg-gradient-to-br from-neutral-900 via-neutral-950 to-black pb-8 pt-8">
+      <div className="flex min-h-full flex-col bg-neutral-950">
+        <div className="sticky top-0 z-10 overflow-hidden bg-gradient-to-br from-neutral-900 via-neutral-950 to-black pb-8 pt-8 shadow-lg">
           <div className="relative flex items-center justify-between px-6">
             <button
               onClick={() => (router.history.canGoBack() ? router.history.back() : router.navigate({ to: "/hustle/mine" }))}
@@ -137,7 +184,7 @@ function HustleDashboard() {
           </div>
         </div>
 
-        <div className="-mt-4 space-y-4 rounded-t-[2rem] bg-background p-6 shadow-[0_-12px_40px_rgba(0,0,0,0.35)]">
+        <div className="-mt-4 flex-1 space-y-4 rounded-t-[2rem] bg-background p-6 shadow-[0_-12px_40px_rgba(0,0,0,0.35)]">
           {/* Health thermometer */}
           <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
             <div className="flex items-center gap-2">
@@ -184,12 +231,12 @@ function HustleDashboard() {
           )}
 
           {/* Profit over time */}
-          {chronological.length > 0 && (
+          {profitBars.length > 0 && (
             <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
               <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Profit per day logged</p>
               <div style={{ width: "100%", height: 160 }} className="mt-2">
                 <ResponsiveContainer>
-                  <BarChart data={chronological.map((e, i) => ({ i: i + 1, profit: e.profit }))} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                  <BarChart data={profitBars} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
                     <CartesianGrid vertical={false} stroke="var(--color-border)" />
                     <XAxis dataKey="i" tick={{ fontSize: 10, fill: "var(--color-muted-foreground)" }} tickLine={false} axisLine={{ stroke: "var(--color-border)" }} />
                     <YAxis tick={{ fontSize: 10, fill: "var(--color-muted-foreground)" }} tickLine={false} axisLine={false} width={44}
@@ -204,31 +251,48 @@ function HustleDashboard() {
 
           {/* Entry log */}
           <div>
-            <p className="mb-2 px-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">Logged days</p>
+            <div className="mb-2 flex items-center justify-between px-1">
+              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Logged days</p>
+              <p className="text-[11px] text-muted-foreground">Up to 2 logs a day</p>
+            </div>
             {entries.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-border bg-card/50 p-6 text-center">
                 <p className="text-sm text-muted-foreground">Tap + to log your first day.</p>
               </div>
             ) : (
               <div className="space-y-2.5">
-                {entries.map((e) => {
-                  const otherTotal = e.otherExpenses.reduce((s, x) => s + x.amount, 0);
-                  return (
-                    <div key={e.id} className="rounded-2xl border border-border bg-card p-4 shadow-soft">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {e.costType === "ingredients" ? <Package className="h-4 w-4 text-muted-foreground" /> : <Boxes className="h-4 w-4 text-muted-foreground" />}
-                          <span className="text-xs font-semibold capitalize text-muted-foreground">{e.costType}</span>
-                        </div>
-                        <span className="text-sm font-bold text-success">+{formatZAR(e.profit)}</span>
-                      </div>
-                      <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-                        <span>Cost: {formatZAR(e.costOfGoods)}{otherTotal > 0 ? ` + ${formatZAR(otherTotal)} other` : ""}</span>
-                        <span>Saving {e.savePct}%</span>
-                      </div>
+                {dayGroups.map((g) => (
+                  <div key={g.key} className="rounded-2xl border border-border bg-card p-4 shadow-soft">
+                    <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{formatDay(g.date)}</p>
+                    <div className="mt-2.5 divide-y divide-border">
+                      {g.entries.map((e) => {
+                        const meta = TYPE_META[e.type];
+                        const Icon = meta.icon;
+                        const otherTotal = e.otherExpenses.reduce((s, x) => s + x.amount, 0);
+                        return (
+                          <div key={e.id} className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0">
+                            <div className="flex items-center gap-2.5">
+                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
+                                <Icon className="h-4 w-4 text-muted-foreground" />
+                              </span>
+                              <div>
+                                <p className="text-xs font-semibold">{meta.label}</p>
+                                <p className="text-[11px] text-muted-foreground">{formatTime(new Date(e.createdAt))}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className={`text-sm font-bold ${e.type === "profit" ? "text-success" : "text-foreground"}`}>
+                                {e.type === "profit" ? "+" : "-"}{formatZAR(e.amount)}
+                              </p>
+                              {otherTotal > 0 && <p className="text-[11px] text-muted-foreground">+{formatZAR(otherTotal)} other</p>}
+                              {e.type === "profit" && <p className="text-[11px] text-muted-foreground">Saving {e.savePct}%</p>}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -239,82 +303,86 @@ function HustleDashboard() {
         <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-muted" />
         <div className="max-h-[80vh] overflow-y-auto px-6 pt-5">
           <h2 className="text-xl font-bold">Log today</h2>
-          <p className="mt-1 text-sm text-muted-foreground">A quick honest snapshot builds a real picture over time.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Log one thing at a time — up to two entries a day.</p>
+
+          {(dayLimitReached || limitHit) && (
+            <div className="mt-4 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3">
+              <p className="text-xs font-semibold text-destructive">
+                You've already logged twice today — come back tomorrow for your next entry.
+              </p>
+            </div>
+          )}
 
           <div className="mt-5">
-            <Label>Ingredients or supplies?</Label>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <button
-                onClick={() => setCostType("ingredients")}
-                className={`flex h-12 items-center justify-center gap-2 rounded-2xl border text-sm font-semibold transition-colors ${
-                  costType === "ingredients" ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
-                }`}
-              >
-                <Package className="h-4 w-4" /> Ingredients
-              </button>
-              <button
-                onClick={() => setCostType("supplies")}
-                className={`flex h-12 items-center justify-center gap-2 rounded-2xl border text-sm font-semibold transition-colors ${
-                  costType === "supplies" ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
-                }`}
-              >
-                <Boxes className="h-4 w-4" /> Supplies
-              </button>
+            <Label>What are you logging?</Label>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {(["ingredients", "supplies", "profit"] as BusinessLogType[]).map((t) => {
+                const meta = TYPE_META[t];
+                const Icon = meta.icon;
+                return (
+                  <button
+                    key={t}
+                    onClick={() => setType(t)}
+                    className={`flex h-16 flex-col items-center justify-center gap-1 rounded-2xl border text-xs font-semibold transition-colors ${
+                      type === t ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" /> {meta.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           <div className="mt-4">
-            <Label>{costType === "ingredients" ? "Ingredients" : "Supplies"} cost (ZAR)</Label>
-            <Input value={costOfGoods} inputMode="decimal" placeholder="0.00"
-              onChange={(e) => setCostOfGoods(e.target.value.replace(/[^\d.]/g, ""))}
+            <Label>{type === "profit" ? "Profit made today (ZAR)" : `${TYPE_META[type].label} cost (ZAR)`}</Label>
+            <Input value={amount} inputMode="decimal" placeholder="0.00"
+              onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ""))}
               className="mt-2 h-12 rounded-2xl" autoFocus />
           </div>
 
-          <div className="mt-4">
-            <Label>Other expenses</Label>
-            {expenses.length > 0 && (
-              <div className="mt-2 space-y-1.5">
-                {expenses.map((ex, i) => (
-                  <div key={i} className="flex items-center justify-between rounded-xl bg-muted/60 px-3 py-2">
-                    <span className="text-xs font-medium">{ex.label}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold">{formatZAR(ex.amount)}</span>
-                      <button onClick={() => removeExpenseLine(i)} aria-label="Remove expense">
-                        <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-                      </button>
+          {type !== "profit" && (
+            <div className="mt-4">
+              <Label>Other expenses</Label>
+              {expenses.length > 0 && (
+                <div className="mt-2 space-y-1.5">
+                  {expenses.map((ex, i) => (
+                    <div key={i} className="flex items-center justify-between rounded-xl bg-muted/60 px-3 py-2">
+                      <span className="text-xs font-medium">{ex.label}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold">{formatZAR(ex.amount)}</span>
+                        <button onClick={() => removeExpenseLine(i)} aria-label="Remove expense">
+                          <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              )}
+              <div className="mt-2 flex gap-2">
+                <Input value={expLabel} onChange={(e) => setExpLabel(e.target.value)} placeholder="e.g. Rent"
+                  className="h-11 flex-1 rounded-2xl" />
+                <Input value={expAmount} inputMode="decimal" placeholder="R0"
+                  onChange={(e) => setExpAmount(e.target.value.replace(/[^\d.]/g, ""))}
+                  className="h-11 w-24 rounded-2xl" />
+                <Button variant="secondary" onClick={addExpenseLine} className="h-11 rounded-2xl px-3">
+                  <Plus className="h-4 w-4" />
+                </Button>
               </div>
-            )}
-            <div className="mt-2 flex gap-2">
-              <Input value={expLabel} onChange={(e) => setExpLabel(e.target.value)} placeholder="e.g. Transport"
-                className="h-11 flex-1 rounded-2xl" />
-              <Input value={expAmount} inputMode="decimal" placeholder="R0"
-                onChange={(e) => setExpAmount(e.target.value.replace(/[^\d.]/g, ""))}
-                className="h-11 w-24 rounded-2xl" />
-              <Button variant="secondary" onClick={addExpenseLine} className="h-11 rounded-2xl px-3">
-                <Plus className="h-4 w-4" />
-              </Button>
             </div>
-          </div>
+          )}
 
-          <div className="mt-4">
-            <Label>Profit made today (ZAR)</Label>
-            <Input value={profit} inputMode="decimal" placeholder="0.00"
-              onChange={(e) => setProfit(e.target.value.replace(/[^\d.]/g, ""))}
-              className="mt-2 h-12 rounded-2xl" />
-          </div>
-
-          <div className="mt-4">
-            <Label>Save what % of today's profit?</Label>
-            <Input value={savePct} inputMode="numeric" placeholder="10"
-              onChange={(e) => setSavePct(e.target.value.replace(/\D/g, ""))}
-              className="mt-2 h-12 rounded-2xl" />
-            {profitNum > 0 && (
-              <p className="mt-1.5 text-xs text-muted-foreground">That's {formatZAR((profitNum * savePctNum) / 100)} to put aside.</p>
-            )}
-          </div>
+          {type === "profit" && (
+            <div className="mt-4">
+              <Label>Save what % of today's profit?</Label>
+              <Input value={savePct} inputMode="numeric" placeholder="10"
+                onChange={(e) => setSavePct(e.target.value.replace(/\D/g, ""))}
+                className="mt-2 h-12 rounded-2xl" />
+              {amountNum > 0 && (
+                <p className="mt-1.5 text-xs text-muted-foreground">That's {formatZAR((amountNum * savePctNum) / 100)} to put aside.</p>
+              )}
+            </div>
+          )}
 
           <Button size="lg" disabled={!canSubmit} onClick={submit} className="mb-8 mt-6 h-14 w-full rounded-2xl shadow-button">
             Save today's entry

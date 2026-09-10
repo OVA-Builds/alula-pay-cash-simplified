@@ -43,13 +43,19 @@ export type Goal = {
 
 export type BusinessExpense = { label: string; amount: number };
 
+// A single log is ONE of ingredients cost, supplies cost, or profit — never
+// all three at once — so a hustler can log a cost in the morning and their
+// profit later that day. Up to 2 logs per calendar day (see addBusinessEntry).
+export type BusinessLogType = "ingredients" | "supplies" | "profit";
+
 export type BusinessEntry = {
   id: string;
   createdAt: number;
-  costType: "ingredients" | "supplies";
-  costOfGoods: number;
+  type: BusinessLogType;
+  amount: number;
+  // Only meaningful for ingredients/supplies logs.
   otherExpenses: BusinessExpense[];
-  profit: number;
+  // Only meaningful for profit logs.
   savePct: number;
 };
 
@@ -129,7 +135,8 @@ type Ctx = {
   deleteGoal: (id: string) => void;
   sideHustles: SideHustle[];
   addSideHustle: (h: Omit<SideHustle, "id" | "createdAt" | "entries">) => SideHustle | null;
-  addBusinessEntry: (hustleId: string, e: Omit<BusinessEntry, "id" | "createdAt">) => void;
+  // Returns the created entry, or null if this hustle already has 2 logs today.
+  addBusinessEntry: (hustleId: string, e: Omit<BusinessEntry, "id" | "createdAt">) => BusinessEntry | null;
   challenge: Challenge | null;
   startChallenge: (days: ChallengeLength) => void;
   endChallenge: () => void;
@@ -453,13 +460,21 @@ const addTransaction = useCallback((t: Transaction) => {
     return created;
   }, []);
   const addBusinessEntry = useCallback((hustleId: string, e: Omit<BusinessEntry, "id" | "createdAt">) => {
+    let created: BusinessEntry | null = null;
     setSideHustles((prev) =>
-      prev.map((h) =>
-        h.id === hustleId
-          ? { ...h, entries: [{ ...e, id: crypto.randomUUID(), createdAt: Date.now() }, ...h.entries] }
-          : h
-      )
+      prev.map((h) => {
+        if (h.id !== hustleId) return h;
+        const now = new Date();
+        const loggedToday = h.entries.filter((x) => {
+          const d = new Date(x.createdAt);
+          return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+        }).length;
+        if (loggedToday >= 2) return h;
+        created = { ...e, id: crypto.randomUUID(), createdAt: Date.now() };
+        return { ...h, entries: [created, ...h.entries] };
+      })
     );
+    return created;
   }, []);
 
   const startChallenge = useCallback((days: ChallengeLength) => {

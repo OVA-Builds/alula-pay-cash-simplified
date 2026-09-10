@@ -18,8 +18,8 @@ function Hustle() {
 
   return (
     <AppShell hideNav>
-      <div className="min-h-screen bg-neutral-950">
-        <div className="relative overflow-hidden bg-gradient-to-br from-neutral-900 via-neutral-950 to-black pb-10 pt-8">
+      <div className="flex min-h-full flex-col bg-neutral-950">
+        <div className="sticky top-0 z-10 overflow-hidden bg-gradient-to-br from-neutral-900 via-neutral-950 to-black pb-10 pt-8 shadow-lg">
           <div className="pointer-events-none absolute -right-12 -top-12 h-52 w-52 rounded-full bg-gold/10" />
           <div className="pointer-events-none absolute -left-16 bottom-0 h-40 w-40 rounded-full bg-gold/5" />
 
@@ -31,20 +31,20 @@ function Hustle() {
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
-          </div>
-
-          <div className="relative mt-5 px-6">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-gold">
               <Flame className="h-3 w-3" /> Hustle Hub
             </span>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">Elevate your hustle.</h1>
+          </div>
+
+          <div className="relative mt-5 px-6">
+            <h1 className="text-3xl font-bold tracking-tight text-white">Elevate your hustle.</h1>
             <p className="mt-2 max-w-xs text-sm text-white/60">
               Tools built for people building their own income — set goals, learn a trade, track your money.
             </p>
           </div>
         </div>
 
-        <div className="-mt-4 space-y-3 rounded-t-[2rem] bg-background p-6 pb-10 shadow-[0_-12px_40px_rgba(0,0,0,0.35)]">
+        <div className="-mt-4 flex-1 space-y-3 rounded-t-[2rem] bg-background p-6 pb-10 shadow-[0_-12px_40px_rgba(0,0,0,0.35)]">
           {CARDS.map(({ to, icon: Icon, title, desc }) => (
             <Link
               key={to}

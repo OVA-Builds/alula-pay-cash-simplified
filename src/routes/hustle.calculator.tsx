@@ -18,8 +18,8 @@ function FeeCalculator() {
 
   return (
     <AppShell hideNav>
-      <div className="min-h-screen bg-neutral-950 pb-10">
-        <div className="relative overflow-hidden bg-gradient-to-br from-neutral-900 via-neutral-950 to-black pb-8 pt-8">
+      <div className="flex min-h-full flex-col bg-neutral-950">
+        <div className="sticky top-0 z-10 overflow-hidden bg-gradient-to-br from-neutral-900 via-neutral-950 to-black pb-8 pt-8 shadow-lg">
           <div className="relative flex items-center gap-3 px-6">
             <button
               onClick={() => (router.history.canGoBack() ? router.history.back() : router.navigate({ to: "/hustle" }))}
@@ -28,17 +28,17 @@ function FeeCalculator() {
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
-          </div>
-          <div className="relative mt-5 px-6">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-gold">
               <CalculatorIcon className="h-3 w-3" /> Fee Calculator
             </span>
-            <h1 className="mt-3 text-2xl font-bold tracking-tight text-white">What lands in your bank?</h1>
+          </div>
+          <div className="relative mt-5 px-6">
+            <h1 className="text-2xl font-bold tracking-tight text-white">What lands in your bank?</h1>
             <p className="mt-2 text-sm text-white/60">Type an amount and see the fee and the payout, instantly.</p>
           </div>
         </div>
 
-        <div className="-mt-4 rounded-t-[2rem] bg-background p-6 shadow-[0_-12px_40px_rgba(0,0,0,0.35)]">
+        <div className="-mt-4 flex-1 rounded-t-[2rem] bg-background p-6 shadow-[0_-12px_40px_rgba(0,0,0,0.35)]">
           <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
             <label>
               <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Amount to send</p>

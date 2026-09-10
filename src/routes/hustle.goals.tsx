@@ -33,7 +33,7 @@ function Goals() {
 
   return (
     <AppShell hideNav>
-      <div className="p-6">
+      <div className="sticky top-0 z-10 border-b border-border bg-background/95 px-6 pb-4 pt-6 backdrop-blur">
         <div className="flex items-center justify-between">
           <button
             onClick={() => (router.history.canGoBack() ? router.history.back() : router.navigate({ to: "/hustle" }))}
@@ -53,7 +53,9 @@ function Goals() {
 
         <h1 className="mt-6 text-2xl font-bold tracking-tight">Goals</h1>
         <p className="mt-1 text-sm text-muted-foreground">What are you saving for? Add it yourself — nothing here is preset.</p>
+      </div>
 
+      <div className="p-6">
         {goals.length === 0 ? (
           <div className="mt-8 flex flex-col items-center rounded-3xl border border-dashed border-border bg-card/50 p-8 text-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold/15">

@@ -35,7 +35,7 @@ function MyHustles() {
 
   return (
     <AppShell hideNav>
-      <div className="p-6">
+      <div className="sticky top-0 z-10 border-b border-border bg-background/95 px-6 pb-4 pt-6 backdrop-blur">
         <div className="flex items-center justify-between">
           <button
             onClick={() => (router.history.canGoBack() ? router.history.back() : router.navigate({ to: "/hustle" }))}
@@ -60,7 +60,9 @@ function MyHustles() {
           {sideHustles.length} of 5 added
           {atLimit ? " — that's the max for now." : ""}
         </p>
+      </div>
 
+      <div className="p-6">
         {sideHustles.length === 0 ? (
           <div className="mt-8 flex flex-col items-center rounded-3xl border border-dashed border-border bg-card/50 p-8 text-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold/15">
