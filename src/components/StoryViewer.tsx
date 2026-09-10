@@ -1,9 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import logo from "@/assets/alula-logo.png";
 
 const SLIDE_DURATION_MS = 30000;
+// A press shorter than this is a tap (navigate); held longer, it's a
+// press-and-hold (pause + hide the progress bar until released).
+const HOLD_THRESHOLD_MS = 180;
 
 export type Story = { image: string; alt?: string };
 
@@ -22,12 +25,36 @@ export function StoryViewer({
 }) {
   const [index, setIndex] = useState(0);
   const [restartKey, setRestartKey] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const holdTimerRef = useRef<number | null>(null);
+  const holdTriggeredRef = useRef(false);
 
   useEffect(() => {
     if (!open) return;
     setIndex(0);
     setRestartKey((k) => k + 1);
+    setPaused(false);
   }, [open]);
+
+  const startHold = () => {
+    holdTriggeredRef.current = false;
+    holdTimerRef.current = window.setTimeout(() => {
+      holdTriggeredRef.current = true;
+      setPaused(true);
+    }, HOLD_THRESHOLD_MS);
+  };
+
+  // Called on release (or if the press leaves the tap zone). Returns
+  // whether this press was a hold, so the caller can skip navigation.
+  const endHold = () => {
+    if (holdTimerRef.current !== null) {
+      window.clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+    const wasHold = holdTriggeredRef.current;
+    if (wasHold) setPaused(false);
+    return wasHold;
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -68,19 +95,31 @@ export function StoryViewer({
         ))}
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/10" />
 
-        {/* Tap zones: left third = previous, right two-thirds = next */}
+        {/* Tap zones: left third = previous, right two-thirds = next.
+            A quick press navigates; holding past HOLD_THRESHOLD_MS pauses
+            playback and hides the progress bar until released instead. */}
         <button
           aria-label="Previous slide"
-          onClick={() => goTo(index - 1)}
+          onPointerDown={startHold}
+          onPointerUp={() => { if (!endHold()) goTo(index - 1); }}
+          onPointerLeave={endHold}
+          onPointerCancel={endHold}
           className="absolute inset-y-0 left-0 w-1/3"
         />
         <button
           aria-label="Next slide"
-          onClick={() => goTo(index + 1)}
+          onPointerDown={startHold}
+          onPointerUp={() => { if (!endHold()) goTo(index + 1); }}
+          onPointerLeave={endHold}
+          onPointerCancel={endHold}
           className="absolute inset-y-0 right-0 w-2/3"
         />
 
-        <div className="absolute inset-x-0 top-0 p-3">
+        <div
+          className={`absolute inset-x-0 top-0 p-3 transition-opacity duration-150 ${
+            paused ? "pointer-events-none opacity-0" : "opacity-100"
+          }`}
+        >
           <div className="flex gap-1.5">
             {stories.map((_, i) => (
               <div key={i} className="h-1 flex-1 overflow-hidden rounded-full bg-white/30">
@@ -98,6 +137,7 @@ export function StoryViewer({
                             animationDuration: `${SLIDE_DURATION_MS}ms`,
                             animationTimingFunction: "linear",
                             animationFillMode: "forwards",
+                            animationPlayState: paused ? "paused" : "running",
                           }
                   }
                   onAnimationEnd={i === index ? () => goTo(index + 1) : undefined}
@@ -108,7 +148,7 @@ export function StoryViewer({
 
           <div className="mt-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white p-1 shadow-soft">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white p-1.5 shadow-soft">
                 <img src={logo} alt="" className="h-full w-full object-contain" />
               </span>
               <span className="text-sm font-semibold text-white drop-shadow">Alula Pay</span>

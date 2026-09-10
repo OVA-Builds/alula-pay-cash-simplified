@@ -8,18 +8,16 @@ import { useApp, formatZAR, formatTxDate, TIER_LIMITS } from "@/lib/app-state";
 import promoBanner from "@/assets/home-promo-banner.jpg";
 import storySlide1 from "@/assets/story-1-street-vendor.jpg";
 import storySlide2 from "@/assets/story-2-mother-daughter.jpg";
-import storySlide3 from "@/assets/story-3-rural-homestead.jpg";
-import storySlide4 from "@/assets/story-4-elderly-woman.jpg";
-import storySlide5 from "@/assets/story-5-kasi-to-rural.jpg";
-import storySlide6 from "@/assets/story-6-how-it-works.jpg";
+import storySlide3 from "@/assets/story-3-gogo.jpg";
+import storySlide4 from "@/assets/story-4-kasi-to-rural.jpg";
+import storySlide5 from "@/assets/story-5-how-it-works.jpg";
 
 const PROMO_STORIES: Story[] = [
-  { image: storySlide1, alt: "We're not a wallet anymore. We don't save — we send." },
-  { image: storySlide2, alt: "We don't save your money. We send it." },
+  { image: storySlide1, alt: "Hustle hard. Save harder." },
+  { image: storySlide2, alt: "You worry about her tomorrow. We help you build it." },
   { image: storySlide3, alt: "Send to Gogo. Never set foot in a bank." },
-  { image: storySlide4, alt: "You don't need a bank account to belong." },
-  { image: storySlide5, alt: "From the Kasi to the Rurals — in minutes." },
-  { image: storySlide6, alt: "How Alula Pay works, in three steps." },
+  { image: storySlide4, alt: "From the Kasi to the Rurals — in minutes." },
+  { image: storySlide5, alt: "How Alula Pay works, in three steps." },
 ];
 
 export const Route = createFileRoute("/home")({ component: Home });
