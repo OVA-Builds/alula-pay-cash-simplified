@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ChevronDown, Flame, Scissors, Drumstick, UtensilsCrossed, Car } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { HustleHeader } from "@/components/HustleHeader";
@@ -89,13 +89,14 @@ const TIPS: Tip[] = [
       { label: "Small", value: formatZAR(15) },
       { label: "Medium", value: formatZAR(20) },
       { label: "Large", value: formatZAR(25) },
+      { label: "Starting capital", value: `From ${formatZAR(400)}` },
     ],
     body: [
       "Potatoes, a bottle of cooking oil, and salt, spices and sauces are your core ingredients — buy in bulk where you can to keep your cost per packet down.",
       "Sell in three sizes — small, medium, and large — so there's a price for every customer, from a quick snack to a full side.",
       "Pairs perfectly with a chicken dust or cow head stand — chips are the side nobody says no to.",
     ],
-    operatingCost: "Ingredients scale with how much you sell — start small and restock as you grow.",
+    operatingCost: "From R400 to get your first batch going — top up as you sell.",
   },
   {
     id: "carwash",
@@ -120,6 +121,24 @@ const TIPS: Tip[] = [
 
 function Tips() {
   const [openId, setOpenId] = useState<string | null>(TIPS[0].id);
+  const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const toggle = (id: string) => {
+    const willOpen = openId !== id;
+    setOpenId(willOpen ? id : null);
+    if (!willOpen) return;
+    // Scroll the tapped card just below the sticky header instead of leaving
+    // it wherever it lands — no manual scrolling needed to see it properly.
+    requestAnimationFrame(() => {
+      const card = cardRefs.current[id];
+      const scrollContainer = card?.closest<HTMLElement>(".overflow-y-auto");
+      const header = scrollContainer?.querySelector<HTMLElement>(".sticky");
+      if (!card || !scrollContainer) return;
+      const headerHeight = header?.offsetHeight ?? 0;
+      const cardTop = card.getBoundingClientRect().top - scrollContainer.getBoundingClientRect().top + scrollContainer.scrollTop;
+      scrollContainer.scrollTo({ top: Math.max(0, cardTop - headerHeight - 12), behavior: "smooth" });
+    });
+  };
 
   return (
     <AppShell hideNav>
@@ -135,9 +154,9 @@ function Tips() {
             const open = openId === tip.id;
             const Icon = tip.icon;
             return (
-              <div key={tip.id} className="overflow-hidden rounded-3xl border border-border bg-card shadow-card">
+              <div key={tip.id} ref={(el) => { cardRefs.current[tip.id] = el; }} className="overflow-hidden rounded-3xl border border-border bg-card shadow-card">
                 <button
-                  onClick={() => setOpenId(open ? null : tip.id)}
+                  onClick={() => toggle(tip.id)}
                   className="flex w-full items-center gap-3 p-4 text-left"
                 >
                   <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${tip.accent} text-white shadow-soft`}>

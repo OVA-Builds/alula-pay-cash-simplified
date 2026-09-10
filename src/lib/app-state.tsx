@@ -43,28 +43,40 @@ export type Goal = {
 
 export type BusinessLineItem = { label: string; amount: number };
 
-// A single log is ONE of ingredients cost, supplies cost, or profit — never
-// all three at once — so a hustler can log a cost in the morning and their
-// profit later that day. Up to 2 logs per calendar day (see addBusinessEntry).
-// Each log is itself a small list of line items (e.g. "Meat R400", "Spices
-// R100" under an Ingredients log) so several costs/sales can be added under
-// one log without needing a separate log for each.
+// One log covers all three operational categories at once — ingredients
+// (food/restaurant businesses only, see SideHustle.industry), supplies, and
+// profit — each its own list of line items (e.g. "Meat R400", "Spices R100")
+// built up with a + button. A category left empty just means nothing was
+// logged for it that time.
 export type BusinessLogType = "ingredients" | "supplies" | "profit";
 
 export type BusinessEntry = {
   id: string;
   createdAt: number;
-  type: BusinessLogType;
-  items: BusinessLineItem[];
-  // Only meaningful for profit logs.
+  ingredients: BusinessLineItem[];
+  supplies: BusinessLineItem[];
+  profit: BusinessLineItem[];
   savePct: number;
 };
+
+export const INDUSTRIES = [
+  "Food & Beverage",
+  "Personal Care & Grooming",
+  "Automotive & Cleaning",
+  "Retail & Trade",
+  "Repairs & Technical Services",
+  "Transport & Delivery",
+  "Construction & Home Services",
+  "Other",
+] as const;
+export type Industry = (typeof INDUSTRIES)[number];
 
 export type SideHustle = {
   id: string;
   name: string;
   description: string;
   registered: boolean;
+  industry: Industry;
   createdAt: number;
   entries: BusinessEntry[];
 };
@@ -136,8 +148,7 @@ type Ctx = {
   deleteGoal: (id: string) => void;
   sideHustles: SideHustle[];
   addSideHustle: (h: Omit<SideHustle, "id" | "createdAt" | "entries">) => SideHustle | null;
-  // Returns the created entry, or null if this hustle already has 2 logs today.
-  addBusinessEntry: (hustleId: string, e: Omit<BusinessEntry, "id" | "createdAt">) => BusinessEntry | null;
+  addBusinessEntry: (hustleId: string, e: Omit<BusinessEntry, "id" | "createdAt">) => BusinessEntry;
   challenge: Challenge | null;
   startChallenge: (days: ChallengeLength) => void;
   endChallenge: () => void;
@@ -461,20 +472,8 @@ const addTransaction = useCallback((t: Transaction) => {
     return created;
   }, []);
   const addBusinessEntry = useCallback((hustleId: string, e: Omit<BusinessEntry, "id" | "createdAt">) => {
-    let created: BusinessEntry | null = null;
-    setSideHustles((prev) =>
-      prev.map((h) => {
-        if (h.id !== hustleId) return h;
-        const now = new Date();
-        const loggedToday = h.entries.filter((x) => {
-          const d = new Date(x.createdAt);
-          return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
-        }).length;
-        if (loggedToday >= 2) return h;
-        created = { ...e, id: crypto.randomUUID(), createdAt: Date.now() };
-        return { ...h, entries: [created, ...h.entries] };
-      })
-    );
+    const created: BusinessEntry = { ...e, id: crypto.randomUUID(), createdAt: Date.now() };
+    setSideHustles((prev) => prev.map((h) => (h.id === hustleId ? { ...h, entries: [created, ...h.entries] } : h)));
     return created;
   }, []);
 

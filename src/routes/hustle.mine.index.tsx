@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BottomSheet } from "@/components/BottomSheet";
-import { useApp } from "@/lib/app-state";
+import { useApp, INDUSTRIES, type Industry } from "@/lib/app-state";
 
 export const Route = createFileRoute("/hustle/mine/")({ component: MyHustles });
 
@@ -18,16 +19,17 @@ function MyHustles() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [industry, setIndustry] = useState<Industry | "">("");
   const [registered, setRegistered] = useState(false);
 
   const atLimit = sideHustles.length >= 5;
-  const canAdd = name.trim().length >= 2 && description.trim().length >= 2 && !atLimit;
+  const canAdd = name.trim().length >= 2 && description.trim().length >= 2 && !!industry && !atLimit;
 
-  const reset = () => { setName(""); setDescription(""); setRegistered(false); };
+  const reset = () => { setName(""); setDescription(""); setIndustry(""); setRegistered(false); };
 
   const submit = () => {
     if (!canAdd) return;
-    const created = addSideHustle({ name: name.trim(), description: description.trim(), registered });
+    const created = addSideHustle({ name: name.trim(), description: description.trim(), industry, registered });
     reset();
     setOpen(false);
     if (created) navigate({ to: "/hustle/mine/$id", params: { id: created.id } });
@@ -115,6 +117,19 @@ function MyHustles() {
               <Label>Description</Label>
               <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="e.g. Weekend stand near the taxi rank"
                 className="mt-2 h-12 rounded-2xl" />
+            </div>
+            <div>
+              <Label>Industry</Label>
+              <Select value={industry} onValueChange={(v) => setIndustry(v as Industry)}>
+                <SelectTrigger className="mt-2 h-12 rounded-2xl">
+                  <SelectValue placeholder="What kind of business is this?" />
+                </SelectTrigger>
+                <SelectContent>
+                  {INDUSTRIES.map((i) => (
+                    <SelectItem key={i} value={i}>{i}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <label className="flex items-center justify-between rounded-2xl border border-border bg-background p-4">
               <div>

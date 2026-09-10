@@ -20,18 +20,18 @@ function Hustle() {
       <div className="flex min-h-full flex-col bg-neutral-950">
         <HustleHeader fallbackTo="/home" title="Elevate your hustle." subtitle="Tools built for people building their own income." />
 
-        <div className="-mt-4 flex-1 space-y-2 rounded-t-[2rem] bg-background p-5 shadow-[0_-12px_40px_rgba(0,0,0,0.35)]">
+        <div className="-mt-4 flex flex-1 flex-col gap-2.5 rounded-t-[2rem] bg-background p-5 shadow-[0_-12px_40px_rgba(0,0,0,0.35)]">
           {CARDS.map(({ to, icon: Icon, title, desc }) => (
             <Link
               key={to}
               to={to}
-              className="flex items-center gap-3.5 rounded-2xl border border-border bg-card p-3.5 shadow-card transition-transform active:scale-[0.98]"
+              className="flex flex-1 items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-card transition-transform active:scale-[0.98]"
             >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-gold shadow-gold">
-                <Icon className="h-5 w-5 text-gold-foreground" strokeWidth={2.2} />
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-gold shadow-gold">
+                <Icon className="h-5.5 w-5.5 text-gold-foreground" strokeWidth={2.2} />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold">{title}</p>
+                <p className="font-bold">{title}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>
               </div>
               <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />

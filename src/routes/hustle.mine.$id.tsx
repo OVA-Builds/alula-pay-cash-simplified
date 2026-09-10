@@ -17,11 +17,11 @@ const PIE_COLORS = ["var(--color-destructive)", "var(--color-primary)"];
 const TYPE_META: Record<BusinessLogType, { icon: typeof Package; label: string; placeholder: string }> = {
   ingredients: { icon: Package, label: "Ingredients", placeholder: "e.g. Meat" },
   supplies: { icon: Boxes, label: "Supplies", placeholder: "e.g. Packaging" },
-  profit: { icon: TrendingUp, label: "Profit", placeholder: "e.g. Morning sales" },
+  profit: { icon: TrendingUp, label: "Profit", placeholder: "e.g. Cash sales" },
 };
 
-function entryTotal(e: BusinessEntry) {
-  return e.items.reduce((s, i) => s + i.amount, 0);
+function sum(items: BusinessLineItem[]) {
+  return items.reduce((s, i) => s + i.amount, 0);
 }
 
 function isSameDay(a: Date, b: Date) {
@@ -41,33 +41,88 @@ function formatTime(d: Date) {
   return d.toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" });
 }
 
+// One "add a line" row shared by the Ingredients/Supplies/Profit sections of the log form.
+function LineItemSection({
+  type, items, onAdd, onRemove, autoFocus,
+}: {
+  type: BusinessLogType;
+  items: BusinessLineItem[];
+  onAdd: (item: BusinessLineItem) => void;
+  onRemove: (i: number) => void;
+  autoFocus?: boolean;
+}) {
+  const meta = TYPE_META[type];
+  const Icon = meta.icon;
+  const [label, setLabel] = useState("");
+  const [amount, setAmount] = useState("");
+
+  const add = () => {
+    const amt = Number(amount) || 0;
+    if (!label.trim() || amt <= 0) return;
+    onAdd({ label: label.trim(), amount: amt });
+    setLabel("");
+    setAmount("");
+  };
+
+  return (
+    <div className="mt-4">
+      <div className="flex items-center gap-2">
+        <Icon className="h-4 w-4 text-muted-foreground" />
+        <Label>{meta.label}</Label>
+      </div>
+      {items.length > 0 && (
+        <div className="mt-2 space-y-1.5">
+          {items.map((it, i) => (
+            <div key={i} className="flex items-center justify-between rounded-xl bg-muted/60 px-3 py-2">
+              <span className="text-xs font-medium">{it.label}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold">{formatZAR(it.amount)}</span>
+                <button onClick={() => onRemove(i)} aria-label={`Remove ${meta.label} item`}>
+                  <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              </div>
+            </div>
+          ))}
+          <div className="flex items-center justify-between px-1 pt-0.5">
+            <span className="text-[11px] font-semibold text-muted-foreground">Total</span>
+            <span className="text-xs font-bold">{formatZAR(sum(items))}</span>
+          </div>
+        </div>
+      )}
+      <div className="mt-2 flex gap-2">
+        <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder={meta.placeholder}
+          className="h-11 flex-1 rounded-2xl" autoFocus={autoFocus} />
+        <Input value={amount} inputMode="decimal" placeholder="R0"
+          onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ""))}
+          className="h-11 w-24 rounded-2xl" />
+        <Button variant="secondary" onClick={add} className="h-11 rounded-2xl px-3" aria-label={`Add ${meta.label} item`}>
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function HustleDashboard() {
   const router = useRouter();
   const { id } = Route.useParams();
   const { sideHustles, addBusinessEntry } = useApp();
   const hustle = sideHustles.find((h) => h.id === id);
+  const isFoodBusiness = hustle?.industry === "Food & Beverage";
 
   const [open, setOpen] = useState(false);
-  const [type, setType] = useState<BusinessLogType>("ingredients");
-  const [items, setItems] = useState<BusinessLineItem[]>([]);
-  const [itemLabel, setItemLabel] = useState("");
-  const [itemAmount, setItemAmount] = useState("");
+  const [ingredients, setIngredients] = useState<BusinessLineItem[]>([]);
+  const [supplies, setSupplies] = useState<BusinessLineItem[]>([]);
+  const [profit, setProfit] = useState<BusinessLineItem[]>([]);
   const [savePct, setSavePct] = useState("10");
-  const [limitHit, setLimitHit] = useState(false);
   const [dayDetail, setDayDetail] = useState<{ date: Date; entries: BusinessEntry[] } | null>(null);
 
   const entries = hustle?.entries ?? [];
 
-  const loggedTodayCount = useMemo(() => {
-    const now = new Date();
-    return entries.filter((e) => isSameDay(new Date(e.createdAt), now)).length;
-  }, [entries]);
-  const dayLimitReached = loggedTodayCount >= 2;
-
   const totals = useMemo(() => {
-    const cost = entries.filter((e) => e.type !== "profit").reduce((s, e) => s + entryTotal(e), 0);
-    const profit = entries.filter((e) => e.type === "profit").reduce((s, e) => s + entryTotal(e), 0);
-    return { cost, profit, revenue: cost + profit };
+    const cost = entries.reduce((s, e) => s + sum(e.ingredients) + sum(e.supplies), 0);
+    const profitTotal = entries.reduce((s, e) => s + sum(e.profit), 0);
+    return { cost, profit: profitTotal, revenue: cost + profitTotal };
   }, [entries]);
 
   const avgMargin = totals.revenue > 0 ? (totals.profit / totals.revenue) * 100 : null;
@@ -101,7 +156,7 @@ function HustleDashboard() {
   ].filter((d) => d.value > 0);
 
   const profitBars = useMemo(
-    () => [...entries].filter((e) => e.type === "profit").reverse().map((e, i) => ({ i: i + 1, profit: entryTotal(e) })),
+    () => [...entries].reverse().map((e, i) => ({ i: i + 1, profit: sum(e.profit) })).filter((b) => b.profit > 0),
     [entries]
   );
 
@@ -116,30 +171,18 @@ function HustleDashboard() {
     return Array.from(map.values()).map((list) => ({ key: String(list[0].createdAt), date: new Date(list[0].createdAt), entries: list }));
   }, [entries]);
 
-  const addItem = () => {
-    const amt = Number(itemAmount) || 0;
-    if (!itemLabel.trim() || amt <= 0) return;
-    setItems((prev) => [...prev, { label: itemLabel.trim(), amount: amt }]);
-    setItemLabel("");
-    setItemAmount("");
-  };
-  const removeItem = (i: number) => setItems((prev) => prev.filter((_, idx) => idx !== i));
-
-  const itemsTotal = items.reduce((s, i) => s + i.amount, 0);
+  const itemCount = ingredients.length + supplies.length + profit.length;
+  const canSubmit = itemCount > 0;
+  const profitTotal = sum(profit);
   const savePctNum = Math.max(0, Math.min(100, Number(savePct) || 0));
-  const canSubmit = !dayLimitReached && items.length > 0;
 
   const reset = () => {
-    setType("ingredients"); setItems([]); setItemLabel(""); setItemAmount(""); setSavePct("10"); setLimitHit(false);
+    setIngredients([]); setSupplies([]); setProfit([]); setSavePct("10");
   };
 
   const submit = () => {
     if (!hustle || !canSubmit) return;
-    const created = addBusinessEntry(hustle.id, {
-      type, items,
-      savePct: type === "profit" ? savePctNum : 0,
-    });
-    if (!created) { setLimitHit(true); return; }
+    addBusinessEntry(hustle.id, { ingredients, supplies, profit, savePct: savePctNum });
     reset();
     setOpen(false);
   };
@@ -245,10 +288,7 @@ function HustleDashboard() {
 
           {/* Entry log */}
           <div>
-            <div className="mb-2 flex items-center justify-between px-1">
-              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Logged days</p>
-              <p className="text-[11px] text-muted-foreground">Up to 2 logs a day</p>
-            </div>
+            <p className="mb-2 px-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">Logged days</p>
             {entries.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-border bg-card/50 p-6 text-center">
                 <p className="text-sm text-muted-foreground">Tap + to log your first day.</p>
@@ -256,8 +296,8 @@ function HustleDashboard() {
             ) : (
               <div className="space-y-2.5">
                 {dayGroups.map((g) => {
-                  const dayCost = g.entries.filter((e) => e.type !== "profit").reduce((s, e) => s + entryTotal(e), 0);
-                  const dayProfit = g.entries.filter((e) => e.type === "profit").reduce((s, e) => s + entryTotal(e), 0);
+                  const dayCost = g.entries.reduce((s, e) => s + sum(e.ingredients) + sum(e.supplies), 0);
+                  const dayProfit = g.entries.reduce((s, e) => s + sum(e.profit), 0);
                   return (
                     <button
                       key={g.key}
@@ -290,11 +330,11 @@ function HustleDashboard() {
 
           <div className="mt-5 space-y-4">
             {(["ingredients", "supplies", "profit"] as BusinessLogType[]).map((t) => {
-              const lines = (dayDetail?.entries ?? []).filter((e) => e.type === t).flatMap((e) => e.items);
+              const lines = (dayDetail?.entries ?? []).flatMap((e) => e[t]);
               if (lines.length === 0) return null;
               const meta = TYPE_META[t];
               const Icon = meta.icon;
-              const subtotal = lines.reduce((s, l) => s + l.amount, 0);
+              const subtotal = sum(lines);
               return (
                 <div key={t}>
                   <div className="flex items-center gap-2">
@@ -317,89 +357,50 @@ function HustleDashboard() {
         </div>
       </BottomSheet>
 
-      {/* Log form */}
+      {/* Log form: Ingredients (food businesses only) -> Supplies -> Profit + save % -> Save */}
       <BottomSheet open={open} onClose={() => { setOpen(false); reset(); }}>
         <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-muted" />
         <div className="max-h-[80vh] overflow-y-auto px-6 pt-5">
           <h2 className="text-xl font-bold">Log today</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Add each cost or sale to the list — up to two logs a day.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Add whatever applies — you don't need every section.</p>
 
-          {(dayLimitReached || limitHit) && (
-            <div className="mt-4 rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3">
-              <p className="text-xs font-semibold text-destructive">
-                You've already logged twice today — come back tomorrow for your next entry.
-              </p>
-            </div>
+          {isFoodBusiness && (
+            <LineItemSection
+              type="ingredients"
+              items={ingredients}
+              onAdd={(item) => setIngredients((prev) => [...prev, item])}
+              onRemove={(i) => setIngredients((prev) => prev.filter((_, idx) => idx !== i))}
+              autoFocus
+            />
           )}
 
-          <div className="mt-5">
-            <Label>What are you logging?</Label>
-            <div className="mt-2 grid grid-cols-3 gap-2">
-              {(["ingredients", "supplies", "profit"] as BusinessLogType[]).map((t) => {
-                const meta = TYPE_META[t];
-                const Icon = meta.icon;
-                return (
-                  <button
-                    key={t}
-                    onClick={() => { setType(t); setItems([]); }}
-                    className={`flex h-16 flex-col items-center justify-center gap-1 rounded-2xl border text-xs font-semibold transition-colors ${
-                      type === t ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
-                    }`}
-                  >
-                    <Icon className="h-4 w-4" /> {meta.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <LineItemSection
+            type="supplies"
+            items={supplies}
+            onAdd={(item) => setSupplies((prev) => [...prev, item])}
+            onRemove={(i) => setSupplies((prev) => prev.filter((_, idx) => idx !== i))}
+            autoFocus={!isFoodBusiness}
+          />
 
-          <div className="mt-4">
-            <Label>{TYPE_META[type].label}</Label>
-            {items.length > 0 && (
-              <div className="mt-2 space-y-1.5">
-                {items.map((it, i) => (
-                  <div key={i} className="flex items-center justify-between rounded-xl bg-muted/60 px-3 py-2">
-                    <span className="text-xs font-medium">{it.label}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold">{formatZAR(it.amount)}</span>
-                      <button onClick={() => removeItem(i)} aria-label="Remove item">
-                        <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                <div className="flex items-center justify-between px-1 pt-0.5">
-                  <span className="text-[11px] font-semibold text-muted-foreground">Total</span>
-                  <span className="text-xs font-bold">{formatZAR(itemsTotal)}</span>
-                </div>
-              </div>
-            )}
-            <div className="mt-2 flex gap-2">
-              <Input value={itemLabel} onChange={(e) => setItemLabel(e.target.value)} placeholder={TYPE_META[type].placeholder}
-                className="h-11 flex-1 rounded-2xl" autoFocus />
-              <Input value={itemAmount} inputMode="decimal" placeholder="R0"
-                onChange={(e) => setItemAmount(e.target.value.replace(/[^\d.]/g, ""))}
-                className="h-11 w-24 rounded-2xl" />
-              <Button variant="secondary" onClick={addItem} className="h-11 rounded-2xl px-3">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+          <LineItemSection
+            type="profit"
+            items={profit}
+            onAdd={(item) => setProfit((prev) => [...prev, item])}
+            onRemove={(i) => setProfit((prev) => prev.filter((_, idx) => idx !== i))}
+          />
 
-          {type === "profit" && (
+          {profit.length > 0 && (
             <div className="mt-4">
               <Label>Save what % of today's profit?</Label>
               <Input value={savePct} inputMode="numeric" placeholder="10"
                 onChange={(e) => setSavePct(e.target.value.replace(/\D/g, ""))}
                 className="mt-2 h-12 rounded-2xl" />
-              {itemsTotal > 0 && (
-                <p className="mt-1.5 text-xs text-muted-foreground">That's {formatZAR((itemsTotal * savePctNum) / 100)} to put aside.</p>
-              )}
+              <p className="mt-1.5 text-xs text-muted-foreground">That's {formatZAR((profitTotal * savePctNum) / 100)} to put aside.</p>
             </div>
           )}
 
           <Button size="lg" disabled={!canSubmit} onClick={submit} className="mb-8 mt-6 h-14 w-full rounded-2xl shadow-button">
-            Save today's entry
+            Save entry
           </Button>
         </div>
       </BottomSheet>
