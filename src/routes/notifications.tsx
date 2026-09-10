@@ -23,6 +23,7 @@ function Notifications() {
   const setTab = (t: Tab) => router.navigate({ to: "/notifications", search: { tab: t }, replace: true });
 
   const messages = MESSAGES.filter((m) => !deletedMessageIds.includes(m.id));
+  const unreadCount = messages.filter((m) => !readMessageIds.includes(m.id)).length;
 
   const cutoff = threeMonthsAgo();
   const recentTransactions = transactions.filter((t) => (t.createdAt ?? Date.now()) >= cutoff);
@@ -50,11 +51,16 @@ function Notifications() {
             <button
               key={opt.k}
               onClick={() => setTab(opt.k)}
-              className={`h-9 rounded-xl text-xs font-semibold transition-all active:scale-[0.97] ${
+              className={`flex h-9 items-center justify-center gap-1.5 rounded-xl text-xs font-semibold transition-all active:scale-[0.97] ${
                 tab === opt.k ? "bg-card text-foreground shadow-card" : "text-muted-foreground"
               }`}
             >
               {opt.label}
+              {opt.k === "messages" && unreadCount > 0 && (
+                <span className="flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-gold px-1 text-[10px] font-bold text-gold-foreground">
+                  {unreadCount}
+                </span>
+              )}
             </button>
           ))}
         </div>
