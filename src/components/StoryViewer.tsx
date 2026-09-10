@@ -53,12 +53,19 @@ export function StoryViewer({
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black animate-backdrop-in">
       <div className="relative h-full w-full overflow-hidden sm:h-[860px] sm:max-w-[420px] sm:rounded-[2.5rem]">
-        <img
-          key={index}
-          src={stories[index].image}
-          alt={stories[index].alt ?? ""}
-          className="absolute inset-0 h-full w-full object-cover"
-        />
+        {/* All slides stay mounted and simply cross-fade via opacity — swapping
+            which <img> is rendered (remounting) is what caused the flash of
+            black backdrop between slides. */}
+        {stories.map((s, i) => (
+          <img
+            key={i}
+            src={s.image}
+            alt={s.alt ?? ""}
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ease-in-out ${
+              i === index ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        ))}
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/10" />
 
         {/* Tap zones: left third = previous, right two-thirds = next */}
