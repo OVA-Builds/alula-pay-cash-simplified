@@ -6,21 +6,20 @@ import { BottomSheet } from "@/components/BottomSheet";
 import { StoryViewer, type Story } from "@/components/StoryViewer";
 import { useApp, formatZAR, formatTxDate, TIER_LIMITS } from "@/lib/app-state";
 import promoBanner from "@/assets/home-promo-banner.jpg";
-import storySlide2 from "@/assets/onboarding-1-hero.png";
-import storySlide3 from "@/assets/onboarding-2-hero.png";
-import storySlide4 from "@/assets/onboarding-3-hero.png";
-import storySlide5 from "@/assets/onboarding-4.png";
-import storySlide6 from "@/assets/onboarding-5-hero.png";
+import storySlide1 from "@/assets/story-1-street-vendor.jpg";
+import storySlide2 from "@/assets/story-2-shop-owner.jpg";
+import storySlide3 from "@/assets/story-3-mother-daughter.jpg";
+import storySlide4 from "@/assets/story-4-rural-homestead.jpg";
+import storySlide5 from "@/assets/story-5-elderly-woman.jpg";
+import storySlide6 from "@/assets/story-6-kasi-to-rural.jpg";
 
-// Placeholder slides until the client's own 6 photos are supplied —
-// swap these image imports out for the real assets when they arrive.
 const PROMO_STORIES: Story[] = [
-  { image: promoBanner, alt: "Real People. Real Possibilities." },
-  { image: storySlide2, alt: "Alula Pay" },
-  { image: storySlide3, alt: "Alula Pay" },
-  { image: storySlide4, alt: "Alula Pay" },
-  { image: storySlide5, alt: "Alula Pay" },
-  { image: storySlide6, alt: "Alula Pay" },
+  { image: storySlide1, alt: "Real people, real hustle." },
+  { image: storySlide2, alt: "We don't save your money. We send it." },
+  { image: storySlide3, alt: "We don't save. We send — so you can." },
+  { image: storySlide4, alt: "Send to Gogo. Never set foot in a bank." },
+  { image: storySlide5, alt: "You don't need a bank account to belong." },
+  { image: storySlide6, alt: "From the Kasi to the Rurals — in minutes." },
 ];
 
 export const Route = createFileRoute("/home")({ component: Home });
