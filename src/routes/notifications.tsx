@@ -61,7 +61,7 @@ function Notifications() {
             >
               {opt.label}
               {opt.k === "messages" && unreadCount > 0 && (
-                <span className="flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-gold px-1 text-[10px] font-bold text-gold-foreground">
+                <span className="flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white">
                   {unreadCount}
                 </span>
               )}
