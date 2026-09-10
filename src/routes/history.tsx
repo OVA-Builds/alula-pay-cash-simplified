@@ -241,6 +241,7 @@ function History() {
                     placeholder={via === "email" ? "you@example.com" : "+27 82 000 0000"}
                     inputMode={via === "email" ? "email" : "tel"}
                     className="mt-2 h-12 rounded-2xl"
+                    autoFocus
                   />
                 </div>
               )}

@@ -110,6 +110,7 @@ function Redeem() {
             value={code} inputMode="numeric" maxLength={type.length}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
             className="h-16 rounded-2xl text-lg tracking-[0.25em] pr-14 text-center font-mono"
+            autoFocus
           />
           <button className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-xl bg-accent flex items-center justify-center">
             <ScanLine className="h-5 w-5 text-primary" />

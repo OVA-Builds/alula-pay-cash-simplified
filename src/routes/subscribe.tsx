@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Camera, Check, Clock, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +51,16 @@ function Subscribe() {
   const [notice, setNotice] = useState<string | null>(null);
   const [bioStage, setBioStage] = useState<"intro" | "capturing" | "checking">("intro");
   const [paidPlan, setPaidPlan] = useState<Plan>("basic");
+  const codeInputRef = useRef<HTMLInputElement>(null);
+
+  // Reaching this step closes the brand-confirm Dialog, which restores focus
+  // to its own trigger button right as this input mounts — a plain autoFocus
+  // prop loses that race. Focusing on the next tick wins it instead.
+  useEffect(() => {
+    if (step !== "code") return;
+    const t = setTimeout(() => codeInputRef.current?.focus(), 0);
+    return () => clearTimeout(t);
+  }, [step]);
 
   // Already subscribed for this billing period — nothing to do on this page.
   // Skip this while showing the just-paid success screen: subscriptionActive
@@ -294,6 +304,7 @@ function Subscribe() {
             </div>
 
             <Input
+              ref={codeInputRef}
               placeholder={"•".repeat(brand.length)}
               value={code}
               inputMode="numeric"

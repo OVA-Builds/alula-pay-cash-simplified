@@ -159,7 +159,7 @@ function OnceOff() {
             <div>
               <Label>Name and surname</Label>
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Thandi Nkosi"
-                className="mt-2 h-12 rounded-2xl" />
+                className="mt-2 h-12 rounded-2xl" autoFocus />
             </div>
             <div>
               <Label>Account number</Label>
@@ -264,6 +264,7 @@ function OnceOff() {
             maxLength={brand.length}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
             className="mt-6 h-16 rounded-2xl text-center font-mono text-lg tracking-[0.25em]"
+            autoFocus
           />
           <p className="mt-3 text-center text-xs text-muted-foreground">{digits.length}/{brand.length} digits</p>
 

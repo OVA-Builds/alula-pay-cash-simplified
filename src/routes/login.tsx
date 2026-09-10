@@ -41,6 +41,7 @@ function Login() {
                 id="phone" inputMode="tel" placeholder="082 123 4567"
                 value={phone} onChange={(e) => setPhone(e.target.value)}
                 className="h-14 rounded-2xl pl-11 text-base"
+                autoFocus
               />
             </div>
           </div>

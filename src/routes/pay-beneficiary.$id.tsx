@@ -183,6 +183,7 @@ function PayBeneficiary() {
             maxLength={brand.length}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
             className="mt-6 h-16 rounded-2xl text-center font-mono text-lg tracking-[0.25em]"
+            autoFocus
           />
           <p className="mt-3 text-center text-xs text-muted-foreground">{digits.length}/{brand.length} digits</p>
 
@@ -220,6 +221,7 @@ function PayBeneficiary() {
             onChange={(e) => { setReference(e.target.value); if (e.target.value.trim()) setRefError(false); }}
             maxLength={20}
             placeholder="e.g. Rent"
+            autoFocus
             className={`mt-2 h-12 rounded-2xl ${refError ? "border-destructive focus-visible:ring-destructive" : ""}`}
           />
           {refError && <p className="mt-1.5 text-xs text-destructive">Reference is required.</p>}

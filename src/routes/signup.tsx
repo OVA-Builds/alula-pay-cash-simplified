@@ -72,6 +72,7 @@ function SignUp() {
                 id="firstName" autoComplete="given-name" placeholder="e.g. Thandi"
                 value={firstName} onChange={(e) => setFirstName(e.target.value)}
                 className="h-12 rounded-2xl pl-11 text-base shadow-sm"
+                autoFocus
               />
             </div>
           </div>
