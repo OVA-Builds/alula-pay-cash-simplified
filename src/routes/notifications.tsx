@@ -142,7 +142,7 @@ function Notifications() {
                         </span>
                       )}
                       <div className="min-w-0 flex-1">
-                        <p className={`text-sm font-bold ${unread ? "text-foreground" : "text-primary"}`}>{m.title}</p>
+                        <p className={`text-sm ${unread ? "font-bold text-primary" : "font-normal text-muted-foreground"}`}>{m.title}</p>
                         <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{m.body}</p>
                         <p className="mt-1 text-[11px] text-muted-foreground">{m.date}</p>
                       </div>
