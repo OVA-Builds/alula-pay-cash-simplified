@@ -221,6 +221,63 @@ function readStoredState(): Partial<Persisted> | null {
   }
 }
 
+// The Hustle tool's data shape has changed more than once during
+// development. Browsers that persisted an older shape would otherwise crash
+// the app the moment a component reads e.g. entry.ingredients on a record
+// that never had that field — this normalizes whatever's in localStorage
+// into the current SideHustle/BusinessEntry shape, migrating what it can
+// recognize from earlier shapes and dropping what it can't.
+function toLineItems(v: unknown): BusinessLineItem[] {
+  if (!Array.isArray(v)) return [];
+  return v.filter(
+    (x): x is BusinessLineItem => !!x && typeof x === "object" && typeof x.label === "string" && typeof x.amount === "number"
+  );
+}
+
+function sanitizeEntry(raw: any): BusinessEntry {
+  let ingredients = toLineItems(raw?.ingredients);
+  let supplies = toLineItems(raw?.supplies);
+  let profit = toLineItems(raw?.profit);
+
+  // Migrate the "one type per log" shape: { type, items, savePct }.
+  if (ingredients.length === 0 && supplies.length === 0 && profit.length === 0 && Array.isArray(raw?.items)) {
+    const items = toLineItems(raw.items);
+    if (raw.type === "ingredients") ingredients = items;
+    else if (raw.type === "supplies") supplies = items;
+    else if (raw.type === "profit") profit = items;
+  }
+
+  // Migrate the original shape: { costType, costOfGoods, otherExpenses, profit: number, savePct }.
+  if (ingredients.length === 0 && supplies.length === 0 && profit.length === 0 && typeof raw?.costOfGoods === "number") {
+    const costLine: BusinessLineItem[] = [{ label: raw.costType === "supplies" ? "Supplies" : "Ingredients", amount: raw.costOfGoods }];
+    const other = toLineItems(raw?.otherExpenses);
+    if (raw.costType === "supplies") supplies = [...costLine, ...other];
+    else ingredients = [...costLine, ...other];
+    if (typeof raw.profit === "number" && raw.profit !== 0) profit = [{ label: "Profit", amount: raw.profit }];
+  }
+
+  return {
+    id: typeof raw?.id === "string" ? raw.id : crypto.randomUUID(),
+    createdAt: typeof raw?.createdAt === "number" ? raw.createdAt : Date.now(),
+    ingredients, supplies, profit,
+    savePct: typeof raw?.savePct === "number" ? raw.savePct : 0,
+    edited: typeof raw?.edited === "boolean" ? raw.edited : false,
+  };
+}
+
+function sanitizeSideHustles(raw: unknown): SideHustle[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((h: any) => ({
+    id: typeof h?.id === "string" ? h.id : crypto.randomUUID(),
+    name: typeof h?.name === "string" ? h.name : "",
+    description: typeof h?.description === "string" ? h.description : "",
+    registered: !!h?.registered,
+    industry: (INDUSTRIES as readonly string[]).includes(h?.industry) ? h.industry : "Other",
+    createdAt: typeof h?.createdAt === "number" ? h.createdAt : Date.now(),
+    entries: Array.isArray(h?.entries) ? h.entries.map(sanitizeEntry) : [],
+  }));
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const [onboarded, setOnboarded] = useState(false);
@@ -283,7 +340,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (initial.lastAlertsSeenAt !== undefined) setLastAlertsSeenAt(initial.lastAlertsSeenAt);
       if (initial.isNewSignup !== undefined) setIsNewSignup(initial.isNewSignup);
       if (initial.goals !== undefined) setGoals(initial.goals);
-      if (initial.sideHustles !== undefined) setSideHustles(initial.sideHustles);
+      if (initial.sideHustles !== undefined) setSideHustles(sanitizeSideHustles(initial.sideHustles));
       if (initial.challenge !== undefined) setChallenge(initial.challenge);
     }
     setHydrated(true);
