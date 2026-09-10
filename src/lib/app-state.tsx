@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import logo from "@/assets/alula-logo.png";
 
 export type Transaction = {
   id: string;
@@ -361,6 +362,19 @@ const addTransaction = useCallback((t: Transaction) => {
   const effectiveFreeTransactionsLeft = freeTxPeriod === currentBillingPeriod ? freeTransactionsLeft : 2;
   const subscriptionActive = lastPaidPeriod === currentBillingPeriod;
   const paywallActive = effectiveFreeTransactionsLeft <= 0 && !subscriptionActive;
+
+  // Nothing downstream should ever render on the pre-hydration defaults —
+  // a first name that resets to "there", free transactions flashing back to
+  // 2 of 2, a plan reverting to Basic, all for the split second before
+  // localStorage has actually been read. Hold the whole app on a blank
+  // splash until hydration finishes instead of ever showing that data.
+  if (!hydrated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <img src={logo} alt="Alula Pay" className="h-16 w-16 animate-pulse" />
+      </div>
+    );
+  }
 
   return (
     <AppContext.Provider
