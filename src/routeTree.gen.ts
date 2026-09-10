@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AddVoucherRouteImport } from './routes/add-voucher'
 import { Route as BeneficiariesRouteImport } from './routes/beneficiaries'
 import { Route as DemoVouchersRouteImport } from './routes/demo-vouchers'
 import { Route as HistoryRouteImport } from './routes/history'
@@ -19,7 +20,6 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as RedeemRouteImport } from './routes/redeem'
 import { Route as ResetPinRouteImport } from './routes/reset-pin'
 import { Route as SendOnceOffRouteImport } from './routes/send-once-off'
 import { Route as SetupPinRouteImport } from './routes/setup-pin'
@@ -42,6 +42,11 @@ import { Route as HustleMineIdRouteImport } from './routes/hustle.mine.$id'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AddVoucherRoute = AddVoucherRouteImport.update({
+  id: '/add-voucher',
+  path: '/add-voucher',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BeneficiariesRoute = BeneficiariesRouteImport.update({
@@ -87,11 +92,6 @@ const OnboardingRoute = OnboardingRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RedeemRoute = RedeemRouteImport.update({
-  id: '/redeem',
-  path: '/redeem',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPinRoute = ResetPinRouteImport.update({
@@ -187,6 +187,7 @@ const HustleMineIdRoute = HustleMineIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/add-voucher': typeof AddVoucherRoute
   '/beneficiaries': typeof BeneficiariesRoute
   '/demo-vouchers': typeof DemoVouchersRoute
   '/history': typeof HistoryRoute
@@ -196,7 +197,6 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
-  '/redeem': typeof RedeemRoute
   '/reset-pin': typeof ResetPinRoute
   '/send-once-off': typeof SendOnceOffRoute
   '/setup-pin': typeof SetupPinRoute
@@ -218,6 +218,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/add-voucher': typeof AddVoucherRoute
   '/beneficiaries': typeof BeneficiariesRoute
   '/demo-vouchers': typeof DemoVouchersRoute
   '/history': typeof HistoryRoute
@@ -226,7 +227,6 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
-  '/redeem': typeof RedeemRoute
   '/reset-pin': typeof ResetPinRoute
   '/send-once-off': typeof SendOnceOffRoute
   '/setup-pin': typeof SetupPinRoute
@@ -248,6 +248,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/add-voucher': typeof AddVoucherRoute
   '/beneficiaries': typeof BeneficiariesRoute
   '/demo-vouchers': typeof DemoVouchersRoute
   '/history': typeof HistoryRoute
@@ -257,7 +258,6 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/profile': typeof ProfileRoute
-  '/redeem': typeof RedeemRoute
   '/reset-pin': typeof ResetPinRoute
   '/send-once-off': typeof SendOnceOffRoute
   '/setup-pin': typeof SetupPinRoute
@@ -281,6 +281,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/add-voucher'
     | '/beneficiaries'
     | '/demo-vouchers'
     | '/history'
@@ -290,7 +291,6 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/onboarding'
     | '/profile'
-    | '/redeem'
     | '/reset-pin'
     | '/send-once-off'
     | '/setup-pin'
@@ -312,6 +312,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/add-voucher'
     | '/beneficiaries'
     | '/demo-vouchers'
     | '/history'
@@ -320,7 +321,6 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/onboarding'
     | '/profile'
-    | '/redeem'
     | '/reset-pin'
     | '/send-once-off'
     | '/setup-pin'
@@ -341,6 +341,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/add-voucher'
     | '/beneficiaries'
     | '/demo-vouchers'
     | '/history'
@@ -350,7 +351,6 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/onboarding'
     | '/profile'
-    | '/redeem'
     | '/reset-pin'
     | '/send-once-off'
     | '/setup-pin'
@@ -373,6 +373,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AddVoucherRoute: typeof AddVoucherRoute
   BeneficiariesRoute: typeof BeneficiariesRoute
   DemoVouchersRoute: typeof DemoVouchersRoute
   HistoryRoute: typeof HistoryRoute
@@ -382,7 +383,6 @@ export interface RootRouteChildren {
   NotificationsRoute: typeof NotificationsRoute
   OnboardingRoute: typeof OnboardingRoute
   ProfileRoute: typeof ProfileRoute
-  RedeemRoute: typeof RedeemRoute
   ResetPinRoute: typeof ResetPinRoute
   SendOnceOffRoute: typeof SendOnceOffRoute
   SetupPinRoute: typeof SetupPinRoute
@@ -401,6 +401,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/add-voucher': {
+      id: '/add-voucher'
+      path: '/add-voucher'
+      fullPath: '/add-voucher'
+      preLoaderRoute: typeof AddVoucherRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/beneficiaries': {
@@ -464,13 +471,6 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/redeem': {
-      id: '/redeem'
-      path: '/redeem'
-      fullPath: '/redeem'
-      preLoaderRoute: typeof RedeemRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-pin': {
@@ -641,6 +641,7 @@ const HustleRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AddVoucherRoute: AddVoucherRoute,
   BeneficiariesRoute: BeneficiariesRoute,
   DemoVouchersRoute: DemoVouchersRoute,
   HistoryRoute: HistoryRoute,
@@ -650,7 +651,6 @@ const rootRouteChildren: RootRouteChildren = {
   NotificationsRoute: NotificationsRoute,
   OnboardingRoute: OnboardingRoute,
   ProfileRoute: ProfileRoute,
-  RedeemRoute: RedeemRoute,
   ResetPinRoute: ResetPinRoute,
   SendOnceOffRoute: SendOnceOffRoute,
   SetupPinRoute: SetupPinRoute,

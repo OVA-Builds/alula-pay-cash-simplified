@@ -40,7 +40,7 @@ function Subscribe() {
   const navigate = useNavigate();
   const {
     subscriptionActive, verified, verifyIdentity,
-    pendingPlan, pendingAmountPaid, choosePendingPlan, redeemTowardSubscription,
+    pendingPlan, pendingAmountPaid, choosePendingPlan, applyVoucherTowardSubscription,
   } = useApp();
 
   const [step, setStep] = useState<Step>("choose");
@@ -106,7 +106,7 @@ function Subscribe() {
   const submitVoucher = () => {
     if (!brand || !validCode) return;
     const paidFor = reviewPlan;
-    const result = redeemTowardSubscription(remaining, brand.name);
+    const result = applyVoucherTowardSubscription(remaining, brand.name);
     setCode("");
     setBrand(null);
     if (result.fullyPaid) {

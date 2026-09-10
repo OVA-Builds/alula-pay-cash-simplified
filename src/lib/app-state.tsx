@@ -3,7 +3,7 @@ import logo from "@/assets/alula-logo.png";
 
 export type Transaction = {
   id: string;
-  type: "redeem" | "transfer";
+  type: "load" | "transfer";
   amount: number;
   label: string;
   status: "Completed" | "Pending";
@@ -133,7 +133,7 @@ type Ctx = {
   pendingPlan: Plan | null;
   pendingAmountPaid: number;
   choosePendingPlan: (p: Plan) => void;
-  redeemTowardSubscription: (amount: number, voucherLabel: string) => { fullyPaid: boolean; outstanding: number };
+  applyVoucherTowardSubscription: (amount: number, voucherLabel: string) => { fullyPaid: boolean; outstanding: number };
   // Notifications: static tips/marketing messages the client can dismiss.
   // Transactions are never deletable — only these are.
   deletedMessageIds: string[];
@@ -180,13 +180,13 @@ const dateAt = (month: number, day: number, h: number, m: number) =>
   new Date(now.getFullYear(), month - 1, day, h, m).getTime();
 
 const sampleTx: Transaction[] = [
-  { id: "t1", type: "redeem", amount: 200, label: "OTT voucher added", status: "Completed", createdAt: todayAt(10, 24) },
+  { id: "t1", type: "load", amount: 200, label: "OTT voucher added", status: "Completed", createdAt: todayAt(10, 24) },
   {
     id: "t2", type: "transfer", amount: -152.25, label: "Sent to Thandi Nkosi", status: "Completed", createdAt: yesterdayAt(18, 2),
     recipientName: "Thandi Nkosi", bankName: "Capitec Bank", accountNumber: "1234567890", reference: "Rent",
     sendAmount: 145, fee: 7.25, rail: "RTC",
   },
-  { id: "t3", type: "redeem", amount: 500, label: "Blu voucher added", status: "Completed", createdAt: dateAt(5, 12, 14, 30) },
+  { id: "t3", type: "load", amount: 500, label: "Blu voucher added", status: "Completed", createdAt: dateAt(5, 12, 14, 30) },
 ];
 
 const sampleBenes: Beneficiary[] = [
@@ -416,7 +416,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 const addTransaction = useCallback((t: Transaction) => {
   const enriched: Transaction = { ...t, createdAt: t.createdAt ?? Date.now() };
   setTransactions((prev) => [enriched, ...prev]);
-  // Sends (not redeems) count against the two free transactions every
+  // Sends (not voucher loads) count against the two free transactions every
   // billing period grants before a subscription is required. If the
   // billing period has rolled over since the count was last touched, the
   // 2 free transactions are refreshed first.
@@ -453,7 +453,7 @@ const addTransaction = useCallback((t: Transaction) => {
   const setVerifiedWithPlan = useCallback((v: boolean) => { setVerified(v); if (v) setPlan("pro"); }, []);
   // Marks the once-off DHA selfie check done without granting the Pro plan
   // itself — the subscribe flow runs this before payment, and payment
-  // (redeemTowardSubscription) is what actually activates the plan.
+  // (applyVoucherTowardSubscription) is what actually activates the plan.
   const verifyIdentity = useCallback(() => setVerified(true), []);
   const addBeneficiary = useCallback((b: Omit<Beneficiary, "id">) => {
     const newB = { ...b, id: crypto.randomUUID() };
@@ -484,18 +484,18 @@ const addTransaction = useCallback((t: Transaction) => {
     setPendingPlan(p);
   }, []);
 
-  // Applies a redeemed voucher's value toward the outstanding subscription
+  // Applies a loaded voucher's value toward the outstanding subscription
   // fee. Vouchers used here are earmarked for the subscription — they don't
   // add to the spendable wallet balance. Partial payments persist (added to
   // pendingAmountPaid) so the user always continues where they left off
   // rather than losing progress.
-  const redeemTowardSubscription = useCallback((amount: number, voucherLabel: string) => {
+  const applyVoucherTowardSubscription = useCallback((amount: number, voucherLabel: string) => {
     const target = pendingPlan ? MONTHLY_FEE[pendingPlan] : 0;
     const newPaid = +(pendingAmountPaid + amount).toFixed(2);
 
     setTransactions((prev) => [{
       id: crypto.randomUUID(),
-      type: "redeem",
+      type: "load",
       amount,
       label: `${voucherLabel} — Subscription payment`,
       status: "Completed",
@@ -604,7 +604,7 @@ const addTransaction = useCallback((t: Transaction) => {
         pinAttemptsLeft, pinLocked, registerPinAttempt, resetPinLock,
         guideMode, startGuide, stopGuide,
         freeTransactionsLeft: effectiveFreeTransactionsLeft, subscriptionActive, paywallActive,
-        pendingPlan, pendingAmountPaid, choosePendingPlan, redeemTowardSubscription,
+        pendingPlan, pendingAmountPaid, choosePendingPlan, applyVoucherTowardSubscription,
         deletedMessageIds, readMessageIds, deleteMessage, markMessagesRead,
         lastAlertsSeenAt, markAlertsSeen,
         isNewSignup,

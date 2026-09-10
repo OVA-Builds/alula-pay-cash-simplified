@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { AppShell } from "@/components/AppShell";
 import { useApp, formatZAR } from "@/lib/app-state";
 
-export const Route = createFileRoute("/redeem")({ component: Redeem });
+export const Route = createFileRoute("/add-voucher")({ component: AddVoucher });
 
 type VoucherType = { id: "ott" | "blu" | "1voucher"; name: string; length: number; example: string; color: string };
 
@@ -16,7 +16,7 @@ const TYPES: VoucherType[] = [
   { id: "1voucher", name: "1Voucher",     length: 16, example: "16-digit pin",  color: "bg-pink-500" },
 ];
 
-function Redeem() {
+function AddVoucher() {
   const navigate = useNavigate();
   const { addTransaction, adjustBalance, stopGuide } = useApp();
   const [type, setType] = useState<VoucherType | null>(null);
@@ -32,7 +32,7 @@ function Redeem() {
     const amount = type.id === "ott" ? 200 : type.id === "blu" ? 10 : 50;
     adjustBalance(amount);
     addTransaction({
-      id: crypto.randomUUID(), type: "redeem", amount,
+      id: crypto.randomUUID(), type: "load", amount,
       label: `${type.name} added`, status: "Completed", date: "Just now",
     });
     setDone(amount);

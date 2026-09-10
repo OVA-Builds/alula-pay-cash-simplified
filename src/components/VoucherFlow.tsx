@@ -167,7 +167,7 @@ export function VoucherFlow({
     }
     addTransaction({
       id: crypto.randomUUID(),
-      type: "redeem",
+      type: "load",
       amount,
       label: `${voucher?.name ?? "Voucher"} added`,
       status: "Completed",

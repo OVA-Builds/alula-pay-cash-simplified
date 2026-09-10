@@ -16,13 +16,13 @@ type Step = {
 const depositSteps: Step[] = [
   {
     path: "/home",
-    targetId: "guide-redeem",
+    targetId: "guide-add-voucher",
     title: "Step 1 — Tap Add Voucher",
     body: "This card opens the add-voucher screen.",
     cta: "Tap the highlighted card to continue →",
   },
   {
-    path: "/redeem",
+    path: "/add-voucher",
     targetId: "guide-voucher-types",
     title: "Step 2 — Choose your voucher type",
     body: "Pick the brand printed on your voucher slip: OTT, Blu or 1Voucher.",
@@ -52,7 +52,7 @@ export function AlulaGuide() {
   const { pathname } = useLocation();
 
   // Auto-close the guide when the user reaches a page beyond the tour
-  // (e.g. redeem success or send-once-off input form).
+  // (e.g. add-voucher success or send-once-off input form).
   const steps = guideMode === "deposit" ? depositSteps : guideMode === "withdraw" ? withdrawSteps : [];
   const currentStep = steps.find((s) => s.path === pathname);
   useEffect(() => {

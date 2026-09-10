@@ -20,7 +20,7 @@ type Step = "voucher" | "code" | "confirm" | "done";
 type VoucherBrand = { id: "blu" | "1voucher" | "ott"; name: string; length: number; logo: string; amount: number };
 
 // Mock: the value loaded from each voucher brand, matching the amounts used
-// elsewhere in the demo (see redeem.tsx).
+// elsewhere in the demo (see add-voucher.tsx).
 const VOUCHER_BRANDS: VoucherBrand[] = [
   { id: "blu", name: "Blu Voucher", length: 16, logo: voucherBlu, amount: 10 },
   { id: "1voucher", name: "1Voucher", length: 16, logo: voucher1Voucher, amount: 50 },
