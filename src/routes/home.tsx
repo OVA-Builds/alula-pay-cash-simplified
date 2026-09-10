@@ -1,11 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Bell, Landmark, Settings, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb, Users, Zap } from "lucide-react";
+import { Landmark, Settings, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb, Users, Zap } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { BottomSheet } from "@/components/BottomSheet";
 import { StoryViewer, type Story } from "@/components/StoryViewer";
 import { useApp, formatZAR, formatTxDate, TIER_LIMITS } from "@/lib/app-state";
-import { MESSAGES } from "@/lib/messages";
 import promoBanner from "@/assets/home-promo-banner.jpg";
 import storySlide2 from "@/assets/onboarding-1-hero.png";
 import storySlide3 from "@/assets/onboarding-2-hero.png";
@@ -30,13 +29,12 @@ function Home() {
   const navigate = useNavigate();
   const {
     transactions, verified, plan, firstName, subscriptionActive, paywallActive, freeTransactionsLeft,
-    deletedMessageIds, readMessageIds, isNewSignup,
+    isNewSignup,
   } = useApp();
   const [sendPickerOpen, setSendPickerOpen] = useState(false);
   const [storiesOpen, setStoriesOpen] = useState(false);
   const recent = transactions.slice(0, 3);
   const displayName = firstName?.trim() ? firstName.trim().split(/\s+/)[0] : "there";
-  const hasUnreadMessages = MESSAGES.some((m) => !deletedMessageIds.includes(m.id) && !readMessageIds.includes(m.id));
 
   // Scoped to the current calendar month, matching what /spending charts —
   // the monthly limit resets each month, so it shouldn't count sends from
@@ -59,18 +57,12 @@ function Home() {
         <div className="pointer-events-none absolute -right-10 -top-16 h-56 w-56 rounded-full bg-white/10" />
         <div className="pointer-events-none absolute -right-10 bottom-0 h-24 w-36 rounded-tl-[3rem] bg-gold/90" />
 
-        <div className="relative flex items-start justify-between px-6">
-          <div>
-            <p className="text-sm text-primary-foreground/80">Hello</p>
-            <h1 className="text-3xl font-bold tracking-tight text-primary-foreground">{displayName}</h1>
-            <p className="mt-1 text-sm text-primary-foreground/80">
-              {isNewSignup ? "Welcome to Alula Pay!" : "Good to see you again!"}
-            </p>
-          </div>
-          <Link to="/notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full border border-white/40 bg-white/25 shadow-soft backdrop-blur">
-            <Bell className="h-4.5 w-4.5 text-primary-foreground" />
-            {hasUnreadMessages && <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-gold" />}
-          </Link>
+        <div className="relative px-6">
+          <p className="text-sm text-primary-foreground/80">Hello</p>
+          <h1 className="text-3xl font-bold tracking-tight text-primary-foreground">{displayName}</h1>
+          <p className="mt-1 text-sm text-primary-foreground/80">
+            {isNewSignup ? "Welcome to Alula Pay!" : "Good to see you again!"}
+          </p>
         </div>
       </div>
 
