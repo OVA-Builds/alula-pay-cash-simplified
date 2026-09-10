@@ -3,9 +3,26 @@ import { useEffect, useRef, useState } from "react";
 import { Bell, Landmark, Settings, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb, Users, Zap } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { BottomSheet } from "@/components/BottomSheet";
+import { StoryViewer, type Story } from "@/components/StoryViewer";
 import { useApp, formatZAR, formatTxDate, TIER_LIMITS } from "@/lib/app-state";
 import { MESSAGES } from "@/lib/messages";
 import promoBanner from "@/assets/home-promo-banner.jpg";
+import storySlide2 from "@/assets/onboarding-1-hero.png";
+import storySlide3 from "@/assets/onboarding-2-hero.png";
+import storySlide4 from "@/assets/onboarding-3-hero.png";
+import storySlide5 from "@/assets/onboarding-4.png";
+import storySlide6 from "@/assets/onboarding-5-hero.png";
+
+// Placeholder slides until the client's own 6 photos are supplied —
+// swap these image imports out for the real assets when they arrive.
+const PROMO_STORIES: Story[] = [
+  { image: promoBanner, alt: "Real People. Real Possibilities." },
+  { image: storySlide2, alt: "Alula Pay" },
+  { image: storySlide3, alt: "Alula Pay" },
+  { image: storySlide4, alt: "Alula Pay" },
+  { image: storySlide5, alt: "Alula Pay" },
+  { image: storySlide6, alt: "Alula Pay" },
+];
 
 export const Route = createFileRoute("/home")({ component: Home });
 
@@ -16,6 +33,7 @@ function Home() {
     deletedMessageIds, readMessageIds, isNewSignup, dismissNewSignup,
   } = useApp();
   const [sendPickerOpen, setSendPickerOpen] = useState(false);
+  const [storiesOpen, setStoriesOpen] = useState(false);
   const recent = transactions.slice(0, 3);
   const displayName = firstName?.trim() ? firstName.trim().split(/\s+/)[0] : "there";
   const hasUnreadMessages = MESSAGES.some((m) => !deletedMessageIds.includes(m.id) && !readMessageIds.includes(m.id));
@@ -203,11 +221,13 @@ function Home() {
       </div>
 
       <div className="mt-4 px-6">
-        <img
-          src={promoBanner}
-          alt="Real People. Real Possibilities. More freedom. More control. A brighter tomorrow."
-          className="w-full rounded-3xl object-cover shadow-card"
-        />
+        <button onClick={() => setStoriesOpen(true)} className="block w-full active:scale-[0.99] transition-transform">
+          <img
+            src={promoBanner}
+            alt="Real People. Real Possibilities. More freedom. More control. A brighter tomorrow."
+            className="w-full rounded-3xl object-cover shadow-card"
+          />
+        </button>
       </div>
 
       <div className={`mt-6 px-6 pb-6 ${paywallActive ? "pointer-events-none opacity-50" : ""}`}>
@@ -327,6 +347,8 @@ function Home() {
           </button>
         </div>
       </BottomSheet>
+
+      <StoryViewer stories={PROMO_STORIES} open={storiesOpen} onClose={() => setStoriesOpen(false)} />
     </AppShell>
   );
 }
