@@ -119,10 +119,10 @@ type Ctx = {
   readMessageIds: string[];
   deleteMessage: (id: string) => void;
   markMessagesRead: (ids: string[]) => void;
-  // True from signUp() until Home has shown its first-time welcome once —
-  // lets Home greet a brand-new client differently from a returning one.
+  // True for the whole session after signUp(), false once the client has
+  // signed back in as a returning user — lets Home greet a brand-new
+  // client differently from a returning one without flipping mid-session.
   isNewSignup: boolean;
-  dismissNewSignup: () => void;
   // Hustle tool: goals, side-hustle tracking, and the savings challenge.
   goals: Goal[];
   addGoal: (g: Omit<Goal, "id" | "createdAt">) => void;
@@ -290,6 +290,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSignedIn(true);
     setPinAttemptsLeft(3);
     setPinLocked(false);
+    setIsNewSignup(false);
   }, []);
   const signUp = useCallback((p: string, name: string) => {
     // Always start a new signup on the Basic tier, unverified, with a fresh approval PIN flow.
@@ -318,7 +319,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSideHustles([]);
     setChallenge(null);
   }, []);
-  const dismissNewSignup = useCallback(() => setIsNewSignup(false), []);
   const signOut = useCallback(() => {
     // Signing out returns the user to onboarding for the demo.
     setSignedIn(false);
@@ -503,7 +503,7 @@ const addTransaction = useCallback((t: Transaction) => {
         freeTransactionsLeft: effectiveFreeTransactionsLeft, subscriptionActive, paywallActive,
         pendingPlan, pendingAmountPaid, choosePendingPlan, redeemTowardSubscription,
         deletedMessageIds, readMessageIds, deleteMessage, markMessagesRead,
-        isNewSignup, dismissNewSignup,
+        isNewSignup,
         goals, addGoal, deleteGoal,
         sideHustles, addSideHustle, addBusinessEntry,
         challenge, startChallenge, endChallenge,
