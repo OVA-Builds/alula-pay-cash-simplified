@@ -295,16 +295,16 @@ function Home() {
           </div>
         ) : (
           <Link
-            to="/send-once-off"
+            to="/hustle"
             className="flex items-center gap-3 rounded-3xl bg-gold p-4 text-gold-foreground shadow-gold"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/40">
               <Lightbulb className="h-4.5 w-4.5" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold">Did you know?</p>
+              <p className="text-sm font-bold">Did you know Alula Pay can help elevate your hustle?</p>
               <p className="text-xs leading-snug">
-                You can send money to any South African bank account in just a few seconds.
+                Goals, side hustle tips, a business coach, and more — click for more.
               </p>
             </div>
             <ChevronRight className="h-4 w-4 shrink-0" />

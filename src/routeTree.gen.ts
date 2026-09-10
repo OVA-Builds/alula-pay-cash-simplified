@@ -14,6 +14,7 @@ import { Route as BeneficiariesRouteImport } from './routes/beneficiaries'
 import { Route as DemoVouchersRouteImport } from './routes/demo-vouchers'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as HomeRouteImport } from './routes/home'
+import { Route as HustleRouteImport } from './routes/hustle'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
@@ -27,8 +28,17 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SpendingRouteImport } from './routes/spending'
 import { Route as SubscribeRouteImport } from './routes/subscribe'
 import { Route as VerifyRouteImport } from './routes/verify'
+import { Route as HustleIndexRouteImport } from './routes/hustle.index'
+import { Route as HustleCalculatorRouteImport } from './routes/hustle.calculator'
+import { Route as HustleChallengeRouteImport } from './routes/hustle.challenge'
+import { Route as HustleCoachRouteImport } from './routes/hustle.coach'
+import { Route as HustleGoalsRouteImport } from './routes/hustle.goals'
+import { Route as HustleMineRouteImport } from './routes/hustle.mine'
+import { Route as HustleTipsRouteImport } from './routes/hustle.tips'
 import { Route as MessageIdRouteImport } from './routes/message.$id'
 import { Route as PayBeneficiaryIdRouteImport } from './routes/pay-beneficiary.$id'
+import { Route as HustleMineIndexRouteImport } from './routes/hustle.mine.index'
+import { Route as HustleMineIdRouteImport } from './routes/hustle.mine.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -53,6 +63,11 @@ const HistoryRoute = HistoryRouteImport.update({
 const HomeRoute = HomeRouteImport.update({
   id: '/home',
   path: '/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HustleRoute = HustleRouteImport.update({
+  id: '/hustle',
+  path: '/hustle',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -120,6 +135,41 @@ const VerifyRoute = VerifyRouteImport.update({
   path: '/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HustleIndexRoute = HustleIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => HustleRoute,
+} as any)
+const HustleCalculatorRoute = HustleCalculatorRouteImport.update({
+  id: '/calculator',
+  path: '/calculator',
+  getParentRoute: () => HustleRoute,
+} as any)
+const HustleChallengeRoute = HustleChallengeRouteImport.update({
+  id: '/challenge',
+  path: '/challenge',
+  getParentRoute: () => HustleRoute,
+} as any)
+const HustleCoachRoute = HustleCoachRouteImport.update({
+  id: '/coach',
+  path: '/coach',
+  getParentRoute: () => HustleRoute,
+} as any)
+const HustleGoalsRoute = HustleGoalsRouteImport.update({
+  id: '/goals',
+  path: '/goals',
+  getParentRoute: () => HustleRoute,
+} as any)
+const HustleMineRoute = HustleMineRouteImport.update({
+  id: '/mine',
+  path: '/mine',
+  getParentRoute: () => HustleRoute,
+} as any)
+const HustleTipsRoute = HustleTipsRouteImport.update({
+  id: '/tips',
+  path: '/tips',
+  getParentRoute: () => HustleRoute,
+} as any)
 const MessageIdRoute = MessageIdRouteImport.update({
   id: '/message/$id',
   path: '/message/$id',
@@ -130,6 +180,16 @@ const PayBeneficiaryIdRoute = PayBeneficiaryIdRouteImport.update({
   path: '/pay-beneficiary/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HustleMineIndexRoute = HustleMineIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => HustleMineRoute,
+} as any)
+const HustleMineIdRoute = HustleMineIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => HustleMineRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -137,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/demo-vouchers': typeof DemoVouchersRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
+  '/hustle': typeof HustleRouteWithChildren
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
@@ -150,8 +211,17 @@ export interface FileRoutesByFullPath {
   '/spending': typeof SpendingRoute
   '/subscribe': typeof SubscribeRoute
   '/verify': typeof VerifyRoute
+  '/hustle/calculator': typeof HustleCalculatorRoute
+  '/hustle/challenge': typeof HustleChallengeRoute
+  '/hustle/coach': typeof HustleCoachRoute
+  '/hustle/goals': typeof HustleGoalsRoute
+  '/hustle/mine': typeof HustleMineRouteWithChildren
+  '/hustle/tips': typeof HustleTipsRoute
   '/message/$id': typeof MessageIdRoute
   '/pay-beneficiary/$id': typeof PayBeneficiaryIdRoute
+  '/hustle/': typeof HustleIndexRoute
+  '/hustle/mine/$id': typeof HustleMineIdRoute
+  '/hustle/mine/': typeof HustleMineIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -172,8 +242,16 @@ export interface FileRoutesByTo {
   '/spending': typeof SpendingRoute
   '/subscribe': typeof SubscribeRoute
   '/verify': typeof VerifyRoute
+  '/hustle/calculator': typeof HustleCalculatorRoute
+  '/hustle/challenge': typeof HustleChallengeRoute
+  '/hustle/coach': typeof HustleCoachRoute
+  '/hustle/goals': typeof HustleGoalsRoute
+  '/hustle/tips': typeof HustleTipsRoute
   '/message/$id': typeof MessageIdRoute
   '/pay-beneficiary/$id': typeof PayBeneficiaryIdRoute
+  '/hustle': typeof HustleIndexRoute
+  '/hustle/mine/$id': typeof HustleMineIdRoute
+  '/hustle/mine': typeof HustleMineIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -182,6 +260,7 @@ export interface FileRoutesById {
   '/demo-vouchers': typeof DemoVouchersRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
+  '/hustle': typeof HustleRouteWithChildren
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
@@ -195,8 +274,17 @@ export interface FileRoutesById {
   '/spending': typeof SpendingRoute
   '/subscribe': typeof SubscribeRoute
   '/verify': typeof VerifyRoute
+  '/hustle/calculator': typeof HustleCalculatorRoute
+  '/hustle/challenge': typeof HustleChallengeRoute
+  '/hustle/coach': typeof HustleCoachRoute
+  '/hustle/goals': typeof HustleGoalsRoute
+  '/hustle/mine': typeof HustleMineRouteWithChildren
+  '/hustle/tips': typeof HustleTipsRoute
   '/message/$id': typeof MessageIdRoute
   '/pay-beneficiary/$id': typeof PayBeneficiaryIdRoute
+  '/hustle/': typeof HustleIndexRoute
+  '/hustle/mine/$id': typeof HustleMineIdRoute
+  '/hustle/mine/': typeof HustleMineIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -206,6 +294,7 @@ export interface FileRouteTypes {
     | '/demo-vouchers'
     | '/history'
     | '/home'
+    | '/hustle'
     | '/login'
     | '/notifications'
     | '/onboarding'
@@ -219,8 +308,17 @@ export interface FileRouteTypes {
     | '/spending'
     | '/subscribe'
     | '/verify'
+    | '/hustle/calculator'
+    | '/hustle/challenge'
+    | '/hustle/coach'
+    | '/hustle/goals'
+    | '/hustle/mine'
+    | '/hustle/tips'
     | '/message/$id'
     | '/pay-beneficiary/$id'
+    | '/hustle/'
+    | '/hustle/mine/$id'
+    | '/hustle/mine/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -241,8 +339,16 @@ export interface FileRouteTypes {
     | '/spending'
     | '/subscribe'
     | '/verify'
+    | '/hustle/calculator'
+    | '/hustle/challenge'
+    | '/hustle/coach'
+    | '/hustle/goals'
+    | '/hustle/tips'
     | '/message/$id'
     | '/pay-beneficiary/$id'
+    | '/hustle'
+    | '/hustle/mine/$id'
+    | '/hustle/mine'
   id:
     | '__root__'
     | '/'
@@ -250,6 +356,7 @@ export interface FileRouteTypes {
     | '/demo-vouchers'
     | '/history'
     | '/home'
+    | '/hustle'
     | '/login'
     | '/notifications'
     | '/onboarding'
@@ -263,8 +370,17 @@ export interface FileRouteTypes {
     | '/spending'
     | '/subscribe'
     | '/verify'
+    | '/hustle/calculator'
+    | '/hustle/challenge'
+    | '/hustle/coach'
+    | '/hustle/goals'
+    | '/hustle/mine'
+    | '/hustle/tips'
     | '/message/$id'
     | '/pay-beneficiary/$id'
+    | '/hustle/'
+    | '/hustle/mine/$id'
+    | '/hustle/mine/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -273,6 +389,7 @@ export interface RootRouteChildren {
   DemoVouchersRoute: typeof DemoVouchersRoute
   HistoryRoute: typeof HistoryRoute
   HomeRoute: typeof HomeRoute
+  HustleRoute: typeof HustleRouteWithChildren
   LoginRoute: typeof LoginRoute
   NotificationsRoute: typeof NotificationsRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -325,6 +442,13 @@ declare module '@tanstack/react-router' {
       path: '/home'
       fullPath: '/home'
       preLoaderRoute: typeof HomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hustle': {
+      id: '/hustle'
+      path: '/hustle'
+      fullPath: '/hustle'
+      preLoaderRoute: typeof HustleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -418,6 +542,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/hustle/': {
+      id: '/hustle/'
+      path: '/'
+      fullPath: '/hustle/'
+      preLoaderRoute: typeof HustleIndexRouteImport
+      parentRoute: typeof HustleRoute
+    }
+    '/hustle/calculator': {
+      id: '/hustle/calculator'
+      path: '/calculator'
+      fullPath: '/hustle/calculator'
+      preLoaderRoute: typeof HustleCalculatorRouteImport
+      parentRoute: typeof HustleRoute
+    }
+    '/hustle/challenge': {
+      id: '/hustle/challenge'
+      path: '/challenge'
+      fullPath: '/hustle/challenge'
+      preLoaderRoute: typeof HustleChallengeRouteImport
+      parentRoute: typeof HustleRoute
+    }
+    '/hustle/coach': {
+      id: '/hustle/coach'
+      path: '/coach'
+      fullPath: '/hustle/coach'
+      preLoaderRoute: typeof HustleCoachRouteImport
+      parentRoute: typeof HustleRoute
+    }
+    '/hustle/goals': {
+      id: '/hustle/goals'
+      path: '/goals'
+      fullPath: '/hustle/goals'
+      preLoaderRoute: typeof HustleGoalsRouteImport
+      parentRoute: typeof HustleRoute
+    }
+    '/hustle/mine': {
+      id: '/hustle/mine'
+      path: '/mine'
+      fullPath: '/hustle/mine'
+      preLoaderRoute: typeof HustleMineRouteImport
+      parentRoute: typeof HustleRoute
+    }
+    '/hustle/tips': {
+      id: '/hustle/tips'
+      path: '/tips'
+      fullPath: '/hustle/tips'
+      preLoaderRoute: typeof HustleTipsRouteImport
+      parentRoute: typeof HustleRoute
+    }
     '/message/$id': {
       id: '/message/$id'
       path: '/message/$id'
@@ -432,8 +605,59 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PayBeneficiaryIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/hustle/mine/': {
+      id: '/hustle/mine/'
+      path: '/'
+      fullPath: '/hustle/mine/'
+      preLoaderRoute: typeof HustleMineIndexRouteImport
+      parentRoute: typeof HustleMineRoute
+    }
+    '/hustle/mine/$id': {
+      id: '/hustle/mine/$id'
+      path: '/$id'
+      fullPath: '/hustle/mine/$id'
+      preLoaderRoute: typeof HustleMineIdRouteImport
+      parentRoute: typeof HustleMineRoute
+    }
   }
 }
+
+interface HustleMineRouteChildren {
+  HustleMineIdRoute: typeof HustleMineIdRoute
+  HustleMineIndexRoute: typeof HustleMineIndexRoute
+}
+
+const HustleMineRouteChildren: HustleMineRouteChildren = {
+  HustleMineIdRoute: HustleMineIdRoute,
+  HustleMineIndexRoute: HustleMineIndexRoute,
+}
+
+const HustleMineRouteWithChildren = HustleMineRoute._addFileChildren(
+  HustleMineRouteChildren,
+)
+
+interface HustleRouteChildren {
+  HustleCalculatorRoute: typeof HustleCalculatorRoute
+  HustleChallengeRoute: typeof HustleChallengeRoute
+  HustleCoachRoute: typeof HustleCoachRoute
+  HustleGoalsRoute: typeof HustleGoalsRoute
+  HustleMineRoute: typeof HustleMineRouteWithChildren
+  HustleTipsRoute: typeof HustleTipsRoute
+  HustleIndexRoute: typeof HustleIndexRoute
+}
+
+const HustleRouteChildren: HustleRouteChildren = {
+  HustleCalculatorRoute: HustleCalculatorRoute,
+  HustleChallengeRoute: HustleChallengeRoute,
+  HustleCoachRoute: HustleCoachRoute,
+  HustleGoalsRoute: HustleGoalsRoute,
+  HustleMineRoute: HustleMineRouteWithChildren,
+  HustleTipsRoute: HustleTipsRoute,
+  HustleIndexRoute: HustleIndexRoute,
+}
+
+const HustleRouteWithChildren =
+  HustleRoute._addFileChildren(HustleRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -441,6 +665,7 @@ const rootRouteChildren: RootRouteChildren = {
   DemoVouchersRoute: DemoVouchersRoute,
   HistoryRoute: HistoryRoute,
   HomeRoute: HomeRoute,
+  HustleRoute: HustleRouteWithChildren,
   LoginRoute: LoginRoute,
   NotificationsRoute: NotificationsRoute,
   OnboardingRoute: OnboardingRoute,

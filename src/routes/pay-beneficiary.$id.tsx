@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AppShell } from "@/components/AppShell";
 import { ApprovalPinDialog } from "@/components/ApprovalPinDialog";
+import { SendCelebration, type CelebrationInfo } from "@/components/SendCelebration";
 import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy } from "@/lib/app-state";
 import { useRequireSubscription } from "@/hooks/use-require-subscription";
 import voucherBlu from "@/assets/voucher-blu.jpg";
@@ -29,11 +30,12 @@ const VOUCHER_BRANDS: VoucherBrand[] = [
 function PayBeneficiary() {
   const navigate = useNavigate();
   const { id } = Route.useParams();
-  const { beneficiaries, plan, addTransaction } = useApp();
+  const { beneficiaries, plan, addTransaction, transactions, challenge } = useApp();
   const bene = beneficiaries.find((b) => b.id === id);
 
   const [step, setStep] = useState<Step>("voucher");
   useRequireSubscription({ enabled: step !== "done" });
+  const [celebration, setCelebration] = useState<CelebrationInfo>({ firstSend: false, struckDay: null, challengeDays: null });
 
   // Starts blank rather than reading bene.reference directly — on a fresh
   // page load, app-state's own localStorage hydration hasn't run yet, so
@@ -76,6 +78,12 @@ function PayBeneficiary() {
 
   const confirm = () => {
     if (!brand) return;
+    const firstSend = !transactions.some((t) => t.type === "transfer");
+    let struckDay: number | null = null;
+    if (challenge) {
+      const dayIndex = Math.floor((Date.now() - challenge.startedAt) / (24 * 60 * 60 * 1000));
+      if (dayIndex >= 0 && dayIndex < challenge.days && !challenge.struck[dayIndex]) struckDay = dayIndex + 1;
+    }
     addTransaction({
       id: crypto.randomUUID(), type: "transfer", amount: -voucherAmount,
       label: `Sent to ${bene.name}`,
@@ -89,6 +97,7 @@ function PayBeneficiary() {
       fee: fee?.fee ?? 0,
       rail: fee?.rail,
     });
+    setCelebration({ firstSend, struckDay, challengeDays: challenge?.days ?? null });
     setStep("done");
   };
 
@@ -111,6 +120,7 @@ function PayBeneficiary() {
               <p className="text-xs text-muted-foreground">{fee ? railLabel(fee.rail) : ""} · {bene.bank}</p>
             </div>
           </div>
+          <SendCelebration info={celebration} />
           <Button size="lg" onClick={() => navigate({ to: "/home" })} className="mt-8 h-14 w-full rounded-2xl shadow-button">
             Back to home
           </Button>

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AppShell } from "@/components/AppShell";
 import { ApprovalPinDialog } from "@/components/ApprovalPinDialog";
+import { SendCelebration, type CelebrationInfo } from "@/components/SendCelebration";
 import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy } from "@/lib/app-state";
 import { SA_BANKS, type Bank } from "@/lib/banks";
 import { useRequireSubscription } from "@/hooks/use-require-subscription";
@@ -33,9 +34,10 @@ const initials = (name: string) => name.split(/\s+/).map((p) => p[0]).slice(0, 2
 function OnceOff() {
   const navigate = useNavigate();
   const router = useRouter();
-  const { plan, addBeneficiary, addTransaction } = useApp();
+  const { plan, addBeneficiary, addTransaction, transactions, challenge } = useApp();
   const [step, setStep] = useState<Step>("bank");
   useRequireSubscription({ enabled: step !== "done" });
+  const [celebration, setCelebration] = useState<CelebrationInfo>({ firstSend: false, struckDay: null, challengeDays: null });
 
   const [bank, setBank] = useState<Bank | null>(null);
   const [name, setName] = useState("");
@@ -70,6 +72,12 @@ function OnceOff() {
 
   const confirm = () => {
     if (!bank || !brand) return;
+    const firstSend = !transactions.some((t) => t.type === "transfer");
+    let struckDay: number | null = null;
+    if (challenge) {
+      const dayIndex = Math.floor((Date.now() - challenge.startedAt) / (24 * 60 * 60 * 1000));
+      if (dayIndex >= 0 && dayIndex < challenge.days && !challenge.struck[dayIndex]) struckDay = dayIndex + 1;
+    }
     if (save) addBeneficiary({ name, bank: bank.name, branch: bank.branch, account, reference });
     addTransaction({
       id: crypto.randomUUID(), type: "transfer", amount: -voucherAmount,
@@ -84,6 +92,7 @@ function OnceOff() {
       fee: fee?.fee ?? 0,
       rail: fee?.rail,
     });
+    setCelebration({ firstSend, struckDay, challengeDays: challenge?.days ?? null });
     setStep("done");
   };
 
@@ -106,6 +115,7 @@ function OnceOff() {
               <p className="text-xs text-muted-foreground">{fee ? railLabel(fee.rail) : ""} · {bank?.name}</p>
             </div>
           </div>
+          <SendCelebration info={celebration} />
           <Button size="lg" onClick={() => navigate({ to: "/home" })} className="mt-8 h-14 w-full rounded-2xl shadow-button">
             Back to home
           </Button>

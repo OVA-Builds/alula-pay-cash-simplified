@@ -31,6 +31,46 @@ export type Beneficiary = {
 
 export type Plan = "basic" | "pro";
 
+// ---- Hustle tool ----------------------------------------------------------
+
+export type Goal = {
+  id: string;
+  name: string;
+  cost: number;
+  durationMonths: number;
+  createdAt: number;
+};
+
+export type BusinessExpense = { label: string; amount: number };
+
+export type BusinessEntry = {
+  id: string;
+  createdAt: number;
+  costType: "ingredients" | "supplies";
+  costOfGoods: number;
+  otherExpenses: BusinessExpense[];
+  profit: number;
+  savePct: number;
+};
+
+export type SideHustle = {
+  id: string;
+  name: string;
+  description: string;
+  registered: boolean;
+  createdAt: number;
+  entries: BusinessEntry[];
+};
+
+export const CHALLENGE_LENGTHS = [7, 14, 21, 30] as const;
+export type ChallengeLength = (typeof CHALLENGE_LENGTHS)[number];
+
+export type Challenge = {
+  days: ChallengeLength;
+  startedAt: number;
+  struck: boolean[];
+};
+
 type Ctx = {
   onboarded: boolean;
   signedIn: boolean;
@@ -83,6 +123,16 @@ type Ctx = {
   // lets Home greet a brand-new client differently from a returning one.
   isNewSignup: boolean;
   dismissNewSignup: () => void;
+  // Hustle tool: goals, side-hustle tracking, and the savings challenge.
+  goals: Goal[];
+  addGoal: (g: Omit<Goal, "id" | "createdAt">) => void;
+  deleteGoal: (id: string) => void;
+  sideHustles: SideHustle[];
+  addSideHustle: (h: Omit<SideHustle, "id" | "createdAt" | "entries">) => SideHustle | null;
+  addBusinessEntry: (hustleId: string, e: Omit<BusinessEntry, "id" | "createdAt">) => void;
+  challenge: Challenge | null;
+  startChallenge: (days: ChallengeLength) => void;
+  endChallenge: () => void;
 };
 
 const AppContext = createContext<Ctx | null>(null);
@@ -129,6 +179,7 @@ type Persisted = {
   pendingPlan: Plan | null; pendingAmountPaid: number;
   deletedMessageIds: string[]; readMessageIds: string[];
   isNewSignup: boolean;
+  goals: Goal[]; sideHustles: SideHustle[]; challenge: Challenge | null;
 };
 
 function readStoredState(): Partial<Persisted> | null {
@@ -168,6 +219,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [deletedMessageIds, setDeletedMessageIds] = useState<string[]>([]);
   const [readMessageIds, setReadMessageIds] = useState<string[]>([]);
   const [isNewSignup, setIsNewSignup] = useState(false);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [sideHustles, setSideHustles] = useState<SideHustle[]>([]);
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
 
   // Apply any persisted state once, after mount. The very first render (both
   // server and the client's hydration pass) always starts from the same
@@ -197,6 +251,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (initial.deletedMessageIds !== undefined) setDeletedMessageIds(initial.deletedMessageIds);
       if (initial.readMessageIds !== undefined) setReadMessageIds(initial.readMessageIds);
       if (initial.isNewSignup !== undefined) setIsNewSignup(initial.isNewSignup);
+      if (initial.goals !== undefined) setGoals(initial.goals);
+      if (initial.sideHustles !== undefined) setSideHustles(initial.sideHustles);
+      if (initial.challenge !== undefined) setChallenge(initial.challenge);
     }
     setHydrated(true);
   }, []);
@@ -210,10 +267,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         approvalPin, alulaOn, theme, transactions, beneficiaries,
         freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid,
         deletedMessageIds, readMessageIds, isNewSignup,
+        goals, sideHustles, challenge,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch {}
-  }, [hydrated, onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries, freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid, deletedMessageIds, readMessageIds, isNewSignup]);
+  }, [hydrated, onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries, freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid, deletedMessageIds, readMessageIds, isNewSignup, goals, sideHustles, challenge]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -256,6 +314,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setDeletedMessageIds([]);
     setReadMessageIds([]);
     setIsNewSignup(true);
+    setGoals([]);
+    setSideHustles([]);
+    setChallenge(null);
   }, []);
   const dismissNewSignup = useCallback(() => setIsNewSignup(false), []);
   const signOut = useCallback(() => {
@@ -279,6 +340,17 @@ const addTransaction = useCallback((t: Transaction) => {
         setFreeTransactionsLeft((n) => Math.max(0, n - 1));
       }
       return currentPeriod;
+    });
+    // Every successful send counts as a day's deposit toward an active
+    // savings challenge — strike whichever day-slot "now" falls in, if it
+    // hasn't been struck already.
+    setChallenge((prev) => {
+      if (!prev) return prev;
+      const dayIndex = Math.floor((Date.now() - prev.startedAt) / (24 * 60 * 60 * 1000));
+      if (dayIndex < 0 || dayIndex >= prev.days || prev.struck[dayIndex]) return prev;
+      const struck = [...prev.struck];
+      struck[dayIndex] = true;
+      return { ...prev, struck };
     });
   }
 }, []);
@@ -363,6 +435,38 @@ const addTransaction = useCallback((t: Transaction) => {
     });
   }, []);
 
+  // Hustle tool ---------------------------------------------------------
+  const addGoal = useCallback((g: Omit<Goal, "id" | "createdAt">) => {
+    setGoals((prev) => [{ ...g, id: crypto.randomUUID(), createdAt: Date.now() }, ...prev]);
+  }, []);
+  const deleteGoal = useCallback((id: string) => {
+    setGoals((prev) => prev.filter((g) => g.id !== id));
+  }, []);
+
+  const addSideHustle = useCallback((h: Omit<SideHustle, "id" | "createdAt" | "entries">) => {
+    let created: SideHustle | null = null;
+    setSideHustles((prev) => {
+      if (prev.length >= 5) return prev;
+      created = { ...h, id: crypto.randomUUID(), createdAt: Date.now(), entries: [] };
+      return [created, ...prev];
+    });
+    return created;
+  }, []);
+  const addBusinessEntry = useCallback((hustleId: string, e: Omit<BusinessEntry, "id" | "createdAt">) => {
+    setSideHustles((prev) =>
+      prev.map((h) =>
+        h.id === hustleId
+          ? { ...h, entries: [{ ...e, id: crypto.randomUUID(), createdAt: Date.now() }, ...h.entries] }
+          : h
+      )
+    );
+  }, []);
+
+  const startChallenge = useCallback((days: ChallengeLength) => {
+    setChallenge({ days, startedAt: Date.now(), struck: Array(days).fill(false) });
+  }, []);
+  const endChallenge = useCallback(() => setChallenge(null), []);
+
   const currentBillingPeriod = getBillingPeriod();
   // freeTransactionsLeft only reflects the current billing period if
   // freeTxPeriod still matches it — otherwise the 2 free transactions have
@@ -400,6 +504,9 @@ const addTransaction = useCallback((t: Transaction) => {
         pendingPlan, pendingAmountPaid, choosePendingPlan, redeemTowardSubscription,
         deletedMessageIds, readMessageIds, deleteMessage, markMessagesRead,
         isNewSignup, dismissNewSignup,
+        goals, addGoal, deleteGoal,
+        sideHustles, addSideHustle, addBusinessEntry,
+        challenge, startChallenge, endChallenge,
       }}
     >
       {children}
