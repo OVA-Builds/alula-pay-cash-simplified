@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, ArrowDownLeft, ArrowUpRight, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowDownLeft, ArrowUpRight, Trash2, Eye } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useApp, formatZAR, formatTxDate, threeMonthsAgo } from "@/lib/app-state";
 import { MESSAGES } from "@/lib/messages";
@@ -144,7 +144,10 @@ function Notifications() {
                       <div className="min-w-0 flex-1">
                         <p className={`text-sm ${unread ? "font-bold text-primary" : "font-normal text-muted-foreground"}`}>{m.title}</p>
                         <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{m.body}</p>
-                        <p className="mt-1 text-[11px] text-muted-foreground">{m.date}</p>
+                        <div className="mt-1 flex items-center gap-1">
+                          <p className="text-[11px] text-muted-foreground">{m.date}</p>
+                          {!unread && <Eye className="h-3 w-3 text-muted-foreground" aria-label="Seen" />}
+                        </div>
                       </div>
                       <button
                         aria-label="Delete message"
