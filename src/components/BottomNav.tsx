@@ -35,7 +35,7 @@ export function BottomNav() {
                 <span className="relative">
                   <Icon className={`h-5 w-5 ${active ? "stroke-[2.5]" : ""}`} />
                   {badge > 0 && (
-                    <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1 text-[9px] font-bold text-gold-foreground">
+                    <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-white">
                       {badge}
                     </span>
                   )}
