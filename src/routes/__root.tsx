@@ -81,14 +81,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Alula Pay" },
+      { name: "description", content: "Send money, track your side hustle, and grow your savings with Alula Pay." },
+      { name: "author", content: "Alula Pay" },
+      { property: "og:title", content: "Alula Pay" },
+      { property: "og:description", content: "Send money, track your side hustle, and grow your savings with Alula Pay." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
