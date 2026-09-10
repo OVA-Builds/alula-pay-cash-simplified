@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Bell, Landmark, Settings, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb, Users, Zap } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { BottomSheet } from "@/components/BottomSheet";
@@ -13,12 +13,18 @@ function Home() {
   const navigate = useNavigate();
   const {
     transactions, verified, plan, firstName, subscriptionActive, paywallActive, freeTransactionsLeft,
-    deletedMessageIds, readMessageIds,
+    deletedMessageIds, readMessageIds, isNewSignup, dismissNewSignup,
   } = useApp();
   const [sendPickerOpen, setSendPickerOpen] = useState(false);
   const recent = transactions.slice(0, 3);
   const displayName = firstName?.trim() ? firstName.trim().split(/\s+/)[0] : "there";
   const hasUnreadMessages = MESSAGES.some((m) => !deletedMessageIds.includes(m.id) && !readMessageIds.includes(m.id));
+
+  // Snapshot at mount so this greeting can't flip mid-view — dismissNewSignup
+  // (below) flips the underlying flag to false right after, for every visit
+  // after this first one.
+  const showFirstTimeGreeting = useRef(isNewSignup).current;
+  useEffect(() => { if (isNewSignup) dismissNewSignup(); }, [isNewSignup, dismissNewSignup]);
 
   // Scoped to the current calendar month, matching what /spending charts —
   // the monthly limit resets each month, so it shouldn't count sends from
@@ -45,7 +51,9 @@ function Home() {
           <div>
             <p className="text-sm text-primary-foreground/80">Hello</p>
             <h1 className="text-3xl font-bold tracking-tight text-primary-foreground">{displayName}</h1>
-            <p className="mt-1 text-sm text-primary-foreground/80">Good to see you again!</p>
+            <p className="mt-1 text-sm text-primary-foreground/80">
+              {showFirstTimeGreeting ? "Welcome to Alula Pay!" : "Good to see you again!"}
+            </p>
           </div>
           <Link to="/notifications" className="relative flex h-11 w-11 items-center justify-center rounded-full border border-white/40 bg-white/25 shadow-soft backdrop-blur">
             <Bell className="h-4.5 w-4.5 text-primary-foreground" />

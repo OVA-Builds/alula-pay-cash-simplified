@@ -79,6 +79,10 @@ type Ctx = {
   readMessageIds: string[];
   deleteMessage: (id: string) => void;
   markMessagesRead: (ids: string[]) => void;
+  // True from signUp() until Home has shown its first-time welcome once —
+  // lets Home greet a brand-new client differently from a returning one.
+  isNewSignup: boolean;
+  dismissNewSignup: () => void;
 };
 
 const AppContext = createContext<Ctx | null>(null);
@@ -124,6 +128,7 @@ type Persisted = {
   freeTransactionsLeft: number; freeTxPeriod: string | null; lastPaidPeriod: string | null;
   pendingPlan: Plan | null; pendingAmountPaid: number;
   deletedMessageIds: string[]; readMessageIds: string[];
+  isNewSignup: boolean;
 };
 
 function readStoredState(): Partial<Persisted> | null {
@@ -162,6 +167,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [pendingAmountPaid, setPendingAmountPaid] = useState(0);
   const [deletedMessageIds, setDeletedMessageIds] = useState<string[]>([]);
   const [readMessageIds, setReadMessageIds] = useState<string[]>([]);
+  const [isNewSignup, setIsNewSignup] = useState(false);
 
   // Apply any persisted state once, after mount. The very first render (both
   // server and the client's hydration pass) always starts from the same
@@ -190,6 +196,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (initial.pendingAmountPaid !== undefined) setPendingAmountPaid(initial.pendingAmountPaid);
       if (initial.deletedMessageIds !== undefined) setDeletedMessageIds(initial.deletedMessageIds);
       if (initial.readMessageIds !== undefined) setReadMessageIds(initial.readMessageIds);
+      if (initial.isNewSignup !== undefined) setIsNewSignup(initial.isNewSignup);
     }
     setHydrated(true);
   }, []);
@@ -202,11 +209,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         onboarded, signedIn, phone, firstName, balance, verified, plan,
         approvalPin, alulaOn, theme, transactions, beneficiaries,
         freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid,
-        deletedMessageIds, readMessageIds,
+        deletedMessageIds, readMessageIds, isNewSignup,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch {}
-  }, [hydrated, onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries, freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid, deletedMessageIds, readMessageIds]);
+  }, [hydrated, onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries, freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid, deletedMessageIds, readMessageIds, isNewSignup]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -248,7 +255,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // app ships.
     setDeletedMessageIds([]);
     setReadMessageIds([]);
+    setIsNewSignup(true);
   }, []);
+  const dismissNewSignup = useCallback(() => setIsNewSignup(false), []);
   const signOut = useCallback(() => {
     // Signing out returns the user to onboarding for the demo.
     setSignedIn(false);
@@ -390,6 +399,7 @@ const addTransaction = useCallback((t: Transaction) => {
         freeTransactionsLeft: effectiveFreeTransactionsLeft, subscriptionActive, paywallActive,
         pendingPlan, pendingAmountPaid, choosePendingPlan, redeemTowardSubscription,
         deletedMessageIds, readMessageIds, deleteMessage, markMessagesRead,
+        isNewSignup, dismissNewSignup,
       }}
     >
       {children}
