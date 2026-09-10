@@ -57,6 +57,8 @@ export type BusinessEntry = {
   supplies: BusinessLineItem[];
   profit: BusinessLineItem[];
   savePct: number;
+  // A log can be corrected once after the fact, then it's locked in for good.
+  edited: boolean;
 };
 
 export const INDUSTRIES = [
@@ -148,7 +150,9 @@ type Ctx = {
   deleteGoal: (id: string) => void;
   sideHustles: SideHustle[];
   addSideHustle: (h: Omit<SideHustle, "id" | "createdAt" | "entries">) => SideHustle | null;
-  addBusinessEntry: (hustleId: string, e: Omit<BusinessEntry, "id" | "createdAt">) => BusinessEntry;
+  addBusinessEntry: (hustleId: string, e: Omit<BusinessEntry, "id" | "createdAt" | "edited">) => BusinessEntry;
+  // Returns false if the entry doesn't exist or has already been edited once.
+  updateBusinessEntry: (hustleId: string, entryId: string, e: Omit<BusinessEntry, "id" | "createdAt" | "edited">) => boolean;
   challenge: Challenge | null;
   startChallenge: (days: ChallengeLength) => void;
   endChallenge: () => void;
@@ -471,10 +475,27 @@ const addTransaction = useCallback((t: Transaction) => {
     });
     return created;
   }, []);
-  const addBusinessEntry = useCallback((hustleId: string, e: Omit<BusinessEntry, "id" | "createdAt">) => {
-    const created: BusinessEntry = { ...e, id: crypto.randomUUID(), createdAt: Date.now() };
+  const addBusinessEntry = useCallback((hustleId: string, e: Omit<BusinessEntry, "id" | "createdAt" | "edited">) => {
+    const created: BusinessEntry = { ...e, id: crypto.randomUUID(), createdAt: Date.now(), edited: false };
     setSideHustles((prev) => prev.map((h) => (h.id === hustleId ? { ...h, entries: [created, ...h.entries] } : h)));
     return created;
+  }, []);
+  const updateBusinessEntry = useCallback((hustleId: string, entryId: string, e: Omit<BusinessEntry, "id" | "createdAt" | "edited">) => {
+    let success = false;
+    setSideHustles((prev) =>
+      prev.map((h) => {
+        if (h.id !== hustleId) return h;
+        return {
+          ...h,
+          entries: h.entries.map((entry) => {
+            if (entry.id !== entryId || entry.edited) return entry;
+            success = true;
+            return { ...entry, ...e, edited: true };
+          }),
+        };
+      })
+    );
+    return success;
   }, []);
 
   const startChallenge = useCallback((days: ChallengeLength) => {
@@ -520,7 +541,7 @@ const addTransaction = useCallback((t: Transaction) => {
         deletedMessageIds, readMessageIds, deleteMessage, markMessagesRead,
         isNewSignup,
         goals, addGoal, deleteGoal,
-        sideHustles, addSideHustle, addBusinessEntry,
+        sideHustles, addSideHustle, addBusinessEntry, updateBusinessEntry,
         challenge, startChallenge, endChallenge,
       }}
     >

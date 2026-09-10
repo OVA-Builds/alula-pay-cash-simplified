@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Plus, BadgeCheck, Trash2, Boxes, Package, TrendingUp, Thermometer } from "lucide-react";
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, Bar, BarChart, XAxis, YAxis, CartesianGrid } from "recharts";
+import { Plus, BadgeCheck, Trash2, Boxes, Package, TrendingUp, Thermometer, Pencil } from "lucide-react";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { AppShell } from "@/components/AppShell";
 import { HustleHeader } from "@/components/HustleHeader";
 import { Button } from "@/components/ui/button";
@@ -12,12 +12,13 @@ import { useApp, formatZAR, type BusinessLineItem, type BusinessEntry, type Busi
 
 export const Route = createFileRoute("/hustle/mine/$id")({ component: HustleDashboard });
 
-const PIE_COLORS = ["var(--color-destructive)", "var(--color-primary)"];
-
-const TYPE_META: Record<BusinessLogType, { icon: typeof Package; label: string; placeholder: string }> = {
-  ingredients: { icon: Package, label: "Ingredients", placeholder: "e.g. Meat" },
-  supplies: { icon: Boxes, label: "Supplies", placeholder: "e.g. Packaging" },
-  profit: { icon: TrendingUp, label: "Profit", placeholder: "e.g. Cash sales" },
+// Ingredients and supplies are both "cost" categories and share our blue;
+// profit is our deep gold — consistent everywhere this shows up: the pie
+// chart, the costs-vs-profit bar, and every icon/amount below.
+const TYPE_META: Record<BusinessLogType, { icon: typeof Package; label: string; placeholder: string; color: string }> = {
+  ingredients: { icon: Package, label: "Ingredients", placeholder: "e.g. Meat", color: "text-primary" },
+  supplies: { icon: Boxes, label: "Supplies", placeholder: "e.g. Packaging", color: "text-primary" },
+  profit: { icon: TrendingUp, label: "Profit", placeholder: "e.g. Cash sales", color: "text-gold" },
 };
 
 function sum(items: BusinessLineItem[]) {
@@ -67,7 +68,7 @@ function LineItemSection({
   return (
     <div className="mt-4">
       <div className="flex items-center gap-2">
-        <Icon className="h-4 w-4 text-muted-foreground" />
+        <Icon className={`h-4 w-4 ${meta.color}`} />
         <Label>{meta.label}</Label>
       </div>
       {items.length > 0 && (
@@ -85,7 +86,7 @@ function LineItemSection({
           ))}
           <div className="flex items-center justify-between px-1 pt-0.5">
             <span className="text-[11px] font-semibold text-muted-foreground">Total</span>
-            <span className="text-xs font-bold">{formatZAR(sum(items))}</span>
+            <span className={`text-xs font-bold ${meta.color}`}>{formatZAR(sum(items))}</span>
           </div>
         </div>
       )}
@@ -106,11 +107,12 @@ function LineItemSection({
 function HustleDashboard() {
   const router = useRouter();
   const { id } = Route.useParams();
-  const { sideHustles, addBusinessEntry } = useApp();
+  const { sideHustles, addBusinessEntry, updateBusinessEntry } = useApp();
   const hustle = sideHustles.find((h) => h.id === id);
   const isFoodBusiness = hustle?.industry === "Food & Beverage";
 
   const [open, setOpen] = useState(false);
+  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [ingredients, setIngredients] = useState<BusinessLineItem[]>([]);
   const [supplies, setSupplies] = useState<BusinessLineItem[]>([]);
   const [profit, setProfit] = useState<BusinessLineItem[]>([]);
@@ -126,6 +128,8 @@ function HustleDashboard() {
   }, [entries]);
 
   const avgMargin = totals.revenue > 0 ? (totals.profit / totals.revenue) * 100 : null;
+  const costPct = totals.revenue > 0 ? Math.round((totals.cost / totals.revenue) * 100) : 0;
+  const profitPct = totals.revenue > 0 ? 100 - costPct : 0;
 
   const health = useMemo(() => {
     if (entries.length === 0 || avgMargin === null) {
@@ -135,7 +139,7 @@ function HustleDashboard() {
     if (score >= 40) {
       return {
         score, label: "Thriving", color: "text-success", bar: "bg-success",
-        comment: `Strong margins — you're keeping about ${Math.round(score)} in every R100 you bring in. Keep the routine going, and this is a good business to grow your save percentage on.`,
+        comment: `Strong margins — you're keeping about ${Math.round(score)} in every R100 you bring in. Since the business can afford it, try saving a bigger slice of your profit next time you log it.`,
       };
     }
     if (score >= 20) {
@@ -151,14 +155,9 @@ function HustleDashboard() {
   }, [entries.length, avgMargin]);
 
   const pieData = [
-    { name: "Operational costs", value: totals.cost },
-    { name: "Profit", value: totals.profit },
+    { name: "Operational costs", value: totals.cost, color: "var(--color-primary)" },
+    { name: "Profit", value: totals.profit, color: "var(--color-gold)" },
   ].filter((d) => d.value > 0);
-
-  const profitBars = useMemo(
-    () => [...entries].reverse().map((e, i) => ({ i: i + 1, profit: sum(e.profit) })).filter((b) => b.profit > 0),
-    [entries]
-  );
 
   const dayGroups = useMemo(() => {
     const map = new Map<string, BusinessEntry[]>();
@@ -177,12 +176,31 @@ function HustleDashboard() {
   const savePctNum = Math.max(0, Math.min(100, Number(savePct) || 0));
 
   const reset = () => {
-    setIngredients([]); setSupplies([]); setProfit([]); setSavePct("10");
+    setIngredients([]); setSupplies([]); setProfit([]); setSavePct("10"); setEditingEntryId(null);
+  };
+
+  const startNewLog = () => {
+    reset();
+    setOpen(true);
+  };
+
+  const startEdit = (entry: BusinessEntry) => {
+    setEditingEntryId(entry.id);
+    setIngredients(entry.ingredients);
+    setSupplies(entry.supplies);
+    setProfit(entry.profit);
+    setSavePct(String(entry.savePct || 10));
+    setDayDetail(null);
+    setOpen(true);
   };
 
   const submit = () => {
     if (!hustle || !canSubmit) return;
-    addBusinessEntry(hustle.id, { ingredients, supplies, profit, savePct: savePctNum });
+    if (editingEntryId) {
+      updateBusinessEntry(hustle.id, editingEntryId, { ingredients, supplies, profit, savePct: savePctNum });
+    } else {
+      addBusinessEntry(hustle.id, { ingredients, supplies, profit, savePct: savePctNum });
+    }
     reset();
     setOpen(false);
   };
@@ -212,7 +230,7 @@ function HustleDashboard() {
           subtitle={hustle.description}
           right={
             <button
-              onClick={() => setOpen(true)}
+              onClick={startNewLog}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-gold text-gold-foreground shadow-gold active:scale-95 transition-transform"
               aria-label="Log a day"
             >
@@ -250,16 +268,16 @@ function HustleDashboard() {
                 <ResponsiveContainer>
                   <PieChart>
                     <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={45} outerRadius={70} paddingAngle={3}>
-                      {pieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                      {pieData.map((d, i) => <Cell key={i} fill={d.color} />)}
                     </Pie>
                     <Tooltip formatter={(v: number) => formatZAR(v)} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
               <div className="mt-2 flex flex-wrap justify-center gap-3">
-                {pieData.map((d, i) => (
+                {pieData.map((d) => (
                   <div key={d.name} className="flex items-center gap-1.5">
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: d.color }} />
                     <span className="text-[11px] text-muted-foreground">{d.name}: {formatZAR(d.value)}</span>
                   </div>
                 ))}
@@ -267,21 +285,26 @@ function HustleDashboard() {
             </div>
           )}
 
-          {/* Profit over time */}
-          {profitBars.length > 0 && (
+          {/* Costs vs profit, as a percentage split */}
+          {totals.revenue > 0 && (
             <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
-              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Profit per day logged</p>
-              <div style={{ width: "100%", height: 160 }} className="mt-2">
-                <ResponsiveContainer>
-                  <BarChart data={profitBars} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-                    <CartesianGrid vertical={false} stroke="var(--color-border)" />
-                    <XAxis dataKey="i" tick={{ fontSize: 10, fill: "var(--color-muted-foreground)" }} tickLine={false} axisLine={{ stroke: "var(--color-border)" }} />
-                    <YAxis tick={{ fontSize: 10, fill: "var(--color-muted-foreground)" }} tickLine={false} axisLine={false} width={44}
-                      tickFormatter={(v: number) => `R${v}`} />
-                    <Tooltip formatter={(v: number) => formatZAR(v)} labelFormatter={(l) => `Entry ${l}`} />
-                    <Bar dataKey="profit" fill="var(--color-gold)" radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Costs vs profit</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">Of every rand this business brings in, here's the split.</p>
+              <div className="mt-3 flex h-8 w-full overflow-hidden rounded-full bg-muted">
+                {costPct > 0 && (
+                  <div className="flex items-center justify-center bg-primary text-[11px] font-bold text-primary-foreground" style={{ width: `${costPct}%` }}>
+                    {costPct >= 15 && `${costPct}%`}
+                  </div>
+                )}
+                {profitPct > 0 && (
+                  <div className="flex items-center justify-center bg-gold text-[11px] font-bold text-gold-foreground" style={{ width: `${profitPct}%` }}>
+                    {profitPct >= 15 && `${profitPct}%`}
+                  </div>
+                )}
+              </div>
+              <div className="mt-2 flex items-center justify-between text-[11px]">
+                <span className="flex items-center gap-1.5 text-muted-foreground"><span className="h-2 w-2 rounded-full bg-primary" /> {costPct}% operational costs</span>
+                <span className="flex items-center gap-1.5 text-muted-foreground"><span className="h-2 w-2 rounded-full bg-gold" /> {profitPct}% profit</span>
               </div>
             </div>
           )}
@@ -309,8 +332,8 @@ function HustleDashboard() {
                         <p className="mt-1 text-[11px] text-muted-foreground">{g.entries.length} {g.entries.length === 1 ? "log" : "logs"} — tap to see details</p>
                       </div>
                       <div className="text-right">
-                        {dayCost > 0 && <p className="text-xs font-semibold text-foreground">-{formatZAR(dayCost)}</p>}
-                        {dayProfit > 0 && <p className="text-sm font-bold text-success">+{formatZAR(dayProfit)}</p>}
+                        {dayCost > 0 && <p className="text-xs font-semibold text-primary">-{formatZAR(dayCost)}</p>}
+                        {dayProfit > 0 && <p className="text-sm font-bold text-gold">+{formatZAR(dayProfit)}</p>}
                       </div>
                     </button>
                   );
@@ -321,7 +344,7 @@ function HustleDashboard() {
         </div>
       </div>
 
-      {/* Day detail popup */}
+      {/* Day detail popup — one card per log, each editable once */}
       <BottomSheet open={!!dayDetail} onClose={() => setDayDetail(null)}>
         <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-muted" />
         <div className="max-h-[80vh] overflow-y-auto px-6 pb-8 pt-5">
@@ -329,30 +352,45 @@ function HustleDashboard() {
           <p className="mt-1 text-sm text-muted-foreground">Everything logged that day, all in one place.</p>
 
           <div className="mt-5 space-y-4">
-            {(["ingredients", "supplies", "profit"] as BusinessLogType[]).map((t) => {
-              const lines = (dayDetail?.entries ?? []).flatMap((e) => e[t]);
-              if (lines.length === 0) return null;
-              const meta = TYPE_META[t];
-              const Icon = meta.icon;
-              const subtotal = sum(lines);
-              return (
-                <div key={t}>
-                  <div className="flex items-center gap-2">
-                    <Icon className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{meta.label}</p>
-                    <p className="ml-auto text-xs font-bold text-foreground">{formatZAR(subtotal)}</p>
-                  </div>
-                  <div className="mt-2 space-y-1.5">
-                    {lines.map((l, i) => (
-                      <div key={i} className="flex items-center justify-between rounded-xl bg-muted/60 px-3 py-2">
-                        <span className="text-xs font-medium">{l.label}</span>
-                        <span className="text-xs font-semibold">{formatZAR(l.amount)}</span>
-                      </div>
-                    ))}
-                  </div>
+            {dayDetail?.entries.map((entry) => (
+              <div key={entry.id} className="rounded-2xl border border-border p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{formatTime(new Date(entry.createdAt))}</p>
+                  {entry.edited ? (
+                    <span className="text-[11px] font-semibold text-muted-foreground">Edited</span>
+                  ) : (
+                    <button onClick={() => startEdit(entry)} className="flex items-center gap-1 text-xs font-semibold text-primary">
+                      <Pencil className="h-3.5 w-3.5" /> Edit
+                    </button>
+                  )}
                 </div>
-              );
-            })}
+                <div className="mt-3 space-y-3">
+                  {(["ingredients", "supplies", "profit"] as BusinessLogType[]).map((t) => {
+                    const lines = entry[t];
+                    if (lines.length === 0) return null;
+                    const meta = TYPE_META[t];
+                    const Icon = meta.icon;
+                    return (
+                      <div key={t}>
+                        <div className="flex items-center gap-2">
+                          <Icon className={`h-4 w-4 ${meta.color}`} />
+                          <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{meta.label}</p>
+                          <p className={`ml-auto text-xs font-bold ${meta.color}`}>{formatZAR(sum(lines))}</p>
+                        </div>
+                        <div className="mt-1.5 space-y-1">
+                          {lines.map((l, i) => (
+                            <div key={i} className="flex items-center justify-between rounded-xl bg-muted/60 px-3 py-1.5">
+                              <span className="text-xs font-medium">{l.label}</span>
+                              <span className="text-xs font-semibold">{formatZAR(l.amount)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </BottomSheet>
@@ -361,8 +399,10 @@ function HustleDashboard() {
       <BottomSheet open={open} onClose={() => { setOpen(false); reset(); }}>
         <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-muted" />
         <div className="max-h-[80vh] overflow-y-auto px-6 pt-5">
-          <h2 className="text-xl font-bold">Log today</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Add whatever applies — you don't need every section.</p>
+          <h2 className="text-xl font-bold">{editingEntryId ? "Edit log" : "Log today"}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {editingEntryId ? "You can only edit this log once, so double-check before saving." : "Add whatever applies — you don't need every section."}
+          </p>
 
           {isFoodBusiness && (
             <LineItemSection
@@ -400,7 +440,7 @@ function HustleDashboard() {
           )}
 
           <Button size="lg" disabled={!canSubmit} onClick={submit} className="mb-8 mt-6 h-14 w-full rounded-2xl shadow-button">
-            Save entry
+            {editingEntryId ? "Save changes" : "Save entry"}
           </Button>
         </div>
       </BottomSheet>
