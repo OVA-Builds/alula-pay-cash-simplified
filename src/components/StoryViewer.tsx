@@ -148,9 +148,7 @@ export function StoryViewer({
 
           <div className="mt-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white p-1.5 shadow-soft">
-                <img src={logo} alt="" className="h-full w-full object-contain" />
-              </span>
+              <img src={logo} alt="" className="h-9 w-9 object-contain drop-shadow" />
               <span className="text-sm font-semibold text-white drop-shadow">Alula Pay</span>
             </div>
             <button
