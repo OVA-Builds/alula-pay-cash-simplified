@@ -19,6 +19,40 @@ try {
 } catch (_) {}
 `;
 
+// A tab left open across a new deploy is still running the old JS bundle;
+// when it then tries to lazy-load a route chunk, that chunk 404s (the old
+// build's files are gone) and the dynamic import() rejects. That rejection
+// happens outside React's render cycle, so the router's own error boundary
+// never sees it — the app just silently stops navigating, stuck wherever it
+// was. Catch that specific failure at the window level and hard-reload once
+// to pick up the current deploy; sessionStorage stops it from looping if the
+// reload doesn't actually fix things (e.g. genuinely offline).
+const chunkReloadScript = `
+(function () {
+  var KEY = 'alula-chunk-reload-once';
+  function isChunkLoadError(msg) {
+    return typeof msg === 'string' && (
+      msg.indexOf('Failed to fetch dynamically imported module') !== -1 ||
+      msg.indexOf('error loading dynamically imported module') !== -1 ||
+      msg.indexOf('Importing a module script failed') !== -1
+    );
+  }
+  function recover() {
+    if (sessionStorage.getItem(KEY)) return;
+    sessionStorage.setItem(KEY, '1');
+    window.location.reload();
+  }
+  window.addEventListener('unhandledrejection', function (e) {
+    var reason = e && e.reason;
+    var msg = reason && (reason.message || String(reason));
+    if (isChunkLoadError(msg)) recover();
+  });
+  window.addEventListener('error', function (e) {
+    if (isChunkLoadError(e && e.message)) recover();
+  }, true);
+})();
+`;
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -107,6 +141,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: chunkReloadScript }} />
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>
       <body>
