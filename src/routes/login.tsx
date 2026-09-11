@@ -76,9 +76,9 @@ function Login() {
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                id="pin" type="password" inputMode="numeric" maxLength={4}
+                id="pin" type="text" inputMode="numeric" maxLength={4} autoComplete="off"
                 value={pin} onChange={(e) => { setPin(e.target.value.replace(/\D/g, "")); setError(""); }}
-                className="h-14 rounded-2xl pl-11 text-base tracking-[0.4em]"
+                className="h-14 rounded-2xl pl-11 text-base tracking-[0.4em] [-webkit-text-security:disc]"
               />
             </div>
             {error && <p className="text-xs text-destructive">{error}</p>}

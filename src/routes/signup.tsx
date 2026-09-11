@@ -162,9 +162,9 @@ function SignUp() {
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  id="pin" type="password" inputMode="numeric" maxLength={4}
+                  id="pin" type="text" inputMode="numeric" maxLength={4} autoComplete="off"
                   value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-                  className="h-12 rounded-2xl pl-11 text-base tracking-[0.4em] shadow-sm"
+                  className="h-12 rounded-2xl pl-11 text-base tracking-[0.4em] shadow-sm [-webkit-text-security:disc]"
                 />
               </div>
               <p className="text-xs text-muted-foreground">You'll use this PIN to sign in to the app.</p>
