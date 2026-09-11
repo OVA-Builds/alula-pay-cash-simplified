@@ -106,10 +106,14 @@ type Ctx = {
   phone: string;
   firstName: string;
   lastName: string;
-  balance: number;
+  email: string;
+  incomeSource: string;
   verified: boolean;
   plan: Plan;
   approvalPin: string | null;
+  // Signed in with this PIN at signup, checked against on login — separate
+  // from approvalPin, which authorises individual payments once inside the app.
+  appPin: string | null;
   theme: "light" | "dark";
   // Floating "Chat" bubble on Home that opens the Alula assistant.
   chatBubbleOn: boolean;
@@ -117,10 +121,9 @@ type Ctx = {
   beneficiaries: Beneficiary[];
   setOnboarded: (v: boolean) => void;
   signIn: (phone: string, firstName?: string) => void;
-  signUp: (phone: string, firstName: string, lastName: string) => void;
+  signUp: (details: { phone: string; firstName: string; lastName: string; pin: string; email: string; incomeSource: string }) => void;
   signOut: () => void;
   addTransaction: (t: Transaction) => void;
-  adjustBalance: (delta: number) => void;
   setVerified: (v: boolean) => void;
   verifyIdentity: () => void;
   setApprovalPin: (p: string | null) => void;
@@ -219,8 +222,8 @@ const sampleBenes: Beneficiary[] = [
 export const STORAGE_KEY = "alula-pay-state-v2";
 
 type Persisted = {
-  onboarded: boolean; signedIn: boolean; phone: string; firstName: string; lastName: string; balance: number;
-  verified: boolean; plan: Plan; approvalPin: string | null;
+  onboarded: boolean; signedIn: boolean; phone: string; firstName: string; lastName: string; email: string; incomeSource: string;
+  verified: boolean; plan: Plan; approvalPin: string | null; appPin: string | null;
   theme: "light" | "dark"; chatBubbleOn: boolean; transactions: Transaction[]; beneficiaries: Beneficiary[];
   freeTransactionsLeft: number; freeTxPeriod: string | null; lastPaidPeriod: string | null;
   pendingPlan: Plan | null; pendingAmountPaid: number;
@@ -305,10 +308,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [phone, setPhone] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [balance, setBalance] = useState(550);
+  const [email, setEmail] = useState("");
+  const [incomeSource, setIncomeSource] = useState("");
   const [verified, setVerified] = useState(false);
   const [plan, setPlan] = useState<Plan>("basic");
   const [approvalPin, setApprovalPinState] = useState<string | null>(null);
+  const [appPin, setAppPin] = useState<string | null>(null);
   const [theme, setThemeState] = useState<"light" | "dark">("light");
   const [chatBubbleOn, setChatBubbleOn] = useState(true);
   const [transactions, setTransactions] = useState<Transaction[]>(sampleTx);
@@ -346,10 +351,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (initial.phone !== undefined) setPhone(initial.phone);
       if (initial.firstName !== undefined) setFirstName(initial.firstName);
       if (initial.lastName !== undefined) setLastName(initial.lastName);
-      if (initial.balance !== undefined) setBalance(initial.balance);
+      if (initial.email !== undefined) setEmail(initial.email);
+      if (initial.incomeSource !== undefined) setIncomeSource(initial.incomeSource);
       if (initial.verified !== undefined) setVerified(initial.verified);
       if (initial.plan !== undefined) setPlan(initial.plan);
       if (initial.approvalPin !== undefined) setApprovalPinState(initial.approvalPin);
+      if (initial.appPin !== undefined) setAppPin(initial.appPin);
       if (initial.theme !== undefined) setThemeState(initial.theme);
       if (initial.chatBubbleOn !== undefined) setChatBubbleOn(initial.chatBubbleOn);
       if (initial.transactions !== undefined) setTransactions(initial.transactions);
@@ -377,8 +384,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!hydrated) return;
     try {
       const data: Persisted = {
-        onboarded, signedIn, phone, firstName, lastName, balance, verified, plan,
-        approvalPin, theme, chatBubbleOn, transactions, beneficiaries,
+        onboarded, signedIn, phone, firstName, lastName, email, incomeSource, verified, plan,
+        approvalPin, appPin, theme, chatBubbleOn, transactions, beneficiaries,
         freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid,
         pendingForcedSend, heldBalance,
         deletedMessageIds, readMessageIds, lastAlertsSeenAt, isNewSignup,
@@ -386,7 +393,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch {}
-  }, [hydrated, onboarded, signedIn, phone, firstName, lastName, balance, verified, plan, approvalPin, theme, chatBubbleOn, transactions, beneficiaries, freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid, pendingForcedSend, heldBalance, deletedMessageIds, readMessageIds, lastAlertsSeenAt, isNewSignup, goals, sideHustles, challenge]);
+  }, [hydrated, onboarded, signedIn, phone, firstName, lastName, email, incomeSource, verified, plan, approvalPin, appPin, theme, chatBubbleOn, transactions, beneficiaries, freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid, pendingForcedSend, heldBalance, deletedMessageIds, readMessageIds, lastAlertsSeenAt, isNewSignup, goals, sideHustles, challenge]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -404,18 +411,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setPinLocked(false);
     setIsNewSignup(false);
   }, []);
-  const signUp = useCallback((p: string, name: string, surname: string) => {
+  const signUp = useCallback(({ phone: p, firstName: name, lastName: surname, pin, email: e, incomeSource: src }: {
+    phone: string; firstName: string; lastName: string; pin: string; email: string; incomeSource: string;
+  }) => {
     // Always start a new signup on the Basic tier, unverified, with a fresh approval PIN flow.
     setPhone(p);
     setFirstName(name.trim());
     setLastName(surname.trim());
+    setEmail(e.trim());
+    setIncomeSource(src);
     setSignedIn(true);
     setPlan("basic");
     setVerified(false);
     setApprovalPinState(null);
+    setAppPin(pin);
     setPinAttemptsLeft(3);
     setPinLocked(false);
-    setBalance(0);
     setTransactions([]);
     setFreeTransactionsLeft(2);
     setFreeTxPeriod(null);
@@ -470,7 +481,6 @@ const addTransaction = useCallback((t: Transaction) => {
     });
   }
 }, []);
-  const adjustBalance = useCallback((delta: number) => setBalance((b) => +(b + delta).toFixed(2)), []);
   const setApprovalPin = useCallback((p: string | null) => {
     setApprovalPinState(p);
     setPinAttemptsLeft(3);
@@ -660,9 +670,9 @@ const addTransaction = useCallback((t: Transaction) => {
   return (
     <AppContext.Provider
       value={{
-        onboarded, signedIn, phone, firstName, lastName, balance, verified, plan, approvalPin, theme, chatBubbleOn,
+        onboarded, signedIn, phone, firstName, lastName, email, incomeSource, verified, plan, approvalPin, appPin, theme, chatBubbleOn,
         transactions, beneficiaries,
-        setOnboarded, signIn, signUp, signOut, addTransaction, adjustBalance,
+        setOnboarded, signIn, signUp, signOut, addTransaction,
         setVerified: setVerifiedWithPlan,
         verifyIdentity,
         setApprovalPin, setTheme, setChatBubbleOn, addBeneficiary,

@@ -175,7 +175,10 @@ function SignUp() {
 
         <Button
           size="lg" disabled={!canSubmit}
-          onClick={() => { signUp(phone, fixShoutyCase(firstName), fixShoutyCase(lastName)); navigate({ to: "/setup-pin" }); }}
+          onClick={() => {
+            signUp({ phone, firstName: fixShoutyCase(firstName), lastName: fixShoutyCase(lastName), pin, email, incomeSource });
+            navigate({ to: "/setup-pin" });
+          }}
           className="mt-5 h-12 rounded-full text-base shadow-button"
         >
           Continue

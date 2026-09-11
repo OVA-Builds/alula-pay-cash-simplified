@@ -8,7 +8,7 @@ export const Route = createFileRoute("/profile")({ component: Profile });
 
 function Profile() {
   const navigate = useNavigate();
-  const { phone, firstName, lastName, verified, plan, subscriptionActive, theme, setTheme, chatBubbleOn, setChatBubbleOn, signOut } = useApp();
+  const { phone, firstName, lastName, email, verified, plan, subscriptionActive, theme, setTheme, chatBubbleOn, setChatBubbleOn, signOut } = useApp();
   const planLabel = plan === "pro" ? "Pro" : "Basic";
   const fullName = [firstName, lastName].filter((n) => n?.trim()).join(" ");
   const initials = `${firstName?.trim()?.[0] ?? ""}${lastName?.trim()?.[0] ?? ""}`.toUpperCase() || "A";
@@ -32,6 +32,7 @@ function Profile() {
               </span>
             </div>
             {phone && <p className="mt-1 text-xs text-muted-foreground">+27 {phone.slice(-9)}</p>}
+            {email && <p className="mt-0.5 text-xs text-muted-foreground truncate">{email}</p>}
           </div>
         </div>
 

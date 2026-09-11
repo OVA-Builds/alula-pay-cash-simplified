@@ -27,7 +27,6 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SpendingRouteImport } from './routes/spending'
 import { Route as SubscribeRouteImport } from './routes/subscribe'
 import { Route as SupportRouteImport } from './routes/support'
-import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as HustleIndexRouteImport } from './routes/hustle.index'
 import { Route as HustleCalculatorRouteImport } from './routes/hustle.calculator'
 import { Route as HustleChallengeRouteImport } from './routes/hustle.challenge'
@@ -132,11 +131,6 @@ const SupportRoute = SupportRouteImport.update({
   path: '/support',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VerifyRoute = VerifyRouteImport.update({
-  id: '/verify',
-  path: '/verify',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const HustleIndexRoute = HustleIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -222,7 +216,6 @@ export interface FileRoutesByFullPath {
   '/spending': typeof SpendingRoute
   '/subscribe': typeof SubscribeRoute
   '/support': typeof SupportRoute
-  '/verify': typeof VerifyRoute
   '/hustle/calculator': typeof HustleCalculatorRoute
   '/hustle/challenge': typeof HustleChallengeRoute
   '/hustle/coach': typeof HustleCoachRoute
@@ -254,7 +247,6 @@ export interface FileRoutesByTo {
   '/spending': typeof SpendingRoute
   '/subscribe': typeof SubscribeRoute
   '/support': typeof SupportRoute
-  '/verify': typeof VerifyRoute
   '/hustle/calculator': typeof HustleCalculatorRoute
   '/hustle/challenge': typeof HustleChallengeRoute
   '/hustle/coach': typeof HustleCoachRoute
@@ -288,7 +280,6 @@ export interface FileRoutesById {
   '/spending': typeof SpendingRoute
   '/subscribe': typeof SubscribeRoute
   '/support': typeof SupportRoute
-  '/verify': typeof VerifyRoute
   '/hustle/calculator': typeof HustleCalculatorRoute
   '/hustle/challenge': typeof HustleChallengeRoute
   '/hustle/coach': typeof HustleCoachRoute
@@ -324,7 +315,6 @@ export interface FileRouteTypes {
     | '/spending'
     | '/subscribe'
     | '/support'
-    | '/verify'
     | '/hustle/calculator'
     | '/hustle/challenge'
     | '/hustle/coach'
@@ -356,7 +346,6 @@ export interface FileRouteTypes {
     | '/spending'
     | '/subscribe'
     | '/support'
-    | '/verify'
     | '/hustle/calculator'
     | '/hustle/challenge'
     | '/hustle/coach'
@@ -389,7 +378,6 @@ export interface FileRouteTypes {
     | '/spending'
     | '/subscribe'
     | '/support'
-    | '/verify'
     | '/hustle/calculator'
     | '/hustle/challenge'
     | '/hustle/coach'
@@ -424,7 +412,6 @@ export interface RootRouteChildren {
   SpendingRoute: typeof SpendingRoute
   SubscribeRoute: typeof SubscribeRoute
   SupportRoute: typeof SupportRoute
-  VerifyRoute: typeof VerifyRoute
   MessageIdRoute: typeof MessageIdRoute
   PayBeneficiaryIdRoute: typeof PayBeneficiaryIdRoute
 }
@@ -555,13 +542,6 @@ declare module '@tanstack/react-router' {
       path: '/support'
       fullPath: '/support'
       preLoaderRoute: typeof SupportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/verify': {
-      id: '/verify'
-      path: '/verify'
-      fullPath: '/verify'
-      preLoaderRoute: typeof VerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hustle/': {
@@ -728,7 +708,6 @@ const rootRouteChildren: RootRouteChildren = {
   SpendingRoute: SpendingRoute,
   SubscribeRoute: SubscribeRoute,
   SupportRoute: SupportRoute,
-  VerifyRoute: VerifyRoute,
   MessageIdRoute: MessageIdRoute,
   PayBeneficiaryIdRoute: PayBeneficiaryIdRoute,
 }

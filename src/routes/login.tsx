@@ -12,13 +12,22 @@ export const Route = createFileRoute("/login")({ component: Login });
 
 function Login() {
   const navigate = useNavigate();
-  const { signIn, phone: savedPhone, firstName } = useApp();
+  const { signIn, phone: savedPhone, firstName, appPin } = useApp();
   const [phone, setPhone] = useState(savedPhone || "");
   const [pin, setPin] = useState("");
+  const [error, setError] = useState("");
 
   const canSubmit = phone.length === 10 && pin.length === 4;
 
   const handleLogin = () => {
+    // Demo fallback: an account created before this device ever set an app
+    // PIN (or a fresh install with no stored PIN) accepts any 4 digits.
+    const isCorrect = appPin ? pin === appPin : true;
+    if (!isCorrect) {
+      setError("Incorrect PIN. Try again.");
+      setPin("");
+      return;
+    }
     signIn(phone, firstName);
     navigate({ to: "/home" });
   };
@@ -52,10 +61,11 @@ function Login() {
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="pin" type="password" inputMode="numeric" maxLength={4}
-                value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+                value={pin} onChange={(e) => { setPin(e.target.value.replace(/\D/g, "")); setError(""); }}
                 className="h-14 rounded-2xl pl-11 text-base tracking-[0.4em]"
               />
             </div>
+            {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
         </div>
 
