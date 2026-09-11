@@ -8,7 +8,14 @@ const SLIDE_DURATION_MS = 30000;
 // press-and-hold (pause + hide the progress bar until released).
 const HOLD_THRESHOLD_MS = 180;
 
-export type Story = { image: string; alt?: string };
+export type Story = {
+  image: string;
+  alt?: string;
+  // The default top scrim (black/40) keeps the header legible over an
+  // unpredictable photo. A designed slide with its own dark eyebrow pill
+  // doesn't need that protection and reads better without the extra dimming.
+  lightHeaderScrim?: boolean;
+};
 
 // Instagram-style full-screen story viewer — a fixed number of slides, each
 // shown for SLIDE_DURATION_MS with a segmented progress bar (the "seeker")
@@ -118,7 +125,11 @@ export function StoryViewer({
             }`}
           />
         ))}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/10" />
+        <div
+          className={`absolute inset-0 bg-gradient-to-b to-black/10 ${
+            stories[index]?.lightHeaderScrim ? "from-black/12 via-transparent" : "from-black/40 via-transparent"
+          }`}
+        />
 
         {/* Tap zones: left third = previous, right two-thirds = next.
             A quick press navigates; holding past HOLD_THRESHOLD_MS pauses

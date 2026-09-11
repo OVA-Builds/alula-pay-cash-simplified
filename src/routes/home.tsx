@@ -17,7 +17,11 @@ const PROMO_STORIES: Story[] = [
   { image: storySlide2, alt: "Different stalls. Same hustle." },
   { image: storySlide3, alt: "You worry about her tomorrow. We help you build it." },
   { image: storySlide4, alt: "Send to Gogo. Never set foot in a bank." },
-  { image: storySlide5, alt: "How Alula Pay works: buy a voucher, load the code, send it to any SA bank." },
+  {
+    image: storySlide5,
+    alt: "How Alula Pay works: buy a voucher, load the code, send it to any SA bank.",
+    lightHeaderScrim: true,
+  },
 ];
 
 export const Route = createFileRoute("/home")({ component: Home });
