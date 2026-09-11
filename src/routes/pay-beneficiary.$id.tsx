@@ -278,7 +278,7 @@ function PayBeneficiary() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold flex items-center gap-2">
                     Immediate payment
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-gold/25 text-gold-foreground px-1.5 py-0.5 rounded-full">Pro only</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-gold text-gold-foreground px-1.5 py-0.5 rounded-full">Pro only</span>
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">Upgrade to Pro to send immediately</p>
                 </div>

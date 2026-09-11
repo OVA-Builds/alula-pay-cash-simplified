@@ -66,7 +66,7 @@ export function RailToggle({
               <p className="text-sm font-semibold flex items-center gap-2">
                 {title}
                 {locked && (
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-gold/25 text-gold-foreground px-1.5 py-0.5 rounded-full">
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-gold text-gold-foreground px-1.5 py-0.5 rounded-full">
                     Pro only
                   </span>
                 )}
