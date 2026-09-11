@@ -127,7 +127,7 @@ export function StoryViewer({
         ))}
         <div
           className={`absolute inset-0 bg-gradient-to-b to-black/10 ${
-            stories[index]?.lightHeaderScrim ? "from-black/12 via-transparent" : "from-black/40 via-transparent"
+            stories[index]?.lightHeaderScrim ? "from-black/0 via-transparent" : "from-black/40 via-transparent"
           }`}
         />
 
