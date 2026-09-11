@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Landmark, Settings, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb, Users, Zap, AlertTriangle, Receipt } from "lucide-react";
+import { Landmark, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb, Users, Zap, AlertTriangle, Receipt } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { BottomSheet } from "@/components/BottomSheet";
 import { StoryViewer, type Story } from "@/components/StoryViewer";
@@ -219,18 +219,33 @@ function Home() {
           </button>
         )}
 
-        <Link
-          to="/profile"
-          className="flex flex-col items-start justify-between gap-3 rounded-3xl border border-border bg-card p-4 shadow-card"
-        >
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-foreground">
-            <Settings className="h-4.5 w-4.5" />
-          </span>
-          <div>
-            <p className="font-semibold">Settings</p>
-            <p className="text-xs text-muted-foreground">Manage your account</p>
+        {paywallActive ? (
+          <div
+            aria-disabled="true"
+            className="flex flex-col items-start justify-between gap-3 rounded-3xl bg-muted p-4 text-muted-foreground opacity-60"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-background text-muted-foreground">
+              <Receipt className="h-4.5 w-4.5" />
+            </span>
+            <div>
+              <p className="font-semibold">Pay Bills</p>
+              <p className="text-xs leading-snug">Choose a plan first</p>
+            </div>
           </div>
-        </Link>
+        ) : (
+          <Link
+            to="/pay-bills"
+            className="flex flex-col items-start justify-between gap-3 rounded-3xl border border-border bg-card p-4 shadow-card"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-foreground">
+              <Receipt className="h-4.5 w-4.5" />
+            </span>
+            <div>
+              <p className="font-semibold">Pay Bills</p>
+              <p className="text-xs text-muted-foreground">Municipalities, funerals &amp; more</p>
+            </div>
+          </Link>
+        )}
       </div>
 
       <div className="mt-4 px-6">
