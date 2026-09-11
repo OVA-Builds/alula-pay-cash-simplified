@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ArrowLeft, ShieldCheck, ScanFace, Delete, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PhoneFrame } from "@/components/PhoneFrame";
+import { StatusScreen } from "@/components/StatusScreen";
 import { useApp } from "@/lib/app-state";
 
 export const Route = createFileRoute("/setup-pin")({ component: SetupPin });
@@ -55,7 +56,21 @@ function SetupPin() {
   };
   const back = () => setPin((p) => p.slice(0, -1));
 
-  if (stage === "selfie" || stage === "scanning" || stage === "verified") {
+  if (stage === "verified") {
+    return (
+      <PhoneFrame>
+        <StatusScreen
+          variant="success"
+          title="Verified"
+          description="It's really you. Let's set your new PIN."
+          buttonLabel="Continue"
+          onButtonClick={() => setStage("create")}
+        />
+      </PhoneFrame>
+    );
+  }
+
+  if (stage === "selfie" || stage === "scanning") {
     return (
       <PhoneFrame>
         <div className="flex flex-col h-full overflow-y-auto p-8">
@@ -102,21 +117,6 @@ function SetupPin() {
               <div className="mt-8 flex items-center gap-2 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" /> Verifying your face…
               </div>
-            </div>
-          )}
-
-          {stage === "verified" && (
-            <div className="flex-1 flex flex-col items-center justify-center text-center">
-              <div className="relative">
-                <span className="absolute inset-0 rounded-full bg-success/30 animate-ripple" />
-                <div className="relative h-24 w-24 rounded-full bg-success flex items-center justify-center animate-tick-pop">
-                  <Check className="h-12 w-12 text-success-foreground" strokeWidth={3} />
-                </div>
-              </div>
-              <h2 className="mt-8 text-xl font-bold">Verified</h2>
-              <p className="mt-2 text-sm text-muted-foreground max-w-xs">
-                It's really you. Let's set your new PIN.
-              </p>
             </div>
           )}
         </div>

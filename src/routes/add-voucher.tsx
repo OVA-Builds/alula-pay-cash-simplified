@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, ScanLine, Check, ChevronDown } from "lucide-react";
+import { ArrowLeft, ScanLine, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppShell } from "@/components/AppShell";
+import { StatusScreen } from "@/components/StatusScreen";
 import { useApp, formatZAR, MIN_SEND } from "@/lib/app-state";
 
 export const Route = createFileRoute("/add-voucher")({ component: AddVoucher });
@@ -55,41 +56,26 @@ function AddVoucher() {
   };
 
   if (done !== null) {
+    const { title, description } = heldOutcome
+      ? heldOutcome.forced
+        ? {
+            title: "Ready to send",
+            description: `Your held balance now totals ${formatZAR(heldOutcome.combined)} — we'll take you straight to sending it out.`,
+          }
+        : {
+            title: "Balance topped up",
+            description: `${formatZAR(heldOutcome.combined)} held so far — still below our ${formatZAR(MIN_SEND)} minimum send. Add another voucher to send it out.`,
+          }
+      : { title: "Voucher added", description: `${formatZAR(done)} added to your wallet.` };
     return (
       <AppShell hideNav>
-        <div className="flex flex-col items-center justify-center min-h-screen sm:min-h-[860px] p-8 text-center">
-          <div className="relative">
-            <span className="absolute inset-0 rounded-full bg-success/30 animate-ripple" />
-            <div className="relative h-24 w-24 rounded-full bg-success flex items-center justify-center animate-tick-pop">
-              <Check className="h-12 w-12 text-success-foreground" strokeWidth={3} />
-            </div>
-          </div>
-          {heldOutcome ? (
-            heldOutcome.forced ? (
-              <>
-                <h1 className="mt-8 text-2xl font-bold">Ready to send</h1>
-                <p className="mt-2 text-muted-foreground">
-                  Your held balance now totals {formatZAR(heldOutcome.combined)} — we'll take you straight to sending it out.
-                </p>
-              </>
-            ) : (
-              <>
-                <h1 className="mt-8 text-2xl font-bold">Balance topped up</h1>
-                <p className="mt-2 text-muted-foreground">
-                  {formatZAR(heldOutcome.combined)} held so far — still below our {formatZAR(MIN_SEND)} minimum send. Add another voucher to send it out.
-                </p>
-              </>
-            )
-          ) : (
-            <>
-              <h1 className="mt-8 text-2xl font-bold">Voucher added</h1>
-              <p className="mt-2 text-muted-foreground">{formatZAR(done)} added to your wallet.</p>
-            </>
-          )}
-          <Button size="lg" onClick={() => navigate({ to: "/home" })} className="mt-10 h-14 w-full rounded-2xl shadow-button">
-            Done
-          </Button>
-        </div>
+        <StatusScreen
+          variant="success"
+          title={title}
+          description={description}
+          buttonLabel="Done"
+          onButtonClick={() => navigate({ to: "/home" })}
+        />
       </AppShell>
     );
   }

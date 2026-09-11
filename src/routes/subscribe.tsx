@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AppShell } from "@/components/AppShell";
+import { StatusBody } from "@/components/StatusScreen";
 import { useApp, formatZAR, MONTHLY_FEE, type Plan } from "@/lib/app-state";
 import voucherBlu from "@/assets/voucher-blu.jpg";
 import voucherOtt from "@/assets/voucher-ott.png";
@@ -326,23 +327,18 @@ function Subscribe() {
         )}
 
         {step === "success" && (
-          <div className="flex flex-col items-center py-10 text-center">
-            <div className="relative">
-              <span className="absolute inset-0 rounded-full bg-success/30 animate-ripple" />
-              <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-success animate-tick-pop">
-                <Check className="h-12 w-12 text-success-foreground" strokeWidth={3} />
-              </div>
-            </div>
-            <h1 className="mt-8 text-2xl font-bold">You're subscribed!</h1>
-            <p className="mt-2 max-w-xs text-muted-foreground">
-              Your {paidPlan === "pro" ? "Pro" : "Basic"} plan is now active.{" "}
-              {paidPlan === "basic"
-                ? "Remember, Basic transfers land in 1–2 working days."
-                : "Enjoy instant payments and higher limits."}
-            </p>
-            <Button size="lg" onClick={() => navigate({ to: "/home" })} className="mt-8 h-14 w-full rounded-2xl shadow-button">
-              Go to home
-            </Button>
+          <div className="py-10">
+            <StatusBody
+              variant="success"
+              title="You're subscribed!"
+              description={`Your ${paidPlan === "pro" ? "Pro" : "Basic"} plan is now active. ${
+                paidPlan === "basic"
+                  ? "Remember, Basic transfers land in 1–2 working days."
+                  : "Enjoy instant payments and higher limits."
+              }`}
+              buttonLabel="Go to home"
+              onButtonClick={() => navigate({ to: "/home" })}
+            />
           </div>
         )}
       </div>

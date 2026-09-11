@@ -3,14 +3,15 @@ import { useState } from "react";
 import { ArrowLeft, Camera, ShieldCheck, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/AppShell";
-import { useApp, MONTHLY_FEE } from "@/lib/app-state";
+import { StatusScreen } from "@/components/StatusScreen";
+import { useApp, MONTHLY_FEE, formatZAR } from "@/lib/app-state";
 
 export const Route = createFileRoute("/verify")({ component: Verify });
 
 function Verify() {
   const navigate = useNavigate();
   const { setVerified, adjustBalance } = useApp();
-  const [stage, setStage] = useState<"intro" | "capturing" | "checking">("intro");
+  const [stage, setStage] = useState<"intro" | "capturing" | "checking" | "success">("intro");
   const PRO_FEE = MONTHLY_FEE.pro;
   const canUpgrade = true;
 
@@ -22,10 +23,23 @@ function Verify() {
       // Charge first month's Pro subscription on upgrade.
       adjustBalance(-PRO_FEE);
       setVerified(true);
-      navigate({ to: "/home" });
+      setStage("success");
     }, 2800);
   };
 
+  if (stage === "success") {
+    return (
+      <AppShell hideNav>
+        <StatusScreen
+          variant="success"
+          title="You're Pro now"
+          description={`${formatZAR(PRO_FEE)} charged for your first month. Instant payments and higher limits are ready to use.`}
+          buttonLabel="Go to home"
+          onButtonClick={() => navigate({ to: "/home" })}
+        />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell hideNav>

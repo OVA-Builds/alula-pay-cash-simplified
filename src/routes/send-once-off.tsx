@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { ArrowLeft, Check, Clock, Zap, Lock } from "lucide-react";
+import { ArrowLeft, Clock, Zap, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { AppShell } from "@/components/AppShell";
 import { ApprovalPinDialog } from "@/components/ApprovalPinDialog";
 import { SendCelebration, type CelebrationInfo } from "@/components/SendCelebration";
+import { StatusScreen } from "@/components/StatusScreen";
 import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy } from "@/lib/app-state";
 import { SA_BANKS, type Bank } from "@/lib/banks";
 import { fixShoutyCase } from "@/lib/utils";
@@ -111,16 +112,14 @@ function OnceOff() {
   if (step === "done") {
     return (
       <AppShell hideNav>
-        <div className="flex flex-col items-center justify-center min-h-screen sm:min-h-[860px] p-8 text-center">
-          <div className="relative">
-            <span className="absolute inset-0 rounded-full bg-success/30 animate-ripple" />
-            <div className="relative h-24 w-24 rounded-full bg-success flex items-center justify-center animate-tick-pop">
-              <Check className="h-12 w-12 text-success-foreground" strokeWidth={3} />
-            </div>
-          </div>
-          <h1 className="mt-8 text-2xl font-bold">Sent</h1>
-          <p className="mt-2 text-muted-foreground">{formatZAR(netToBank)} sent to {name}.</p>
-          <div className="mt-6 w-full rounded-2xl bg-card border border-border p-4 flex items-center gap-3 text-left">
+        <StatusScreen
+          variant="success"
+          title="Sent"
+          description={`${formatZAR(netToBank)} sent to ${name}.`}
+          buttonLabel="Back to home"
+          onButtonClick={() => navigate({ to: "/home" })}
+        >
+          <div className="mt-4 w-full rounded-2xl bg-muted p-4 flex items-center gap-3 text-left">
             <Clock className="h-5 w-5 text-muted-foreground" />
             <div>
               <p className="text-sm font-medium">{fee ? railSettleCopy(fee.rail) : ""}</p>
@@ -128,10 +127,7 @@ function OnceOff() {
             </div>
           </div>
           <SendCelebration info={celebration} />
-          <Button size="lg" onClick={() => navigate({ to: "/home" })} className="mt-8 h-14 w-full rounded-2xl shadow-button">
-            Back to home
-          </Button>
-        </div>
+        </StatusScreen>
       </AppShell>
     );
   }

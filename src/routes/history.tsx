@@ -1,11 +1,12 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowDownLeft, ArrowUpRight, FileText, Download, Mail, MessageCircle, Check, Lock, ArrowLeft } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, FileText, Download, Mail, MessageCircle, Lock, ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { StatusBody } from "@/components/StatusScreen";
 import { useApp, formatZAR, formatTxDate, threeMonthsAgo } from "@/lib/app-state";
 
 export const Route = createFileRoute("/history")({
@@ -45,10 +46,7 @@ function History() {
     setVia(mode);
   };
 
-  const submitSend = () => {
-    setSent(true);
-    setTimeout(() => { setVia(null); }, 1600);
-  };
+  const submitSend = () => setSent(true);
 
   return (
     <AppShell>
@@ -203,18 +201,18 @@ function History() {
       <Dialog open={via !== null} onOpenChange={(o) => !o && setVia(null)}>
         <DialogContent className="rounded-3xl max-w-sm">
           {sent ? (
-            <div className="py-6 flex flex-col items-center text-center">
-              <div className="h-16 w-16 rounded-full bg-success flex items-center justify-center animate-tick-pop">
-                <Check className="h-8 w-8 text-success-foreground" strokeWidth={3} />
-              </div>
-              <p className="mt-4 font-semibold">
-                {via === "download" ? "Statement ready" : `Sent via ${via === "email" ? "email" : "WhatsApp"}`}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {via === "download"
-                  ? `alula-statement-${(firstName || "you").toLowerCase()}.pdf`
-                  : `We've sent it to ${dest}`}
-              </p>
+            <div className="py-6">
+              <StatusBody
+                variant="success"
+                size="sm"
+                title={via === "download" ? "Statement ready" : `Sent via ${via === "email" ? "email" : "WhatsApp"}`}
+                description={
+                  via === "download"
+                    ? `alula-statement-${(firstName || "you").toLowerCase()}.pdf`
+                    : `We've sent it to ${dest}`
+                }
+                onButtonClick={() => setVia(null)}
+              />
             </div>
           ) : (
             <>

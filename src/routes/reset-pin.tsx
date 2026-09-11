@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, ScanFace, Check, ShieldAlert, Loader2 } from "lucide-react";
+import { ArrowLeft, ScanFace, ShieldAlert, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PhoneFrame } from "@/components/PhoneFrame";
+import { StatusScreen } from "@/components/StatusScreen";
 import { useApp } from "@/lib/app-state";
 
 export const Route = createFileRoute("/reset-pin")({ component: ResetPin });
@@ -19,18 +20,36 @@ function ResetPin() {
     setTimeout(() => setStage("success"), 2200);
   };
 
+  const finishReset = () => { signOut(); navigate({ to: "/login" }); };
+
   useEffect(() => {
     if (stage !== "success") return;
-    // Clear the block, sign the user out, and route to login as instructed.
+    // Clear the block immediately; the redirect itself can also happen
+    // early if the user taps Continue instead of waiting out the timer.
     resetPinLock();
-    const t = setTimeout(() => { signOut(); navigate({ to: "/login" }); }, 1400);
+    const t = setTimeout(finishReset, 1400);
     return () => clearTimeout(t);
-  }, [stage, resetPinLock, signOut, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage, resetPinLock]);
+
+  if (stage === "success") {
+    return (
+      <PhoneFrame>
+        <StatusScreen
+          variant="success"
+          title="It's really you"
+          description="Taking you to the sign-in page. You can log in with your mobile number and app PIN."
+          buttonLabel="Continue"
+          onButtonClick={finishReset}
+        />
+      </PhoneFrame>
+    );
+  }
 
   return (
     <PhoneFrame>
-      <div className="flex flex-col min-h-screen sm:min-h-[860px] p-8">
-        <button onClick={() => navigate({ to: "/home" })} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
+      <div className="flex flex-col h-full overflow-y-auto p-8">
+        <button onClick={() => navigate({ to: "/home" })} className="h-10 w-10 shrink-0 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
           <ArrowLeft className="h-4 w-4" />
         </button>
 
@@ -75,21 +94,6 @@ function ResetPin() {
             <div className="mt-8 flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" /> Verifying your face…
             </div>
-          </div>
-        )}
-
-        {stage === "success" && (
-          <div className="flex-1 flex flex-col items-center justify-center text-center">
-            <div className="relative">
-              <span className="absolute inset-0 rounded-full bg-success/30 animate-ripple" />
-              <div className="relative h-24 w-24 rounded-full bg-success flex items-center justify-center animate-tick-pop">
-                <Check className="h-12 w-12 text-success-foreground" strokeWidth={3} />
-              </div>
-            </div>
-            <h2 className="mt-8 text-xl font-bold">It's really you</h2>
-            <p className="mt-2 text-sm text-muted-foreground max-w-xs">
-              Taking you to the sign-in page. You can log in with your mobile number and app PIN.
-            </p>
           </div>
         )}
       </div>
