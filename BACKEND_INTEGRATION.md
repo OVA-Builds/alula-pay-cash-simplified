@@ -164,20 +164,258 @@ Static FAQ content, no backend needed.
 
 ---
 
-## Suggested build order
+## Before any of this: the regulatory gate
 
-1. **Auth + accounts** — real signup/login/session backend, since almost
-   everything else depends on a real logged-in user.
-2. **Identity (DHA)** — replace `identity.verifySelfieWithDHA()`'s mock
-   body with a real KYC vendor call. Unblocks Pro upgrade and PIN
-   reset/change for real.
-3. **Payments (Ozow)** — replace `payments.sendPayout()`'s mock body.
-   Needs a webhook endpoint for settlement status, not just the
-   synchronous response.
-4. **Vouchers** — replace `vouchers.redeemVoucher()` with real per-brand
-   adapters. Needed before the wallet balance can be trusted at all.
-5. **Wallet/ledger backend** — move `balance`/`transactions` off the
-   client entirely; everything above should write through this, not to
-   `localStorage`.
-6. Notifications, statements, and cross-device sync (Beneficiaries,
-   Profile, Hustle) can follow once the above four are real.
+Worth saying plainly, because it's the part that's easy to underestimate
+and the actual bottleneck for most SA fintech builds — none of steps 1-6
+below are just an engineering task:
+
+- Moving other people's money (even via vouchers) generally requires
+  either your own **National Payment System (NPS)** participation or,
+  far more commonly for a startup, operating **under a sponsoring bank
+  or licensed payment institution** that takes on the compliance
+  relationship. You don't get to just call Ozow's API and go live.
+- **FICA** (Financial Intelligence Centre Act) requires a documented
+  KYC/CDD program, an appointed Compliance Officer, and transaction
+  monitoring/reporting for suspicious activity — this is an operational
+  program, not a checkbox in code.
+- **POPIA** governs everything you store about a user (ID numbers,
+  biometric data, transaction history) — you need a data protection
+  policy, breach process, and (per §57) may need to register certain
+  processing with the Information Regulator before you start.
+- The DHA biometric check specifically is never called directly — you
+  contract with an **accredited KYC/RegTech vendor** who already holds
+  that integration (see Step 2), and their onboarding will itself ask
+  for proof of your FICA program before they'll sell you access.
+
+None of this blocks writing the code below in parallel, but "go live with
+real money" is gated on the legal/compliance track running alongside it,
+not after it.
+
+---
+
+## Step-by-step build plan
+
+Each section assumes the previous ones are done — they build on each
+other in this order because almost everything needs a real logged-in
+user first.
+
+### 1. Auth + accounts
+
+1. **Pick a stack.** Any typical setup works — e.g. Node/Express or
+   NestJS + Postgres, or a BaaS like Supabase if you want to move fast.
+   The only hard requirement: PINs and sessions must never be handled
+   client-side only, which is the current state.
+2. **Schema.** A `users` table: `id`, `phone` (unique), `first_name`,
+   `last_name`, `email` (nullable), `source_of_income`,
+   `terms_accepted_at`, `pin_hash`, `pin_attempts`, `pin_locked_at`,
+   `plan`, `dha_verified_at`, `created_at`. Create it in a `pending`
+   state on signup — not "active" until OTP passes.
+3. **Phone OTP** (doesn't exist anywhere in the app today):
+   - `POST /auth/otp/send` — generate a 6-digit code, store it hashed
+     with a 5-minute expiry in an `otp_codes` table keyed by phone, send
+     via an SMS gateway (Clickatell, BulkSMS, Infobip, and Twilio's SA
+     numbers are the usual choices). Rate-limit sends (e.g. 3 per 10
+     minutes per number) — SMS costs money and this is the classic abuse
+     vector.
+   - `POST /auth/otp/verify` — compare the hash, check expiry, mark the
+     phone verified, issue a short-lived signup token so the client can
+     continue to PIN setup without re-entering the phone number.
+4. **Set PIN / finish signup.** `POST /auth/pin` — hash the PIN
+   server-side with argon2 or bcrypt (never store or log it plain),
+   attach it to the user row, flip the account to `active`, issue a
+   session.
+5. **Sessions.** For a wallet app, prefer **opaque server-side sessions**
+   (a random token stored in Redis/DB, mapped to a user id) over long-
+   lived JWTs — you can revoke one instantly (e.g. on a suspected
+   compromise), which a self-contained JWT can't do without an extra
+   denylist anyway.
+6. **Login.** `POST /auth/login` — phone + PIN, compare the hash,
+   increment `pin_attempts` on failure, lock after 3 (server-side —
+   today's `pinAttemptsLeft` in `app-state.tsx` is trivially bypassed by
+   editing `localStorage`), issue a session on success.
+7. **Auth middleware** on every other endpoint below: validate the
+   session, attach `req.user`, reject with 401 otherwise.
+8. **Logout / revoke.** `POST /auth/logout` deletes the session
+   server-side, not just a client-side `signOut()`.
+
+### 2. Identity verification (DHA)
+
+1. **Choose a KYC vendor** that already holds the DHA integration — you
+   don't call Home Affairs directly. Common choices in SA: Thumbzup,
+   iiDenifii, ID3 Technologies, Ideco, Smile ID, or LexisNexis Risk.
+   Evaluate on: liveness detection quality, turnaround time, and whether
+   they support the "selfie + ID number, no document photo" flow this
+   app promises Basic users (no ID doc needed to start).
+2. **Commercial + compliance onboarding** with the vendor — they'll want
+   your FICA program docs before issuing production keys (see the
+   regulatory note above). Get sandbox keys first.
+3. **Backend endpoint**, never a direct client call:
+   `POST /identity/verify-selfie` — receives the selfie (multipart or
+   base64) and the user's ID number, forwards to the vendor's API
+   server-side with your vendor credentials in a secrets manager (never
+   shipped to the client).
+4. **Handle the vendor's response**: a match score, a liveness pass/fail,
+   and their own reference id. Apply a threshold (e.g. match score
+   ≥ 0.9 **and** liveness passed) to decide `verified`.
+5. **Persist the outcome**, not the photo: an `identity_checks` table
+   (`user_id`, `vendor_ref`, `result`, `score`, `checked_at`) for audit —
+   let the vendor's own compliant storage hold the biometric image
+   itself; don't duplicate it in your DB unless your data retention
+   policy explicitly requires it.
+6. **Wire it in**: replace the mock body of
+   `verifySelfieWithDHA()` in `src/lib/api/identity.ts` with a call to
+   `POST /identity/verify-selfie`, sending the actual captured selfie
+   frame (today's UI never captures a real image — that's a client-side
+   `<video>`/`getUserMedia` addition that also needs to happen).
+7. **Differentiate failure reasons** if useful: no face detected,
+   liveness failed (spoof/photo-of-photo), no match, vendor timeout —
+   the UI currently shows one generic "Verification failed" message,
+   which is fine to keep, but the backend should still log which case it
+   was for support/fraud review.
+
+### 3. Payments (Ozow / payouts)
+
+Worth flagging up front: **Ozow's core product is collecting money in**
+(Instant EFT checkout). Sending money **out** to an arbitrary third-party
+bank account — what "Send to Bank", Pay Bills, and Pay Beneficiary all
+do — is a *payout/disbursement* product, which may mean a different
+Ozow product tier, or a different provider entirely (Stitch, Peach
+Payments' payouts, or a sponsor bank's bulk-payment API). Confirm this
+with whichever provider you approach before assuming one integration
+covers both directions.
+
+1. **Merchant/payout onboarding** with the provider — business
+   registration, banking details, and (per the regulatory note) likely a
+   sponsor-bank relationship for payouts specifically.
+2. **Backend endpoint**: `POST /payments/payout` — receives amount,
+   destination bank/branch/account, reference, and rail (EFT/RTC).
+   Re-validates everything server-side (see step 6) before calling the
+   provider's payout API with your server-side credentials.
+3. **Immediate response** from the provider is usually just "accepted,
+   here's a reference" — record the transaction as `status: pending` in
+   your ledger (see Step 5) at this point, not `Completed`.
+4. **Webhook endpoint**: `POST /webhooks/payments` — the provider calls
+   this asynchronously when the payment actually settles or fails.
+   Verify the webhook's signature (HMAC, provider-specific) before
+   trusting it, then update the transaction's real status and push a
+   notification to the user. This replaces today's client-side guess
+   (`status: fee?.rail === "RTC" ? "Completed" : "Pending"`).
+5. **Idempotency**: webhooks can be retried/duplicated by the provider —
+   dedupe on their transaction reference before applying a status update
+   twice.
+6. **Re-derive, don't trust, the numbers.** The 5% fee (`calcTransferFee`)
+   and R20 minimum (`MIN_SEND`) are client-computed today. Recompute both
+   server-side from the actual wallet balance and business rules before
+   authorizing any payout — a modified client must not be able to alter
+   either.
+7. **Account validation**: before offering to send, validate the
+   destination account via the provider's account-verification service
+   (most payout providers offer one) rather than accepting any digit
+   string of the right length, as `src/lib/banks.ts`'s `accountLength`
+   check does today.
+8. **Reconciliation job**: a nightly (or hourly) job comparing your
+   ledger against the provider's settlement report, to catch anything a
+   missed/failed webhook didn't update.
+9. **Wire it in**: replace the mock body of `sendPayout()` in
+   `src/lib/api/payments.ts` with a call to `POST /payments/payout`.
+
+### 4. Vouchers
+
+1. **Get redemption-partner status** with each brand (Blu Voucher,
+   1Voucher, OTT Voucher) — each requires its own commercial agreement
+   and API credentials; there's no single unified "SA vouchers" API.
+2. **Backend endpoint**: `POST /vouchers/redeem` — receives `brand` +
+   `pin`, dispatches to a brand-specific adapter based on `brand`.
+3. **One adapter per brand**, each calling that brand's own redeem API
+   server-side (credentials never touch the client). Each brand's API
+   marks the pin used atomically on their side and returns its face
+   value, or an error for: already redeemed, invalid/malformed, expired,
+   or a network timeout to the brand.
+4. **Credit the ledger atomically with the redemption** — the wallet
+   credit (Step 5) must happen in the same DB transaction as recording
+   that this pin was redeemed, so a retried request can't double-credit
+   even if the brand's own single-use check is somehow bypassed.
+5. **Idempotency key** from the client per redemption attempt (a UUID
+   generated once per voucher-entry screen load) so a double-tap or a
+   flaky connection retry doesn't redeem the same pin twice against your
+   own backend logic.
+6. **Wire it in**: replace the mock body of `redeemVoucher()` in
+   `src/lib/api/vouchers.ts` with a call to `POST /vouchers/redeem`.
+
+### 5. Wallet ledger
+
+This is what steps 3 and 4 write into, and what today's `balance` and
+`transactions` in `app-state.tsx` need to stop being the source of truth
+for.
+
+1. **Ledger table**: `transactions` — append-only,
+   `id, user_id, type (load/transfer/fee), amount, balance_after, status,
+   provider_ref, created_at`. Never let a client request set `balance`
+   directly.
+2. **Balance is derived**, not stored freely — either compute it by
+   summing the ledger on read, or maintain a `wallets` table whose
+   balance is updated **only** inside the same DB transaction as the
+   ledger insert that caused the change (voucher credit, payout debit,
+   fee debit) — so the two can never drift apart.
+3. **Move held-balance logic server-side.** A `held_balances` table per
+   user; the combine-and-force-send logic that's currently client JS
+   (`topUpHeldBalance` in `app-state.tsx`) becomes a server-side
+   function, run inside the same transaction as the voucher credit that
+   triggered it.
+4. **Concurrency control.** Use row-level locking (`SELECT ... FOR
+   UPDATE`) or your DB's transaction isolation to serialize balance
+   changes per user — without this, two near-simultaneous sends can each
+   read the same starting balance and together drain more than the
+   wallet actually holds. This is the single most important correctness
+   property in a wallet backend.
+5. **Client becomes read-only** for these: `GET /wallet`,
+   `GET /transactions` replace direct `localStorage` reads; `addTransaction`
+   /`adjustBalance` in `app-state.tsx` go away entirely once every mutating
+   action goes through Steps 3/4's endpoints instead.
+6. **Corrections are new rows.** Never edit or delete a ledger entry after
+   the fact — a correction is an offsetting transaction, so the audit
+   trail always explains itself.
+
+### 6. Everything else
+
+These don't block real money moving, but each is currently either faked
+or entirely absent:
+
+- **Statements** (`history.tsx`) — today's "Statement ready" confirms
+  instantly with nothing generated. Needs: a PDF-generation step (a
+  server-side renderer, or a service like PDFMonkey/DocRaptor) reading
+  from the real ledger, an email provider (SendGrid/SES/Mailgun) for the
+  email option, and a WhatsApp Business API integration (via Twilio or
+  Meta's Cloud API directly — requires WhatsApp Business verification)
+  for the WhatsApp option.
+- **Push notifications** (`notifications.tsx`, `message.$id.tsx`) —
+  `src/lib/messages.ts` is derived from local transactions only, so
+  nothing reaches a user whose app isn't open. Needs device token
+  registration (FCM for Android, APNs for iOS, or Web Push if this stays
+  a web app) and a backend trigger on ledger/settlement events (webhook
+  from Step 3 lands → push notification goes out).
+- **Cross-device sync** for Beneficiaries, Profile, and the Side Hustle
+  tools — each is local-only today. Once Step 1's auth exists, this is
+  close to free: swap their local `useState`/app-state reads and writes
+  for `GET`/`POST` calls against simple per-user CRUD endpoints (a
+  `beneficiaries` table, a `user_profile` table, `hustles`/`goals`
+  tables) — no new architecture needed, just the same pattern repeated.
+- **Support chat** (`support.tsx`) is fine to leave exactly as it is —
+  it's rule-based by design and never claimed to need a backend. Only
+  revisit this if the product ever wants live-agent escalation or an
+  LLM behind it, neither of which exists today.
+
+## Suggested order to actually build in
+
+1. **Auth + accounts** (Step 1) — nothing else has a real user without it.
+2. **Wallet ledger** (Step 5) — stand this up early even before Payments/
+   Vouchers are real, so Steps 3 and 4 have somewhere correct to write
+   into from day one instead of bolting it on after.
+3. **Identity (DHA)** (Step 2) — unblocks Pro upgrade and PIN reset/change.
+4. **Vouchers** (Step 4) — needed before the wallet balance can be trusted
+   for anything.
+5. **Payments/Ozow** (Step 3) — the highest-stakes integration; do it last
+   among the money-moving pieces, once the ledger under it is solid.
+6. **Everything else** (Step 6) — notifications, statements, cross-device
+   sync — once the above five are real.
