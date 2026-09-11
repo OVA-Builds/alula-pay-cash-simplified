@@ -436,10 +436,10 @@ function Home() {
         <Link
           to="/support"
           aria-label="Chat with Alula"
-          className="fixed bottom-24 right-5 z-40 flex h-14 items-center gap-2 rounded-full bg-gradient-gold pl-3 pr-4 shadow-gold active:scale-95 transition-transform"
+          className="fixed bottom-24 right-5 z-40 flex h-14 items-center gap-2 rounded-full bg-gradient-brand pl-3 pr-4 shadow-button active:scale-95 transition-transform"
         >
-          <MessageCircle className="h-5 w-5 text-gold-foreground" strokeWidth={2.4} />
-          <span className="text-sm font-bold text-gold-foreground">Chat</span>
+          <MessageCircle className="h-5 w-5 text-white" strokeWidth={2.4} />
+          <span className="text-sm font-bold text-white">Chat</span>
         </Link>
       )}
     </AppShell>

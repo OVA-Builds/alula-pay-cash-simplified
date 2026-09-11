@@ -91,16 +91,17 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: { error: unknown; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const message = error instanceof Error ? error.message : undefined;
 
   // A stale tab's failed chunk load sometimes surfaces here instead of as an
   // unhandled rejection the inline script can catch — same recovery, same
   // guard key, so whichever path catches it first is the one that reloads.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!isChunkLoadErrorMessage(error?.message)) return;
+    if (!isChunkLoadErrorMessage(message)) return;
     if (window.sessionStorage.getItem(CHUNK_RELOAD_KEY)) return;
     window.sessionStorage.setItem(CHUNK_RELOAD_KEY, "1");
     window.location.reload();
