@@ -10,14 +10,14 @@ import storySlide1 from "@/assets/story-1-street-vendor.jpg";
 import storySlide2 from "@/assets/story-2-market-day.jpg";
 import storySlide3 from "@/assets/story-3-mother-daughter.jpg";
 import storySlide4 from "@/assets/story-4-gogo.jpg";
-import storySlide5 from "@/assets/story-5-kasi-to-rural.jpg";
+import storySlide5 from "@/assets/story-5-how-it-works.jpg";
 
 const PROMO_STORIES: Story[] = [
   { image: storySlide1, alt: "Hustle hard. Save harder." },
   { image: storySlide2, alt: "Different stalls. Same hustle." },
   { image: storySlide3, alt: "You worry about her tomorrow. We help you build it." },
   { image: storySlide4, alt: "Send to Gogo. Never set foot in a bank." },
-  { image: storySlide5, alt: "From the Kasi to the Rurals — in minutes." },
+  { image: storySlide5, alt: "How Alula Pay works: buy a voucher, load the code, send it to any SA bank." },
 ];
 
 export const Route = createFileRoute("/home")({ component: Home });
