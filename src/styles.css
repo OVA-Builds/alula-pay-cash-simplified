@@ -1,6 +1,11 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+/* Self-hosted so the real Inter renders reliably instead of silently
+   falling back to whatever system font a device has — the app's headings
+   are tuned for Inter's letterforms (single-story 'a', tall x-height),
+   not Roboto/San Francisco/Arial. */
+@import "@fontsource-variable/inter/wght.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -105,7 +110,7 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 }
