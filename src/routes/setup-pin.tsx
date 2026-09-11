@@ -1,19 +1,29 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ShieldCheck, Delete, Check } from "lucide-react";
+import { ArrowLeft, ShieldCheck, ScanFace, Delete, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { useApp } from "@/lib/app-state";
 
 export const Route = createFileRoute("/setup-pin")({ component: SetupPin });
 
+type Stage = "selfie" | "scanning" | "create" | "confirm";
+
 function SetupPin() {
   const navigate = useNavigate();
-  const { setApprovalPin } = useApp();
-  const [stage, setStage] = useState<"create" | "confirm">("create");
+  const { approvalPin, setApprovalPin } = useApp();
+  // A PIN already on file means this is a change, reached from Profile —
+  // require a selfie first. Fresh signup has no PIN yet, so skip straight in.
+  const [isChange] = useState(() => approvalPin !== null);
+  const [stage, setStage] = useState<Stage>(isChange ? "selfie" : "create");
   const [first, setFirst] = useState("");
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
+
+  const startScan = () => {
+    setStage("scanning");
+    setTimeout(() => setStage("create"), 2200);
+  };
 
   const press = (d: string) => {
     setError("");
@@ -25,8 +35,15 @@ function SetupPin() {
           setTimeout(() => { setFirst(next); setPin(""); setStage("confirm"); }, 150);
         } else {
           setTimeout(() => {
-            if (next === first) { setApprovalPin(next); navigate({ to: "/demo-vouchers" }); }
-            else { setError("PINs don't match. Try again."); setPin(""); setStage("create"); setFirst(""); }
+            if (next === first) {
+              setApprovalPin(next);
+              navigate({ to: isChange ? "/profile" : "/demo-vouchers" });
+            } else {
+              setError("PINs don't match. Try again.");
+              setPin("");
+              setStage("create");
+              setFirst("");
+            }
           }, 150);
         }
       }
@@ -35,14 +52,75 @@ function SetupPin() {
   };
   const back = () => setPin((p) => p.slice(0, -1));
 
+  if (stage === "selfie" || stage === "scanning") {
+    return (
+      <PhoneFrame>
+        <div className="flex flex-col min-h-screen sm:min-h-[860px] p-8">
+          <button onClick={() => navigate({ to: "/profile" })} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+
+          {stage === "selfie" && (
+            <div className="flex-1 flex flex-col">
+              <div className="mx-auto mt-6 h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <ScanFace className="h-7 w-7 text-primary" />
+              </div>
+              <h1 className="mt-6 text-2xl font-bold tracking-tight text-center">
+                Verify it's you
+              </h1>
+              <p className="mt-2 text-muted-foreground text-sm text-center max-w-xs mx-auto">
+                Changing your approval PIN needs a quick selfie first, to keep your account safe.
+              </p>
+
+              <div className="mt-10 mx-auto h-56 w-56 rounded-[2rem] border-4 border-dashed border-primary/40 flex items-center justify-center">
+                <ScanFace className="h-24 w-24 text-primary/70" strokeWidth={1.4} />
+              </div>
+
+              <p className="mt-6 text-xs text-muted-foreground text-center max-w-xs mx-auto">
+                Look straight at the camera in good light. Nothing is uploaded in this demo.
+              </p>
+
+              <div className="mt-auto pt-8">
+                <Button size="lg" onClick={startScan} className="h-14 w-full rounded-2xl shadow-button">
+                  Start selfie verification
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {stage === "scanning" && (
+            <div className="flex-1 flex flex-col items-center justify-center text-center">
+              <div className="relative">
+                <span className="absolute inset-0 rounded-full bg-primary/20 animate-ripple" />
+                <div className="relative h-32 w-32 rounded-full bg-primary/10 flex items-center justify-center">
+                  <ScanFace className="h-16 w-16 text-primary" strokeWidth={1.6} />
+                </div>
+              </div>
+              <div className="mt-8 flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" /> Verifying your face…
+              </div>
+            </div>
+          )}
+        </div>
+      </PhoneFrame>
+    );
+  }
+
   return (
     <PhoneFrame>
       <div className="flex flex-col min-h-screen sm:min-h-[860px] p-8">
-        <div className="mx-auto mt-2 h-14 w-14 rounded-2xl bg-gradient-brand flex items-center justify-center shadow-button">
+        {isChange && (
+          <button onClick={() => navigate({ to: "/profile" })} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+        )}
+        <div className={`mx-auto h-14 w-14 rounded-2xl bg-gradient-brand flex items-center justify-center shadow-button ${isChange ? "mt-6" : "mt-2"}`}>
           <ShieldCheck className="h-7 w-7 text-white" />
         </div>
         <h1 className="mt-6 text-2xl font-bold tracking-tight text-center">
-          {stage === "create" ? "Set your approval PIN" : "Confirm your PIN"}
+          {stage === "create"
+            ? isChange ? "Set your new approval PIN" : "Set your approval PIN"
+            : isChange ? "Confirm your new PIN" : "Confirm your PIN"}
         </h1>
         <p className="mt-2 text-muted-foreground text-sm text-center max-w-xs mx-auto">
           5 digits. This is different from your sign-in PIN. You'll enter it every time you send money.

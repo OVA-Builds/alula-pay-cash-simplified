@@ -27,7 +27,9 @@ function Profile() {
             <p className="font-semibold truncate">{fullName || "Alula user"}</p>
             <div className="flex items-center gap-1.5 mt-1">
               <BadgeCheck className={`h-3.5 w-3.5 shrink-0 ${verified ? "text-success" : "text-muted-foreground"}`} />
-              <span className="text-xs text-muted-foreground">{planLabel} plan · {formatZAR(MONTHLY_FEE[plan])} / month</span>
+              <span className="text-xs text-muted-foreground">
+                {subscriptionActive ? `${planLabel} plan · ${formatZAR(MONTHLY_FEE[plan])} / month` : "Free Basic plan"}
+              </span>
             </div>
             {phone && <p className="mt-1 text-xs text-muted-foreground">+27 {phone.slice(-9)}</p>}
           </div>
