@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import { BottomNav } from "./BottomNav";
 import { PhoneFrame } from "./PhoneFrame";
-import { AlulaGuide } from "./AlulaGuide";
 
 export function AppShell({ children, hideNav }: { children: ReactNode; hideNav?: boolean }) {
   return (
@@ -13,7 +12,6 @@ export function AppShell({ children, hideNav }: { children: ReactNode; hideNav?:
             <BottomNav />
           </div>
         )}
-        <AlulaGuide />
       </div>
     </PhoneFrame>
   );

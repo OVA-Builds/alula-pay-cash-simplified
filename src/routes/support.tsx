@@ -9,7 +9,12 @@ import logo from "@/assets/alula-logo.png";
 export const Route = createFileRoute("/support")({ component: Support });
 
 const WAIT_MS = 5000;
-const IDLE_TIMEOUT_MS = 3 * 60 * 1000;
+// After 40s of no activity, Alula checks in; if there's still no response,
+// the chat closes exactly 90s after that check-in (not 90s of fresh
+// silence — the clock starts the moment the question is asked).
+const STILL_THERE_MS = 40 * 1000;
+const CLOSE_AFTER_PROMPT_MS = 90 * 1000;
+const STILL_THERE_PROMPT = "Are you still there?";
 const GREETING = ["Hi there, I'm Alula 👋", "How can I help you today?"];
 const ASK_MORE = "Anything else I can help with?";
 const OUT_OF_SCOPE =
@@ -39,6 +44,7 @@ function Support() {
   const [awaitingFreeText, setAwaitingFreeText] = useState(false);
   const listEndRef = useRef<HTMLDivElement>(null);
   const lastActivityRef = useRef(Date.now());
+  const stillTherePromptedAtRef = useRef<number | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -50,12 +56,20 @@ function Support() {
     return () => clearTimeout(t);
   }, []);
 
-  // Auto-end the chat after 3 minutes of no activity — matches how a real
-  // support session would time out rather than staying open forever.
+  // Idle handling: 40s of silence gets a "Are you still there?" check-in;
+  // if there's still no reply 90s after that check-in, the chat closes.
   useEffect(() => {
     if (phase !== "chat" || ended) return;
     const interval = setInterval(() => {
-      if (Date.now() - lastActivityRef.current >= IDLE_TIMEOUT_MS) {
+      const now = Date.now();
+      if (stillTherePromptedAtRef.current === null) {
+        if (now - lastActivityRef.current >= STILL_THERE_MS) {
+          say("bot", [STILL_THERE_PROMPT]);
+          stillTherePromptedAtRef.current = now;
+        }
+        return;
+      }
+      if (now - stillTherePromptedAtRef.current >= CLOSE_AFTER_PROMPT_MS) {
         setMessages((prev) => [...prev, { id: `end-${Date.now()}`, from: "system", lines: ["This chat has ended due to inactivity. Come back anytime! 👋"] }]);
         setQuickReplies([]);
         setEnded(true);
@@ -68,7 +82,7 @@ function Support() {
     listEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, quickReplies]);
 
-  const touch = () => { lastActivityRef.current = Date.now(); };
+  const touch = () => { lastActivityRef.current = Date.now(); stillTherePromptedAtRef.current = null; };
 
   const say = (from: Bubble["from"], lines: string[]) => {
     setMessages((prev) => [...prev, { id: `${from}-${Date.now()}-${Math.random()}`, from, lines }]);
@@ -155,11 +169,13 @@ function Support() {
     setDraft("");
     setPhase("waiting");
     lastActivityRef.current = Date.now();
+    stillTherePromptedAtRef.current = null;
     setTimeout(() => {
       setPhase("chat");
       setMessages([{ id: `greeting-${Date.now()}`, from: "bot", lines: GREETING }]);
       setQuickReplies(menuReplies());
       lastActivityRef.current = Date.now();
+      stillTherePromptedAtRef.current = null;
     }, WAIT_MS);
   };
 

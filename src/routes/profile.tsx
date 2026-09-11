@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ShieldCheck, ChevronRight, HelpCircle, MessageCircle, LogOut, BadgeCheck, Moon, Compass, Lock } from "lucide-react";
+import { ShieldCheck, ChevronRight, HelpCircle, MessageCircle, LogOut, BadgeCheck, Moon, Lock } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Switch } from "@/components/ui/switch";
 import { useApp, MONTHLY_FEE, formatZAR } from "@/lib/app-state";
@@ -8,7 +8,7 @@ export const Route = createFileRoute("/profile")({ component: Profile });
 
 function Profile() {
   const navigate = useNavigate();
-  const { phone, firstName, lastName, verified, plan, subscriptionActive, alulaOn, setAlulaOn, theme, setTheme, signOut } = useApp();
+  const { phone, firstName, lastName, verified, plan, subscriptionActive, theme, setTheme, chatBubbleOn, setChatBubbleOn, signOut } = useApp();
   const planLabel = plan === "pro" ? "Pro" : "Basic";
   const fullName = [firstName, lastName].filter((n) => n?.trim()).join(" ");
   const initials = `${firstName?.trim()?.[0] ?? ""}${lastName?.trim()?.[0] ?? ""}`.toUpperCase() || "A";
@@ -50,7 +50,7 @@ function Profile() {
 
         <h2 className="mt-7 mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">Preferences</h2>
         <div className="bg-card rounded-2xl border border-border divide-y divide-border">
-          <ToggleRow icon={Compass} label="Alula guide" hint="Step-by-step help when sending or adding vouchers" checked={alulaOn} onChange={setAlulaOn} />
+          <ToggleRow icon={MessageCircle} label="Chat bubble on Home" hint="Show the floating chat button on your home screen" checked={chatBubbleOn} onChange={setChatBubbleOn} />
           <ToggleRow icon={Moon} label="Dark mode" hint="Easier on the eyes at night" checked={theme === "dark"} onChange={(v) => setTheme(v ? "dark" : "light")} />
         </div>
 

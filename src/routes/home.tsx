@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Landmark, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb, Users, Zap, AlertTriangle, Building2 } from "lucide-react";
+import { Landmark, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb, Users, Zap, AlertTriangle, Building2, MessageCircle } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { BottomSheet } from "@/components/BottomSheet";
 import { StoryViewer, type Story } from "@/components/StoryViewer";
@@ -30,7 +30,7 @@ function Home() {
   const navigate = useNavigate();
   const {
     transactions, verified, plan, firstName, subscriptionActive, paywallActive, freeTransactionsLeft,
-    isNewSignup, pendingForcedSend, heldBalance,
+    isNewSignup, pendingForcedSend, heldBalance, chatBubbleOn,
   } = useApp();
   const [sendPickerOpen, setSendPickerOpen] = useState(false);
   const [storiesOpen, setStoriesOpen] = useState(false);
@@ -204,7 +204,6 @@ function Home() {
           </div>
         ) : (
           <button
-            id="guide-send"
             onClick={() => setSendPickerOpen(true)}
             className="relative flex items-center gap-3 overflow-hidden rounded-3xl bg-primary p-4 text-left text-primary-foreground shadow-button active:scale-[0.99] transition-transform"
           >
@@ -432,6 +431,17 @@ function Home() {
       </BottomSheet>
 
       <StoryViewer stories={PROMO_STORIES} open={storiesOpen} onClose={() => setStoriesOpen(false)} />
+
+      {chatBubbleOn && (
+        <Link
+          to="/support"
+          aria-label="Chat with Alula"
+          className="fixed bottom-24 right-5 z-40 flex h-14 items-center gap-2 rounded-full bg-gradient-gold pl-3 pr-4 shadow-gold active:scale-95 transition-transform"
+        >
+          <MessageCircle className="h-5 w-5 text-gold-foreground" strokeWidth={2.4} />
+          <span className="text-sm font-bold text-gold-foreground">Chat</span>
+        </Link>
+      )}
     </AppShell>
   );
 }

@@ -18,7 +18,7 @@ const TYPES: VoucherType[] = [
 
 function AddVoucher() {
   const navigate = useNavigate();
-  const { addTransaction, adjustBalance, stopGuide, heldBalance, topUpHeldBalance } = useApp();
+  const { addTransaction, adjustBalance, heldBalance, topUpHeldBalance } = useApp();
   const [type, setType] = useState<VoucherType | null>(null);
   const [code, setCode] = useState("");
   const [done, setDone] = useState<number | null>(null);
@@ -104,10 +104,10 @@ function AddVoucher() {
           <h1 className="mt-6 text-2xl font-bold tracking-tight">Choose voucher type</h1>
           <p className="mt-2 text-muted-foreground text-sm">Pick the brand printed on your voucher slip.</p>
 
-          <div id="guide-voucher-types" className="mt-6 space-y-3">
+          <div className="mt-6 space-y-3">
             {TYPES.map((t) => (
               <button
-                key={t.id} onClick={() => { stopGuide(); setType(t); }}
+                key={t.id} onClick={() => setType(t)}
                 className="w-full bg-card rounded-2xl border border-border p-4 flex items-center gap-4 active:scale-[0.99] transition-transform"
               >
                 <div className={`h-12 w-12 rounded-xl ${t.color} flex items-center justify-center text-white font-bold`}>

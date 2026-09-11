@@ -110,8 +110,9 @@ type Ctx = {
   verified: boolean;
   plan: Plan;
   approvalPin: string | null;
-  alulaOn: boolean;
   theme: "light" | "dark";
+  // Floating "Chat" bubble on Home that opens the Alula assistant.
+  chatBubbleOn: boolean;
   transactions: Transaction[];
   beneficiaries: Beneficiary[];
   setOnboarded: (v: boolean) => void;
@@ -123,18 +124,14 @@ type Ctx = {
   setVerified: (v: boolean) => void;
   verifyIdentity: () => void;
   setApprovalPin: (p: string | null) => void;
-  setAlulaOn: (v: boolean) => void;
   setTheme: (t: "light" | "dark") => void;
+  setChatBubbleOn: (v: boolean) => void;
   addBeneficiary: (b: Omit<Beneficiary, "id">) => Beneficiary;
   // Approval PIN attempts / lockout
   pinAttemptsLeft: number;
   pinLocked: boolean;
   registerPinAttempt: (correct: boolean) => { locked: boolean; left: number };
   resetPinLock: () => void;
-  // Alula in-app guided tour
-  guideMode: "deposit" | "withdraw" | null;
-  startGuide: (m: "deposit" | "withdraw") => void;
-  stopGuide: () => void;
   // Subscription paywall
   freeTransactionsLeft: number;
   subscriptionActive: boolean;
@@ -223,8 +220,8 @@ export const STORAGE_KEY = "alula-pay-state-v2";
 
 type Persisted = {
   onboarded: boolean; signedIn: boolean; phone: string; firstName: string; lastName: string; balance: number;
-  verified: boolean; plan: Plan; approvalPin: string | null; alulaOn: boolean;
-  theme: "light" | "dark"; transactions: Transaction[]; beneficiaries: Beneficiary[];
+  verified: boolean; plan: Plan; approvalPin: string | null;
+  theme: "light" | "dark"; chatBubbleOn: boolean; transactions: Transaction[]; beneficiaries: Beneficiary[];
   freeTransactionsLeft: number; freeTxPeriod: string | null; lastPaidPeriod: string | null;
   pendingPlan: Plan | null; pendingAmountPaid: number;
   pendingForcedSend: number; heldBalance: HeldBalance | null;
@@ -312,8 +309,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [verified, setVerified] = useState(false);
   const [plan, setPlan] = useState<Plan>("basic");
   const [approvalPin, setApprovalPinState] = useState<string | null>(null);
-  const [alulaOn, setAlulaOn] = useState(true);
   const [theme, setThemeState] = useState<"light" | "dark">("light");
+  const [chatBubbleOn, setChatBubbleOn] = useState(true);
   const [transactions, setTransactions] = useState<Transaction[]>(sampleTx);
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>(sampleBenes);
   // freeTransactionsLeft counts down from 2 within the billing period named
@@ -353,8 +350,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (initial.verified !== undefined) setVerified(initial.verified);
       if (initial.plan !== undefined) setPlan(initial.plan);
       if (initial.approvalPin !== undefined) setApprovalPinState(initial.approvalPin);
-      if (initial.alulaOn !== undefined) setAlulaOn(initial.alulaOn);
       if (initial.theme !== undefined) setThemeState(initial.theme);
+      if (initial.chatBubbleOn !== undefined) setChatBubbleOn(initial.chatBubbleOn);
       if (initial.transactions !== undefined) setTransactions(initial.transactions);
       if (initial.beneficiaries !== undefined) setBeneficiaries(initial.beneficiaries);
       if (initial.freeTransactionsLeft !== undefined) setFreeTransactionsLeft(initial.freeTransactionsLeft);
@@ -381,7 +378,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       const data: Persisted = {
         onboarded, signedIn, phone, firstName, lastName, balance, verified, plan,
-        approvalPin, alulaOn, theme, transactions, beneficiaries,
+        approvalPin, theme, chatBubbleOn, transactions, beneficiaries,
         freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid,
         pendingForcedSend, heldBalance,
         deletedMessageIds, readMessageIds, lastAlertsSeenAt, isNewSignup,
@@ -389,7 +386,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch {}
-  }, [hydrated, onboarded, signedIn, phone, firstName, lastName, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries, freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid, pendingForcedSend, heldBalance, deletedMessageIds, readMessageIds, lastAlertsSeenAt, isNewSignup, goals, sideHustles, challenge]);
+  }, [hydrated, onboarded, signedIn, phone, firstName, lastName, balance, verified, plan, approvalPin, theme, chatBubbleOn, transactions, beneficiaries, freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid, pendingForcedSend, heldBalance, deletedMessageIds, readMessageIds, lastAlertsSeenAt, isNewSignup, goals, sideHustles, challenge]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -398,9 +395,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const [pinAttemptsLeft, setPinAttemptsLeft] = useState(3);
   const [pinLocked, setPinLocked] = useState(false);
-  const [guideMode, setGuideMode] = useState<"deposit" | "withdraw" | null>(null);
-  const startGuide = useCallback((m: "deposit" | "withdraw") => setGuideMode(m), []);
-  const stopGuide = useCallback(() => setGuideMode(null), []);
 
   const signIn = useCallback((p: string, name?: string) => {
     setPhone(p);
@@ -666,14 +660,13 @@ const addTransaction = useCallback((t: Transaction) => {
   return (
     <AppContext.Provider
       value={{
-        onboarded, signedIn, phone, firstName, lastName, balance, verified, plan, approvalPin, alulaOn, theme,
+        onboarded, signedIn, phone, firstName, lastName, balance, verified, plan, approvalPin, theme, chatBubbleOn,
         transactions, beneficiaries,
         setOnboarded, signIn, signUp, signOut, addTransaction, adjustBalance,
         setVerified: setVerifiedWithPlan,
         verifyIdentity,
-        setApprovalPin, setAlulaOn, setTheme, addBeneficiary,
+        setApprovalPin, setTheme, setChatBubbleOn, addBeneficiary,
         pinAttemptsLeft, pinLocked, registerPinAttempt, resetPinLock,
-        guideMode, startGuide, stopGuide,
         freeTransactionsLeft: effectiveFreeTransactionsLeft, subscriptionActive, paywallActive,
         pendingPlan, pendingAmountPaid, choosePendingPlan, applyVoucherTowardSubscription,
         pendingForcedSend, clearPendingForcedSend, heldBalance, topUpHeldBalance,
