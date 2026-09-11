@@ -18,8 +18,8 @@ export const VOUCHER_PROVIDER_CONTACTS: VoucherProviderContact[] = [
   {
     id: "blu",
     name: "Blu Voucher",
-    landline: "0861 258 010",
-    email: "support@bluvoucher.co.za",
+    landline: "0800 014 942",
+    email: "info@bluelabeltelecoms.co.za",
     procedure: [
       "Re-check every digit against the till slip — no spaces, and 0/O or 1/I are the easiest to mix up.",
       "Look for a scratch-panel that isn't fully removed — a hidden digit is the most common reason a voucher won't load.",
@@ -29,8 +29,8 @@ export const VOUCHER_PROVIDER_CONTACTS: VoucherProviderContact[] = [
   {
     id: "1voucher",
     name: "1Voucher",
-    landline: "0861 468 246",
-    email: "help@1voucher.co.za",
+    landline: "086 169 3333",
+    email: "hello@1voucher.co.za",
     procedure: [
       "Confirm the 16-digit pin was entered exactly as printed — 1Voucher pins don't include letters, only digits.",
       "Check the receipt date — vouchers not activated at the till within a few minutes of purchase can occasionally take a short while to go live.",
@@ -40,8 +40,8 @@ export const VOUCHER_PROVIDER_CONTACTS: VoucherProviderContact[] = [
   {
     id: "ott",
     name: "OTT Voucher",
-    landline: "0861 226 688",
-    email: "care@ottvoucher.co.za",
+    landline: "087 805 0688",
+    email: "support@ott-mobile.com",
     procedure: [
       "Double-check the 12-digit pin — OTT vouchers are shorter than Blu or 1Voucher, so an extra or missing digit is the usual culprit.",
       "Make sure you're loading it as an OTT Voucher in the app, not one of the other brands — the pin length won't match otherwise.",
