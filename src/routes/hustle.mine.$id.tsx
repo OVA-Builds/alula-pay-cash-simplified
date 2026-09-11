@@ -16,10 +16,10 @@ export const Route = createFileRoute("/hustle/mine/$id")({ component: HustleDash
 // profit is our deep gold. Color goes on category headings and icons only —
 // never on the Rand figures themselves. The pie chart is the one exception:
 // it uses red for costs / green for profit instead (see pieData below).
-const TYPE_META: Record<BusinessLogType, { icon: typeof Package; label: string; color: string }> = {
-  ingredients: { icon: Package, label: "Ingredients", color: "text-primary" },
-  supplies: { icon: Boxes, label: "Supplies", color: "text-primary" },
-  profit: { icon: TrendingUp, label: "Profit", color: "text-gold" },
+const TYPE_META: Record<BusinessLogType, { icon: typeof Package; label: string; placeholder: string; color: string }> = {
+  ingredients: { icon: Package, label: "Ingredients", placeholder: "e.g. Meat", color: "text-primary" },
+  supplies: { icon: Boxes, label: "Supplies", placeholder: "e.g. Packaging", color: "text-primary" },
+  profit: { icon: TrendingUp, label: "Profit", placeholder: "e.g. Cash sales", color: "text-gold" },
 };
 
 function sum(items: BusinessLineItem[]) {
@@ -92,9 +92,9 @@ function LineItemSection({
         </div>
       )}
       <div className="mt-2 flex gap-2">
-        <Input value={label} onChange={(e) => setLabel(e.target.value)}
+        <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder={meta.placeholder}
           className="h-11 flex-1 rounded-2xl" autoFocus={autoFocus} />
-        <Input value={amount} inputMode="decimal"
+        <Input value={amount} inputMode="decimal" placeholder="R0"
           onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ""))}
           className="h-11 w-24 rounded-2xl" />
         <Button variant="secondary" onClick={add} className="h-11 rounded-2xl px-3" aria-label={`Add ${meta.label} item`}>
@@ -433,7 +433,7 @@ function HustleDashboard() {
           {profit.length > 0 && (
             <div className="mt-4">
               <Label>Save what % of today's profit?</Label>
-              <Input value={savePct} inputMode="numeric"
+              <Input value={savePct} inputMode="numeric" placeholder="10"
                 onChange={(e) => setSavePct(e.target.value.replace(/\D/g, ""))}
                 className="mt-2 h-12 rounded-2xl" />
               <p className="mt-1.5 text-xs text-muted-foreground">That's {formatZAR((profitTotal * savePctNum) / 100)} to put aside.</p>
