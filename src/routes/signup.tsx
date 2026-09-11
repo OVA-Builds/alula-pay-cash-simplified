@@ -69,7 +69,7 @@ function SignUp() {
             <div className="relative">
               <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                id="firstName" autoComplete="given-name" placeholder="e.g. Thandi"
+                id="firstName" autoComplete="given-name"
                 value={firstName} onChange={(e) => setFirstName(e.target.value)}
                 onBlur={() => setFirstName(fixShoutyCase(firstName))}
                 className="h-12 rounded-2xl pl-11 text-base shadow-sm"
@@ -83,7 +83,7 @@ function SignUp() {
             <div className="relative">
               <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                id="lastName" autoComplete="family-name" placeholder="e.g. Ndlovu"
+                id="lastName" autoComplete="family-name"
                 value={lastName} onChange={(e) => setLastName(e.target.value)}
                 onBlur={() => setLastName(fixShoutyCase(lastName))}
                 className="h-12 rounded-2xl pl-11 text-base shadow-sm"
@@ -96,7 +96,7 @@ function SignUp() {
             <div className="relative">
               <Phone className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                id="phone" inputMode="tel" maxLength={20} placeholder="0821234567"
+                id="phone" inputMode="tel" maxLength={20}
                 value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
                 className="h-12 rounded-2xl pl-11 text-base shadow-sm"
               />
@@ -111,7 +111,6 @@ function SignUp() {
                 id="email"
                 type="email"
                 autoComplete="email"
-                placeholder="you@example.com"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 className="h-12 rounded-2xl pl-11 text-base shadow-sm"
@@ -142,7 +141,7 @@ function SignUp() {
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  id="pin" type="password" inputMode="numeric" maxLength={4} placeholder="••••"
+                  id="pin" type="password" inputMode="numeric" maxLength={4}
                   value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
                   className="h-12 rounded-2xl pl-11 text-base tracking-[0.4em] shadow-sm"
                 />

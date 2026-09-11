@@ -236,7 +236,6 @@ function History() {
                     id="dest"
                     value={dest}
                     onChange={(e) => setDest(e.target.value)}
-                    placeholder={via === "email" ? "you@example.com" : "+27 82 000 0000"}
                     inputMode={via === "email" ? "email" : "tel"}
                     className="mt-2 h-12 rounded-2xl"
                     autoFocus

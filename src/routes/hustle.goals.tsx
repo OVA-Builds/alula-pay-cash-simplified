@@ -112,18 +112,18 @@ function Goals() {
           <div className="mt-5 space-y-4">
             <div>
               <Label>Goal name</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Buy a car"
+              <Input value={name} onChange={(e) => setName(e.target.value)}
                 className="mt-2 h-12 rounded-2xl" autoFocus />
             </div>
             <div>
               <Label>Cost (ZAR)</Label>
-              <Input value={cost} inputMode="decimal" placeholder="0.00"
+              <Input value={cost} inputMode="decimal"
                 onChange={(e) => setCost(e.target.value.replace(/[^\d.]/g, ""))}
                 className="mt-2 h-12 rounded-2xl" />
             </div>
             <div>
               <Label>Duration (months)</Label>
-              <Input value={duration} inputMode="numeric" placeholder="e.g. 6"
+              <Input value={duration} inputMode="numeric"
                 onChange={(e) => setDuration(e.target.value.replace(/\D/g, ""))}
                 className="mt-2 h-12 rounded-2xl" />
             </div>

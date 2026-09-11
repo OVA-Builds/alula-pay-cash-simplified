@@ -33,7 +33,6 @@ function FeeCalculator() {
                 <Input
                   value={amount}
                   inputMode="decimal"
-                  placeholder="0.00"
                   onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ""))}
                   className="h-16 border-none bg-transparent px-0 text-2xl font-bold shadow-none focus-visible:ring-0"
                   autoFocus

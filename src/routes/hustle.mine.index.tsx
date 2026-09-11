@@ -110,12 +110,12 @@ function MyHustles() {
           <div className="mt-5 space-y-4">
             <div>
               <Label>Side hustle name</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Cow head stand"
+              <Input value={name} onChange={(e) => setName(e.target.value)}
                 className="mt-2 h-12 rounded-2xl" autoFocus />
             </div>
             <div>
               <Label>Description</Label>
-              <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="e.g. Weekend stand near the taxi rank"
+              <Input value={description} onChange={(e) => setDescription(e.target.value)}
                 className="mt-2 h-12 rounded-2xl" />
             </div>
             <div>

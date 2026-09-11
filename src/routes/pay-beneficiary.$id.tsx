@@ -9,8 +9,8 @@ import { ApprovalPinDialog } from "@/components/ApprovalPinDialog";
 import { SendCelebration, type CelebrationInfo } from "@/components/SendCelebration";
 import { StatusScreen } from "@/components/StatusScreen";
 import { BufferScreen } from "@/components/BufferScreen";
-import { BUFFER_MS, simulateOutcome } from "@/lib/buffer";
-import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy } from "@/lib/app-state";
+import { payments, vouchers } from "@/lib/api";
+import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy, MIN_SEND } from "@/lib/app-state";
 import { useRequireSubscription } from "@/hooks/use-require-subscription";
 import voucherBlu from "@/assets/voucher-blu.jpg";
 import voucherOtt from "@/assets/voucher-ott.png";
@@ -42,7 +42,7 @@ function PayBeneficiary() {
   const navigate = useNavigate();
   const { id } = Route.useParams();
   const { presetAmount } = Route.useSearch();
-  const { beneficiaries, plan, addTransaction, transactions, challenge, clearPendingForcedSend } = useApp();
+  const { beneficiaries, plan, addTransaction, transactions, challenge, clearPendingForcedSend, topUpHeldBalance } = useApp();
   const bene = beneficiaries.find((b) => b.id === id);
 
   const [step, setStep] = useState<Step>(presetAmount ? "confirm" : "voucher");
@@ -60,6 +60,15 @@ function PayBeneficiary() {
   const [brand, setBrand] = useState<VoucherBrand | null>(null);
   const [code, setCode] = useState("");
   const [pinOpen, setPinOpen] = useState(false);
+  // Set only when a voucher used here was too small to send on its own (see
+  // topUpHeldBalance) and got held instead — a voucher below MIN_SEND never
+  // funds a send directly. Drives the "held" wording on the done screen.
+  const [heldOutcome, setHeldOutcome] = useState<{ forced: boolean; combined: number } | null>(null);
+  // Where "Try again" on the failed screen sends the user back to, and what
+  // the buffer's copy should say — voucher redemption and the bank payout
+  // are two different steps that can each independently be in flight/fail.
+  const [retryStep, setRetryStep] = useState<Step>("code");
+  const [processingKind, setProcessingKind] = useState<"voucher" | "payout">("voucher");
 
   // Pro always sends instantly, Basic always via EFT — this flow never asks
   // the client to choose (see the confirm step below).
@@ -83,48 +92,83 @@ function PayBeneficiary() {
     );
   }
 
-  const submitVoucher = () => {
+  const submitVoucher = async () => {
     if (!brand || !validCode) return;
+    const usedBrand = brand;
+    setProcessingKind("voucher");
+    setStep("processing");
+    const result = await vouchers.redeemVoucher(usedBrand.id, code, usedBrand.amount);
+    if (!result.ok) {
+      setRetryStep("code");
+      setStep("failed");
+      return;
+    }
+    // A voucher below the R20 minimum can never fund a send on its own —
+    // hold it instead of letting a sub-minimum amount through to a payout.
+    if (result.data.amountRand < MIN_SEND) {
+      const held = topUpHeldBalance(result.data.amountRand);
+      addTransaction({
+        id: crypto.randomUUID(), type: "load", amount: result.data.amountRand,
+        label: `${usedBrand.name} added — held balance top-up`, status: "Completed", date: "Just now",
+      });
+      setHeldOutcome(held);
+      setBrand(null);
+      setCode("");
+      setStep("done");
+      return;
+    }
     setStep("confirm");
   };
 
-  const confirm = () => {
+  const confirm = async () => {
     if (!brand && !presetAmount) return;
+    setProcessingKind("payout");
     setStep("processing");
-    setTimeout(() => {
-      if (simulateOutcome() === "error") {
-        setStep("failed");
-        return;
-      }
-      const firstSend = !transactions.some((t) => t.type === "transfer");
-      let struckDay: number | null = null;
-      if (challenge) {
-        const dayIndex = Math.floor((Date.now() - challenge.startedAt) / (24 * 60 * 60 * 1000));
-        if (dayIndex >= 0 && dayIndex < challenge.days && !challenge.struck[dayIndex]) struckDay = dayIndex + 1;
-      }
-      addTransaction({
-        id: crypto.randomUUID(), type: "transfer", amount: -voucherAmount,
-        label: `Sent to ${bene.name}`,
-        status: fee?.rail === "RTC" ? "Completed" : "Pending",
-        date: "Just now",
-        recipientName: bene.name,
-        bankName: bene.bank,
-        accountNumber: bene.account,
-        reference,
-        sendAmount: netToBank,
-        fee: fee?.fee ?? 0,
-        rail: fee?.rail,
-      });
-      if (presetAmount) clearPendingForcedSend();
-      setCelebration({ firstSend, struckDay, challengeDays: challenge?.days ?? null });
-      setStep("done");
-    }, BUFFER_MS);
+    const result = await payments.sendPayout({
+      amountRand: netToBank,
+      bankName: bene.bank,
+      branchCode: bene.branch,
+      accountNumber: bene.account,
+      recipientName: bene.name,
+      reference,
+      rail: fee?.rail ?? "EFT",
+    });
+    if (!result.ok) {
+      setRetryStep("confirm");
+      setStep("failed");
+      return;
+    }
+    const firstSend = !transactions.some((t) => t.type === "transfer");
+    let struckDay: number | null = null;
+    if (challenge) {
+      const dayIndex = Math.floor((Date.now() - challenge.startedAt) / (24 * 60 * 60 * 1000));
+      if (dayIndex >= 0 && dayIndex < challenge.days && !challenge.struck[dayIndex]) struckDay = dayIndex + 1;
+    }
+    addTransaction({
+      id: crypto.randomUUID(), type: "transfer", amount: -voucherAmount,
+      label: `Sent to ${bene.name}`,
+      status: fee?.rail === "RTC" ? "Completed" : "Pending",
+      date: "Just now",
+      recipientName: bene.name,
+      bankName: bene.bank,
+      accountNumber: bene.account,
+      reference,
+      sendAmount: netToBank,
+      fee: fee?.fee ?? 0,
+      rail: fee?.rail,
+    });
+    if (presetAmount) clearPendingForcedSend();
+    setCelebration({ firstSend, struckDay, challengeDays: challenge?.days ?? null });
+    setStep("done");
   };
 
   if (step === "processing") {
     return (
       <AppShell hideNav>
-        <BufferScreen title="Sending your money…" description="This takes a few seconds." />
+        <BufferScreen
+          title={processingKind === "voucher" ? "Loading your voucher…" : "Sending your money…"}
+          description="This takes a few seconds."
+        />
       </AppShell>
     );
   }
@@ -134,33 +178,43 @@ function PayBeneficiary() {
       <AppShell hideNav>
         <StatusScreen
           variant="error"
-          title="Send didn't go through"
-          description="Something went wrong on our end. Your voucher hasn't been used — please try again."
+          title={retryStep === "code" ? "Voucher didn't load" : "Send didn't go through"}
+          description={
+            retryStep === "code"
+              ? "This voucher couldn't be validated. Double-check the pin and try again."
+              : "Something went wrong on our end. Your voucher hasn't been used — please try again."
+          }
           buttonLabel="Try again"
-          onButtonClick={() => setStep("confirm")}
+          onButtonClick={() => setStep(retryStep)}
         />
       </AppShell>
     );
   }
 
   if (step === "done") {
+    const heldTitle = heldOutcome?.forced ? "Ready to send" : "Balance topped up";
+    const heldDescription = heldOutcome?.forced
+      ? `Your held balance now totals ${formatZAR(heldOutcome.combined)} — we'll take you straight to sending it out.`
+      : `${formatZAR(heldOutcome?.combined ?? 0)} held so far — still below our ${formatZAR(MIN_SEND)} minimum send. Add another voucher to send it out.`;
     return (
       <AppShell hideNav>
         <StatusScreen
           variant="success"
-          title="Sent"
-          description={`${formatZAR(netToBank)} sent to ${bene.name}.`}
+          title={heldOutcome ? heldTitle : "Sent"}
+          description={heldOutcome ? heldDescription : `${formatZAR(netToBank)} sent to ${bene.name}.`}
           buttonLabel="Back to home"
           onButtonClick={() => navigate({ to: "/home" })}
         >
-          <div className="mt-4 w-full rounded-2xl bg-muted p-4 flex items-center gap-3 text-left">
-            <Clock className="h-5 w-5 text-muted-foreground" />
-            <div>
-              <p className="text-sm font-medium">{fee ? railSettleCopy(fee.rail) : ""}</p>
-              <p className="text-xs text-muted-foreground">{fee ? railLabel(fee.rail) : ""} · {bene.bank}</p>
+          {!heldOutcome && (
+            <div className="mt-4 w-full rounded-2xl bg-muted p-4 flex items-center gap-3 text-left">
+              <Clock className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">{fee ? railSettleCopy(fee.rail) : ""}</p>
+                <p className="text-xs text-muted-foreground">{fee ? railLabel(fee.rail) : ""} · {bene.bank}</p>
+              </div>
             </div>
-          </div>
-          <SendCelebration info={celebration} />
+          )}
+          {!heldOutcome && <SendCelebration info={celebration} />}
         </StatusScreen>
       </AppShell>
     );

@@ -38,7 +38,7 @@ function Login() {
             <div className="relative">
               <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                id="phone" inputMode="tel" maxLength={20} placeholder="0821234567"
+                id="phone" inputMode="tel" maxLength={20}
                 value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
                 className="h-14 rounded-2xl pl-11 text-base"
                 autoFocus
@@ -51,7 +51,7 @@ function Login() {
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                id="pin" type="password" inputMode="numeric" maxLength={4} placeholder="••••"
+                id="pin" type="password" inputMode="numeric" maxLength={4}
                 value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
                 className="h-14 rounded-2xl pl-11 text-base tracking-[0.4em]"
               />

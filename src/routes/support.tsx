@@ -266,7 +266,6 @@ function Support() {
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") handleSend(); }}
               disabled={phase !== "chat" || ended}
-              placeholder={awaitingFreeText ? "Describe what's going on…" : "Type a message…"}
               className="h-11 flex-1 rounded-full border border-border bg-muted/50 px-4 text-sm outline-none focus:border-primary disabled:opacity-50"
             />
             <button

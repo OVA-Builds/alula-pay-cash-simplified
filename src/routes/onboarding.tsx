@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { useApp } from "@/lib/app-state";
 import hero1 from "@/assets/onboarding-1-hero.png";
@@ -308,13 +309,13 @@ function Onboarding() {
         </div>
 
         <div className="mt-6 space-y-2">
+          <Label htmlFor="googleEmail">Email or phone</Label>
           <div className="relative">
             <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              aria-label="Email or phone"
+              id="googleEmail"
               type="email"
               autoFocus
-              placeholder="Email or phone"
               value={googleEmail}
               onChange={(event) => setGoogleEmail(event.target.value)}
               onKeyDown={(event) => {
