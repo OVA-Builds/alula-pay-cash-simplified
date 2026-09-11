@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { StatusScreen } from "@/components/StatusScreen";
 import { BufferScreen } from "@/components/BufferScreen";
-import { BUFFER_MS, simulateOutcome } from "@/lib/buffer";
+import { identity } from "@/lib/api";
 import { useApp } from "@/lib/app-state";
 
 export const Route = createFileRoute("/setup-pin")({ component: SetupPin });
@@ -23,11 +23,12 @@ function SetupPin() {
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
 
-  const startScan = () => {
+  const startScan = async () => {
     setStage("scanning");
     // The buffer always resolves to an outcome before moving on — a silent
     // jump from "scanning" straight into the PIN keypad reads as broken.
-    setTimeout(() => setStage(simulateOutcome() === "success" ? "verified" : "failed"), BUFFER_MS);
+    const result = await identity.verifySelfieWithDHA();
+    setStage(result.ok ? "verified" : "failed");
   };
 
   const press = (d: string) => {

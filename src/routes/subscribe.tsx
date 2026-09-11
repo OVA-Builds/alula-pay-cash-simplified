@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { AppShell } from "@/components/AppShell";
 import { StatusBody, StatusScreen } from "@/components/StatusScreen";
 import { BufferScreen } from "@/components/BufferScreen";
-import { BUFFER_MS, simulateOutcome } from "@/lib/buffer";
+import { identity, vouchers } from "@/lib/api";
 import { useApp, formatZAR, MONTHLY_FEE, type Plan } from "@/lib/app-state";
 import voucherBlu from "@/assets/voucher-blu.jpg";
 import voucherOtt from "@/assets/voucher-ott.png";
@@ -101,43 +101,43 @@ function Subscribe() {
 
   const startSelfie = () => {
     setBioStage("capturing");
-    setTimeout(() => setBioStage("checking"), 1400);
-    setTimeout(() => {
-      if (simulateOutcome() === "success") {
+    setTimeout(async () => {
+      setBioStage("checking");
+      const result = await identity.verifySelfieWithDHA();
+      if (result.ok) {
         verifyIdentity();
         setStep("brand");
         setBioStage("intro");
       } else {
         setBioStage("failed");
       }
-    }, 1400 + BUFFER_MS);
+    }, 1400);
   };
 
-  const submitVoucher = () => {
+  const submitVoucher = async () => {
     if (!brand || !validCode) return;
     const usedBrand = brand;
     setStep("processing");
-    setTimeout(() => {
-      if (simulateOutcome() === "error") {
-        setStep("failed");
-        return;
-      }
-      const paidFor = reviewPlan;
-      const result = applyVoucherTowardSubscription(remaining, usedBrand.name);
-      setCode("");
-      setBrand(null);
-      if (result.fullyPaid) {
-        setPaidPlan(paidFor);
-        setNotice(null);
-        setStep("success");
-      } else {
-        setNotice(
-          `${formatZAR(remaining)} applied. ${formatZAR(result.outstanding)} still needed to activate your ` +
-          `${reviewPlan === "pro" ? "Pro" : "Basic"} subscription.`
-        );
-        setStep("brand");
-      }
-    }, BUFFER_MS);
+    const result = await vouchers.redeemVoucher(usedBrand.id, code, remaining);
+    if (!result.ok) {
+      setStep("failed");
+      return;
+    }
+    const paidFor = reviewPlan;
+    const applied = applyVoucherTowardSubscription(result.data.amountRand, usedBrand.name);
+    setCode("");
+    setBrand(null);
+    if (applied.fullyPaid) {
+      setPaidPlan(paidFor);
+      setNotice(null);
+      setStep("success");
+    } else {
+      setNotice(
+        `${formatZAR(remaining)} applied. ${formatZAR(applied.outstanding)} still needed to activate your ` +
+        `${reviewPlan === "pro" ? "Pro" : "Basic"} subscription.`
+      );
+      setStep("brand");
+    }
   };
 
   const goBack = () => {

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { AppShell } from "@/components/AppShell";
 import { StatusScreen } from "@/components/StatusScreen";
 import { BufferScreen } from "@/components/BufferScreen";
-import { BUFFER_MS, simulateOutcome } from "@/lib/buffer";
+import { vouchers } from "@/lib/api";
 import { useApp, formatZAR, MIN_SEND } from "@/lib/app-state";
 
 export const Route = createFileRoute("/add-voucher")({ component: AddVoucher });
@@ -34,36 +34,36 @@ function AddVoucher() {
   const digits = code.replace(/\D/g, "");
   const valid = type && digits.length === type.length;
 
-  const submit = () => {
+  const submit = async () => {
     if (!valid || !type) return;
     setStage("processing");
-    setTimeout(() => {
-      if (simulateOutcome() === "error") {
-        setStage("failed");
-        return;
-      }
-      // Mock: derive amount from voucher type for demo. Blu R10, OTT R200, 1Voucher R50.
-      const amount = type.id === "ott" ? 200 : type.id === "blu" ? 10 : 50;
-      // A held balance is money Alula Pay already set aside because it was too
-      // small to send alone — a fresh voucher tops that up first, rather than
-      // ever landing in the spendable wallet alongside it.
-      if (heldBalance) {
-        const result = topUpHeldBalance(amount);
-        addTransaction({
-          id: crypto.randomUUID(), type: "load", amount,
-          label: `${type.name} added — held balance top-up`, status: "Completed", date: "Just now",
-        });
-        setHeldOutcome(result);
-      } else {
-        adjustBalance(amount);
-        addTransaction({
-          id: crypto.randomUUID(), type: "load", amount,
-          label: `${type.name} added`, status: "Completed", date: "Just now",
-        });
-      }
-      setStage(null);
-      setDone(amount);
-    }, BUFFER_MS);
+    // Mock: derive amount from voucher type for demo. Blu R10, OTT R200, 1Voucher R50.
+    const faceValue = type.id === "ott" ? 200 : type.id === "blu" ? 10 : 50;
+    const result = await vouchers.redeemVoucher(type.id, code, faceValue);
+    if (!result.ok) {
+      setStage("failed");
+      return;
+    }
+    const amount = result.data.amountRand;
+    // A held balance is money Alula Pay already set aside because it was too
+    // small to send alone — a fresh voucher tops that up first, rather than
+    // ever landing in the spendable wallet alongside it.
+    if (heldBalance) {
+      const held = topUpHeldBalance(amount);
+      addTransaction({
+        id: crypto.randomUUID(), type: "load", amount,
+        label: `${type.name} added — held balance top-up`, status: "Completed", date: "Just now",
+      });
+      setHeldOutcome(held);
+    } else {
+      adjustBalance(amount);
+      addTransaction({
+        id: crypto.randomUUID(), type: "load", amount,
+        label: `${type.name} added`, status: "Completed", date: "Just now",
+      });
+    }
+    setStage(null);
+    setDone(amount);
   };
 
   if (stage === "processing") {

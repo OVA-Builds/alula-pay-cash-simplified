@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { StatusScreen } from "@/components/StatusScreen";
 import { BufferScreen } from "@/components/BufferScreen";
-import { BUFFER_MS, simulateOutcome } from "@/lib/buffer";
+import { identity } from "@/lib/api";
 import { useApp } from "@/lib/app-state";
 
 export const Route = createFileRoute("/reset-pin")({ component: ResetPin });
@@ -17,9 +17,10 @@ function ResetPin() {
   const { resetPinLock, signOut, pinLocked } = useApp();
   const [stage, setStage] = useState<Stage>("intro");
 
-  const startScan = () => {
+  const startScan = async () => {
     setStage("scanning");
-    setTimeout(() => setStage(simulateOutcome() === "success" ? "success" : "failed"), BUFFER_MS);
+    const result = await identity.verifySelfieWithDHA();
+    setStage(result.ok ? "success" : "failed");
   };
 
   const finishReset = () => { signOut(); navigate({ to: "/login" }); };

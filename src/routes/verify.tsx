@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/AppShell";
 import { StatusScreen } from "@/components/StatusScreen";
 import { BufferScreen } from "@/components/BufferScreen";
-import { BUFFER_MS, simulateOutcome } from "@/lib/buffer";
+import { identity } from "@/lib/api";
 import { useApp, MONTHLY_FEE, formatZAR } from "@/lib/app-state";
 
 export const Route = createFileRoute("/verify")({ component: Verify });
@@ -20,9 +20,10 @@ function Verify() {
   const start = () => {
     if (!canUpgrade) return;
     setStage("capturing");
-    setTimeout(() => setStage("checking"), 1400);
-    setTimeout(() => {
-      if (simulateOutcome() === "success") {
+    setTimeout(async () => {
+      setStage("checking");
+      const result = await identity.verifySelfieWithDHA();
+      if (result.ok) {
         // Charge first month's Pro subscription only once verification succeeds.
         adjustBalance(-PRO_FEE);
         setVerified(true);
@@ -30,7 +31,7 @@ function Verify() {
       } else {
         setStage("failed");
       }
-    }, 1400 + BUFFER_MS);
+    }, 1400);
   };
 
   if (stage === "success") {
