@@ -1,27 +1,44 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
-import { ArrowDownLeft, ArrowUpRight, FileText, Download, Mail, MessageCircle, Check, Lock, ArrowLeft } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowDownLeft, ArrowUpRight, FileText, Download, Mail, MessageCircle, Lock, ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { useApp, formatZAR, formatTxDate } from "@/lib/app-state";
+import { StatusBody } from "@/components/StatusScreen";
+import { useApp, formatZAR, formatTxDate, threeMonthsAgo } from "@/lib/app-state";
 
-export const Route = createFileRoute("/history")({ component: History });
+export const Route = createFileRoute("/history")({
+  component: History,
+  validateSearch: (search: Record<string, unknown>): { highlight?: string } => ({
+    highlight: typeof search.highlight === "string" ? search.highlight : undefined,
+  }),
+});
 
 type SendVia = "download" | "email" | "whatsapp" | null;
 
 function History() {
   const router = useRouter();
+  const { highlight } = Route.useSearch();
   const { transactions, firstName, plan } = useApp();
   const [via, setVia] = useState<SendVia>(null);
   const [dest, setDest] = useState("");
   const [sent, setSent] = useState(false);
   const [filter, setFilter] = useState<"all" | "in" | "out">("all");
-  const filtered = transactions.filter((t) =>
+  const cutoff = threeMonthsAgo();
+  const recentOnly = transactions.filter((t) => (t.createdAt ?? Date.now()) >= cutoff);
+  const filtered = recentOnly.filter((t) =>
     filter === "all" ? true : filter === "in" ? t.amount > 0 : t.amount < 0
   );
+
+  // Jump straight to a transaction opened from Home or Notifications and
+  // give it a brief gold glow so it's obvious which one it is.
+  useEffect(() => {
+    if (!highlight) return;
+    const el = document.getElementById(`tx-${highlight}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [highlight, filtered.length]);
 
   const openStatement = (mode: Exclude<SendVia, null>) => {
     setSent(false);
@@ -29,10 +46,7 @@ function History() {
     setVia(mode);
   };
 
-  const submitSend = () => {
-    setSent(true);
-    setTimeout(() => { setVia(null); }, 1600);
-  };
+  const submitSend = () => setSent(true);
 
   return (
     <AppShell>
@@ -47,7 +61,7 @@ function History() {
           </button>
         </div>
         <h1 className="text-2xl font-bold tracking-tight">Transaction history</h1>
-        <p className="text-sm text-muted-foreground mt-1">Everything that has moved in and out.</p>
+        <p className="text-sm text-muted-foreground mt-1">Everything that has moved in and out in the past 3 months.</p>
 
         {/* 3-month deposit statement card */}
         <div className="mt-5 rounded-2xl border border-border bg-card p-5 shadow-soft">
@@ -97,12 +111,64 @@ function History() {
 
         <div className="mt-3 bg-card rounded-2xl border border-border divide-y divide-border">
           {filtered.length === 0 && (
-            <p className="p-6 text-center text-xs text-muted-foreground">No {filter === "in" ? "incoming" : filter === "out" ? "outgoing" : ""} transactions yet.</p>
+            <p className="p-6 text-center text-xs text-muted-foreground">No {filter === "in" ? "incoming" : filter === "out" ? "outgoing" : ""} transactions in the past 3 months.</p>
           )}
           {filtered.map((t) => {
             const positive = t.amount > 0;
+            const isItemizedTransfer = t.type === "transfer" && !!t.recipientName;
+
+            const isHighlighted = t.id === highlight;
+
+            if (isItemizedTransfer) {
+              return (
+                <div
+                  key={t.id}
+                  id={`tx-${t.id}`}
+                  className={`p-4 ${isHighlighted ? "rounded-2xl shadow-gold ring-2 ring-gold animate-gold-glow-pulse" : ""}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="h-11 w-11 rounded-full bg-muted flex items-center justify-center shrink-0">
+                      <ArrowUpRight className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">{t.recipientName}</p>
+                      <p className="text-xs text-muted-foreground truncate">{t.bankName} • {t.accountNumber}</p>
+                      {t.reference && <p className="text-xs text-muted-foreground truncate">Ref: {t.reference}</p>}
+                      <div className="mt-0.5 flex items-center gap-1.5">
+                        <span className="text-xs text-muted-foreground">{formatTxDate(t)}</span>
+                        {t.rail && (
+                          <>
+                            <span className="text-xs text-muted-foreground">•</span>
+                            <span className={`text-[11px] font-semibold ${t.rail === "RTC" ? "text-primary" : "text-muted-foreground"}`}>
+                              {t.rail === "RTC" ? "Instant" : "EFT"}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-semibold text-destructive">-{formatZAR(t.sendAmount ?? Math.abs(t.amount))}</p>
+                      <p className={`text-[11px] mt-0.5 ${t.status === "Completed" ? "text-success" : "text-gold-foreground"}`}>
+                        {t.status}
+                      </p>
+                    </div>
+                  </div>
+                  {typeof t.fee === "number" && (
+                    <div className="mt-2.5 flex items-center justify-between rounded-xl bg-muted/50 px-3 py-2">
+                      <span className="text-xs text-muted-foreground">Transaction fee</span>
+                      <span className="text-xs font-semibold text-muted-foreground">-{formatZAR(t.fee)}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
-              <div key={t.id} className="flex items-center gap-3 p-4">
+              <div
+                key={t.id}
+                id={`tx-${t.id}`}
+                className={`flex items-center gap-3 p-4 ${isHighlighted ? "rounded-2xl shadow-gold ring-2 ring-gold animate-gold-glow-pulse" : ""}`}
+              >
                 <div className={`h-11 w-11 rounded-full flex items-center justify-center ${positive ? "bg-success/10" : "bg-muted"}`}>
                   {positive ? (
                     <ArrowDownLeft className="h-5 w-5 text-success" />
@@ -135,18 +201,18 @@ function History() {
       <Dialog open={via !== null} onOpenChange={(o) => !o && setVia(null)}>
         <DialogContent className="rounded-3xl max-w-sm">
           {sent ? (
-            <div className="py-6 flex flex-col items-center text-center">
-              <div className="h-16 w-16 rounded-full bg-success flex items-center justify-center animate-tick-pop">
-                <Check className="h-8 w-8 text-success-foreground" strokeWidth={3} />
-              </div>
-              <p className="mt-4 font-semibold">
-                {via === "download" ? "Statement ready" : `Sent via ${via === "email" ? "email" : "WhatsApp"}`}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {via === "download"
-                  ? `alula-statement-${(firstName || "you").toLowerCase()}.pdf`
-                  : `We've sent it to ${dest}`}
-              </p>
+            <div className="py-6">
+              <StatusBody
+                variant="success"
+                size="sm"
+                title={via === "download" ? "Statement ready" : `Sent via ${via === "email" ? "email" : "WhatsApp"}`}
+                description={
+                  via === "download"
+                    ? `alula-statement-${(firstName || "you").toLowerCase()}.pdf`
+                    : `We've sent it to ${dest}`
+                }
+                onButtonClick={() => setVia(null)}
+              />
             </div>
           ) : (
             <>
@@ -170,9 +236,9 @@ function History() {
                     id="dest"
                     value={dest}
                     onChange={(e) => setDest(e.target.value)}
-                    placeholder={via === "email" ? "you@example.com" : "+27 82 000 0000"}
                     inputMode={via === "email" ? "email" : "tel"}
                     className="mt-2 h-12 rounded-2xl"
+                    autoFocus
                   />
                 </div>
               )}

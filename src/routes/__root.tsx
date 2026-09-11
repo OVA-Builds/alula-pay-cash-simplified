@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect } from "react";
 import {
   Outlet,
   Link,
@@ -11,12 +12,61 @@ import {
 import appCss from "../styles.css?url";
 import { AppProvider, STORAGE_KEY } from "@/lib/app-state";
 
+// Shared with chunkReloadScript below — same guard key, same match rules.
+// A stale tab's dynamic import() can either reject before React ever sees it
+// (caught by the inline script) or get caught by the router's own error
+// boundary instead (caught here) — which one happens depends on exactly
+// where in the router's lazy-loading it fails. Both paths lead to the same
+// single guarded reload, so it's covered either way.
+const CHUNK_RELOAD_KEY = "alula-chunk-reload-once";
+function isChunkLoadErrorMessage(msg: unknown): boolean {
+  return typeof msg === "string" && (
+    msg.indexOf("Failed to fetch dynamically imported module") !== -1 ||
+    msg.indexOf("error loading dynamically imported module") !== -1 ||
+    msg.indexOf("Importing a module script failed") !== -1
+  );
+}
+
 const themeBootScript = `
 try {
   var raw = localStorage.getItem('${STORAGE_KEY}');
   var theme = raw ? JSON.parse(raw).theme : null;
   document.documentElement.classList.toggle('dark', theme === 'dark');
 } catch (_) {}
+`;
+
+// A tab left open across a new deploy is still running the old JS bundle;
+// when it then tries to lazy-load a route chunk, that chunk 404s (the old
+// build's files are gone) and the dynamic import() rejects. That rejection
+// happens outside React's render cycle, so the router's own error boundary
+// never sees it — the app just silently stops navigating, stuck wherever it
+// was. Catch that specific failure at the window level and hard-reload once
+// to pick up the current deploy; sessionStorage stops it from looping if the
+// reload doesn't actually fix things (e.g. genuinely offline).
+const chunkReloadScript = `
+(function () {
+  var KEY = 'alula-chunk-reload-once';
+  function isChunkLoadError(msg) {
+    return typeof msg === 'string' && (
+      msg.indexOf('Failed to fetch dynamically imported module') !== -1 ||
+      msg.indexOf('error loading dynamically imported module') !== -1 ||
+      msg.indexOf('Importing a module script failed') !== -1
+    );
+  }
+  function recover() {
+    if (sessionStorage.getItem(KEY)) return;
+    sessionStorage.setItem(KEY, '1');
+    window.location.reload();
+  }
+  window.addEventListener('unhandledrejection', function (e) {
+    var reason = e && e.reason;
+    var msg = reason && (reason.message || String(reason));
+    if (isChunkLoadError(msg)) recover();
+  });
+  window.addEventListener('error', function (e) {
+    if (isChunkLoadError(e && e.message)) recover();
+  }, true);
+})();
 `;
 
 function NotFoundComponent() {
@@ -41,9 +91,21 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: { error: unknown; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const message = error instanceof Error ? error.message : undefined;
+
+  // A stale tab's failed chunk load sometimes surfaces here instead of as an
+  // unhandled rejection the inline script can catch — same recovery, same
+  // guard key, so whichever path catches it first is the one that reloads.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!isChunkLoadErrorMessage(message)) return;
+    if (window.sessionStorage.getItem(CHUNK_RELOAD_KEY)) return;
+    window.sessionStorage.setItem(CHUNK_RELOAD_KEY, "1");
+    window.location.reload();
+  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -81,14 +143,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Alula Pay" },
+      { name: "description", content: "Send money, track your side hustle, and grow your savings with Alula Pay." },
+      { name: "author", content: "Alula Pay" },
+      { property: "og:title", content: "Alula Pay" },
+      { property: "og:description", content: "Send money, track your side hustle, and grow your savings with Alula Pay." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
@@ -108,6 +169,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: chunkReloadScript }} />
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
       </head>
       <body>

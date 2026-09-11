@@ -6,20 +6,45 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { useApp } from "@/lib/app-state";
+import { loginUser } from "@/lib/backend/users";
 import logo from "@/assets/alula-logo.png";
 
 export const Route = createFileRoute("/login")({ component: Login });
 
 function Login() {
   const navigate = useNavigate();
-  const { signIn, phone: savedPhone, firstName } = useApp();
+  const { signIn, phone: savedPhone, firstName, lastName, email, incomeSource, appPin } = useApp();
   const [phone, setPhone] = useState(savedPhone || "");
   const [pin, setPin] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = phone.replace(/\D/g, "").length >= 9 && pin.length === 4;
+  const canSubmit = phone.length === 10 && pin.length === 4 && !submitting;
 
-  const handleLogin = () => {
-    signIn(phone, firstName);
+  const handleLogin = async () => {
+    setSubmitting(true);
+    setError("");
+    const result = await loginUser({ data: { phone, pin } }).catch(() => null);
+    if (!result) {
+      // Demo fallback: this device's own last account, for when the server
+      // can't be reached at all — never used when a real check succeeds or
+      // fails cleanly, only when the request itself couldn't complete.
+      if (appPin && pin === appPin && phone === savedPhone) {
+        signIn({ phone, firstName, lastName, email, incomeSource });
+        navigate({ to: "/home" });
+        return;
+      }
+      setError("Couldn't reach the server. Check your connection and try again.");
+      setSubmitting(false);
+      return;
+    }
+    if (!result.ok) {
+      setError(result.error);
+      setPin("");
+      setSubmitting(false);
+      return;
+    }
+    signIn(result.user);
     navigate({ to: "/home" });
   };
 
@@ -38,9 +63,10 @@ function Login() {
             <div className="relative">
               <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                id="phone" inputMode="tel" placeholder="082 123 4567"
-                value={phone} onChange={(e) => setPhone(e.target.value)}
+                id="phone" inputMode="tel" maxLength={20}
+                value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
                 className="h-14 rounded-2xl pl-11 text-base"
+                autoFocus
               />
             </div>
           </div>
@@ -50,11 +76,12 @@ function Login() {
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                id="pin" type="password" inputMode="numeric" maxLength={4} placeholder="••••"
-                value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-                className="h-14 rounded-2xl pl-11 text-base tracking-[0.4em]"
+                id="pin" type="text" inputMode="numeric" maxLength={4} autoComplete="off"
+                value={pin} onChange={(e) => { setPin(e.target.value.replace(/\D/g, "")); setError(""); }}
+                className="h-14 rounded-2xl pl-11 text-base tracking-[0.4em] [-webkit-text-security:disc]"
               />
             </div>
+            {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
         </div>
 
@@ -62,7 +89,7 @@ function Login() {
           size="lg" disabled={!canSubmit} onClick={handleLogin}
           className="h-14 rounded-2xl text-base shadow-button"
         >
-          Sign in
+          {submitting ? "Signing in…" : "Sign in"}
         </Button>
 
         <p className="mt-5 text-center text-sm text-muted-foreground">

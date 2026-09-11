@@ -1,11 +1,16 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Mail, Phone, Lock, ShieldCheck, User } from "lucide-react";
+import { ArrowRight, Mail, Phone, Lock, ShieldCheck, User, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PhoneFrame } from "@/components/PhoneFrame";
+import { TermsDialog } from "@/components/TermsDialog";
 import { useApp } from "@/lib/app-state";
+import { signupUser } from "@/lib/backend/users";
+import { fixShoutyCase } from "@/lib/utils";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -21,36 +26,105 @@ export const Route = createFileRoute("/signup")({
   component: SignUp,
 });
 
+const INCOME_SOURCES = ["Self-employed", "Unemployed", "Employed", "Grants", "Pensioner"] as const;
+
 function SignUp() {
   const navigate = useNavigate();
   const { signUp } = useApp();
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
+  const [incomeSource, setIncomeSource] = useState<string>("");
   const [pin, setPin] = useState("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   useEffect(() => {
     const savedEmail = window.sessionStorage.getItem("alula-google-email");
     if (savedEmail) setEmail(savedEmail);
   }, []);
 
-  const canSubmit = firstName.trim().length >= 2 && phone.replace(/\D/g, "").length >= 9 && pin.length === 4;
+  const canSubmit =
+    firstName.trim().length >= 2 &&
+    lastName.trim().length >= 2 &&
+    phone.length === 10 &&
+    incomeSource !== "" &&
+    pin.length === 4 &&
+    agreedToTerms &&
+    !submitting;
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    setSubmitError("");
+    const cleanFirst = fixShoutyCase(firstName);
+    const cleanLast = fixShoutyCase(lastName);
+    const result = await signupUser({ data: { phone, firstName: cleanFirst, lastName: cleanLast, pin, email, incomeSource } }).catch(
+      () => ({ ok: false as const, error: "Couldn't reach the server. Check your connection and try again." }),
+    );
+    if (!result.ok) {
+      setSubmitError(result.error);
+      setSubmitting(false);
+      return;
+    }
+    signUp({ phone, firstName: cleanFirst, lastName: cleanLast, pin, email, incomeSource });
+    navigate({ to: "/setup-pin" });
+  };
 
   return (
     <PhoneFrame>
-      <div className="flex min-h-screen flex-col p-8 sm:min-h-[860px]">
-        <div className="pt-4">
-          <h1 className="text-3xl font-bold tracking-tight">Create your account</h1>
-          <p className="mt-2 text-muted-foreground">Takes about 30 seconds.</p>
-        </div>
+      <div className="flex h-full min-h-full flex-col overflow-y-auto bg-background px-6 py-6">
+        <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Takes about a minute.</p>
 
-        <div className="mt-6 inline-flex w-fit items-center gap-2 rounded-full bg-gold/30 px-3 py-1.5 text-xs font-medium text-gold-foreground">
+        <div className="mt-4 inline-flex w-fit items-center gap-2 rounded-full bg-gold px-3 py-1.5 text-xs font-semibold text-gold-foreground shadow-sm">
           <ShieldCheck className="h-3.5 w-3.5" />
           Basic plan — no ID needed to start
         </div>
 
-        <div className="mt-8 flex-1 space-y-5">
-          <div className="space-y-2">
+        <div className="mt-5 space-y-3.5 rounded-3xl border border-border bg-card p-4 shadow-card">
+          <div className="space-y-1.5">
+            <Label htmlFor="firstName">First name</Label>
+            <div className="relative">
+              <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="firstName" autoComplete="given-name"
+                value={firstName} onChange={(e) => setFirstName(e.target.value)}
+                onBlur={() => setFirstName(fixShoutyCase(firstName))}
+                className="h-12 rounded-2xl pl-11 text-base shadow-sm"
+                autoFocus
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="lastName">Last name</Label>
+            <div className="relative">
+              <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="lastName" autoComplete="family-name"
+                value={lastName} onChange={(e) => setLastName(e.target.value)}
+                onBlur={() => setLastName(fixShoutyCase(lastName))}
+                className="h-12 rounded-2xl pl-11 text-base shadow-sm"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="phone">Mobile number</Label>
+            <div className="relative">
+              <Phone className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="phone" inputMode="tel" maxLength={20}
+                value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                className="h-12 rounded-2xl pl-11 text-base shadow-sm"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -58,60 +132,86 @@ function SignUp() {
                 id="email"
                 type="email"
                 autoComplete="email"
-                placeholder="you@example.com"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="h-14 rounded-2xl pl-11 text-base"
+                className="h-12 rounded-2xl pl-11 text-base shadow-sm"
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="firstName">First name</Label>
-            <div className="relative">
-              <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="firstName" autoComplete="given-name" placeholder="e.g. Thandi"
-                value={firstName} onChange={(e) => setFirstName(e.target.value)}
-                className="h-14 rounded-2xl pl-11 text-base"
-              />
+          <div className="border-t border-border pt-3.5 space-y-3.5">
+            <div className="space-y-1.5">
+              <Label htmlFor="incomeSource">Source of income</Label>
+              <Select value={incomeSource} onValueChange={setIncomeSource}>
+                <SelectTrigger id="incomeSource" className="h-12 rounded-2xl pl-3 text-base shadow-sm [&>svg]:mr-1">
+                  <span className="flex items-center gap-2.5">
+                    <Briefcase className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <SelectValue placeholder="Select an option" />
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  {INCOME_SOURCES.map((source) => (
+                    <SelectItem key={source} value={source}>{source}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="phone">Mobile number</Label>
-            <div className="relative">
-              <Phone className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="phone" inputMode="tel" placeholder="082 123 4567"
-                value={phone} onChange={(e) => setPhone(e.target.value)}
-                className="h-14 rounded-2xl pl-11 text-base"
-              />
+            <div className="space-y-1.5">
+              <Label htmlFor="pin">Create a 4-digit app PIN</Label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="pin" type="text" inputMode="numeric" maxLength={4} autoComplete="off"
+                  value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+                  className="h-12 rounded-2xl pl-11 text-base tracking-[0.4em] shadow-sm [-webkit-text-security:disc]"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">You'll use this PIN to sign in to the app.</p>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="pin">Create a 4-digit app PIN</Label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="pin" type="password" inputMode="numeric" maxLength={4} placeholder="••••"
-                value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-                className="h-14 rounded-2xl pl-11 text-base tracking-[0.4em]"
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">You'll use this PIN to sign in to the app.</p>
           </div>
         </div>
 
+        <label
+          htmlFor="terms"
+          className="mt-4 flex items-start gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm cursor-pointer"
+        >
+          <Checkbox
+            id="terms"
+            checked={agreedToTerms}
+            onCheckedChange={(v) => setAgreedToTerms(v === true)}
+            className="mt-0.5"
+          />
+          <span className="text-sm leading-snug text-muted-foreground">
+            I agree to Alula Pay's{" "}
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setTermsOpen(true); }}
+              className="font-semibold text-primary underline underline-offset-2"
+            >
+              Terms and Conditions
+            </button>
+          </span>
+        </label>
+
+        {submitError && <p className="mt-4 text-center text-xs text-destructive">{submitError}</p>}
+
         <Button
           size="lg" disabled={!canSubmit}
-          onClick={() => { signUp(phone, firstName); navigate({ to: "/setup-pin" }); }}
-          className="h-14 rounded-2xl text-base shadow-button"
+          onClick={handleSubmit}
+          className="mt-5 h-12 rounded-full text-base shadow-button"
         >
-          Continue
+          {submitting ? "Creating account…" : "Continue"}
+          {!submitting && <ArrowRight className="h-4 w-4" />}
         </Button>
       </div>
+
+      <TermsDialog
+        open={termsOpen}
+        onOpenChange={setTermsOpen}
+        onAgree={() => { setAgreedToTerms(true); setTermsOpen(false); }}
+        onDecline={() => { setAgreedToTerms(false); setTermsOpen(false); }}
+      />
     </PhoneFrame>
   );
 }

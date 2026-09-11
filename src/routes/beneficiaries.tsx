@@ -5,10 +5,18 @@ import { Input } from "@/components/ui/input";
 import { AppShell } from "@/components/AppShell";
 import { useApp } from "@/lib/app-state";
 
-export const Route = createFileRoute("/beneficiaries")({ component: Beneficiaries });
+export const Route = createFileRoute("/beneficiaries")({
+  component: Beneficiaries,
+  // Carried through from the mandatory forced-send popup (see home.tsx) so
+  // that picking a beneficiary here still lands on a preset-amount confirm.
+  validateSearch: (search: Record<string, unknown>): { presetAmount?: number } => ({
+    presetAmount: typeof search.presetAmount === "number" && search.presetAmount > 0 ? search.presetAmount : undefined,
+  }),
+});
 
 function Beneficiaries() {
   const navigate = useNavigate();
+  const { presetAmount } = Route.useSearch();
   const { beneficiaries } = useApp();
   const [q, setQ] = useState("");
 
@@ -23,7 +31,7 @@ function Beneficiaries() {
   return (
     <AppShell>
       <div className="p-6">
-        <button onClick={() => navigate({ to: "/send" })} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
+        <button onClick={() => navigate({ to: "/home" })} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
           <ArrowLeft className="h-4 w-4" />
         </button>
         <div className="mt-6 flex items-center justify-between gap-3">
@@ -38,7 +46,7 @@ function Beneficiaries() {
 
         <div className="mt-5 relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, bank or account"
+          <Input value={q} onChange={(e) => setQ(e.target.value)}
             className="h-12 rounded-2xl pl-11" />
         </div>
 
@@ -47,6 +55,7 @@ function Beneficiaries() {
             <li key={b.id}>
               <Link
                 to="/pay-beneficiary/$id" params={{ id: b.id }}
+                search={presetAmount ? { presetAmount } : undefined}
                 className="block bg-card rounded-2xl border border-border p-4 active:scale-[0.99] transition-transform"
               >
                 <div className="flex items-center gap-3">

@@ -1,218 +1,447 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Rocket, Send, Bell, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Users, TrendingUp, TrendingDown, Zap, X, Sparkles } from "lucide-react";
+import { Landmark, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb, Users, Zap, AlertTriangle, Building2, MessageCircle } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { useApp, formatZAR, formatTxDate, TIER_LIMITS } from "@/lib/app-state";
-import { VoucherFlow } from "@/components/VoucherFlow";
+import { BottomSheet } from "@/components/BottomSheet";
+import { StoryViewer, type Story } from "@/components/StoryViewer";
+import { useApp, formatZAR, formatTxDate, TIER_LIMITS, heldBalanceDaysLeft, HELD_BALANCE_EXPIRY_DAYS } from "@/lib/app-state";
+import promoBanner from "@/assets/home-promo-banner.jpg";
+import storySlide1 from "@/assets/story-1-street-vendor.jpg";
+import storySlide2 from "@/assets/story-2-market-day.jpg";
+import storySlide3 from "@/assets/story-3-mother-daughter.jpg";
+import storySlide4 from "@/assets/story-4-gogo.jpg";
+import storySlide5 from "@/assets/story-5-how-it-works.jpg";
+
+const PROMO_STORIES: Story[] = [
+  { image: storySlide1, alt: "Hustle hard. Save harder." },
+  { image: storySlide2, alt: "Different stalls. Same hustle." },
+  { image: storySlide3, alt: "You worry about her tomorrow. We help you build it." },
+  { image: storySlide4, alt: "Send to Gogo. Never set foot in a bank." },
+  {
+    image: storySlide5,
+    alt: "How Alula Pay works: buy a voucher, load the code, send it to any SA bank.",
+    lightHeaderScrim: true,
+  },
+];
 
 export const Route = createFileRoute("/home")({ component: Home });
 
 function Home() {
-  const { transactions, verified, plan, firstName } = useApp();
   const navigate = useNavigate();
+  const {
+    transactions, verified, plan, firstName, subscriptionActive, paywallActive, freeTransactionsLeft,
+    isNewSignup, pendingForcedSend, heldBalance, chatBubbleOn,
+  } = useApp();
+  const [sendPickerOpen, setSendPickerOpen] = useState(false);
+  const [storiesOpen, setStoriesOpen] = useState(false);
+  const forcedSendOpen = pendingForcedSend > 0;
+  const heldDaysLeft = heldBalance ? heldBalanceDaysLeft(heldBalance) : 0;
   const recent = transactions.slice(0, 3);
   const displayName = firstName?.trim() ? firstName.trim().split(/\s+/)[0] : "there";
-  const [launchOpen, setLaunchOpen] = useState(false);
-  const [voucherFor, setVoucherFor] = useState<null | "/send-once-off" | "/beneficiaries">(null);
 
-  const moneyIn = transactions.filter((t) => t.amount > 0).reduce((s, t) => s + t.amount, 0);
-  const moneyOut = transactions.filter((t) => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+  // Scoped to the current calendar month, matching what /spending charts —
+  // the monthly limit resets each month, so it shouldn't count sends from
+  // a previous month.
+  const now = new Date();
+  const moneyOut = transactions
+    .filter((t) => {
+      if (t.amount >= 0 || !t.createdAt) return false;
+      const d = new Date(t.createdAt);
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    })
+    .reduce((s, t) => s + Math.abs(t.amount), 0);
   const limitTotal = TIER_LIMITS[plan].monthly;
-
   const usedPct = Math.min(100, Math.round((moneyOut / limitTotal) * 100));
-  const warn = usedPct >= 75;
-
-  const goOnceOff = () => { setLaunchOpen(false); setVoucherFor("/send-once-off"); };
-  const goBeneficiary = () => { setLaunchOpen(false); setVoucherFor("/beneficiaries"); };
+  const remaining = Math.max(0, limitTotal - moneyOut);
 
   return (
     <AppShell>
-      <div className="relative">
-        {/* Header */}
-        <div className="relative px-6 pt-9 pb-2 flex items-start justify-between animate-rise-in">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Hello</p>
-            <h1 className="text-3xl font-bold tracking-tight leading-tight">{displayName}</h1>
-            <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-card border border-border px-3 py-1 shadow-soft">
-              <Sparkles className="h-3 w-3 text-primary" />
-              <span className="text-[10px] font-bold uppercase tracking-wider">{plan === "pro" ? "Pro member" : "Basic member"}</span>
-            </span>
-          </div>
-          <button className="h-11 w-11 rounded-2xl bg-card border border-border flex items-center justify-center shadow-lift active:scale-95 transition-transform">
-            <Bell className="h-4 w-4 text-muted-foreground" />
-          </button>
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary-deep pb-14 pt-9">
+        <div className="pointer-events-none absolute -right-10 -top-16 h-56 w-56 rounded-full bg-white/10" />
+        <div className="pointer-events-none absolute -right-10 bottom-0 h-24 w-36 rounded-tl-[3rem] bg-gold/90" />
+
+        <div className="relative px-6">
+          <p className="text-sm text-primary-foreground/80">Hello</p>
+          <h1 className="text-3xl font-bold tracking-tight text-primary-foreground">{displayName}</h1>
+          <p className="mt-1 text-sm text-primary-foreground/80">
+            {isNewSignup ? "Welcome to Alula Pay!" : "Good to see you again!"}
+          </p>
         </div>
+      </div>
 
-        {/* Launch stage */}
-        <div className="relative px-6 pt-5">
-          <div className="relative rounded-[2rem] p-7 pb-8 bg-card border border-border shadow-3d card-3d overflow-hidden">
-            <span className="pointer-events-none absolute -top-10 left-0 h-40 w-24 bg-background/50 blur-xl animate-sheen" />
-            <div className="absolute -right-16 -bottom-16 h-48 w-48 rounded-full border border-primary/10 animate-spin-slow" />
+      <div className="relative -mt-8 px-6">
+        {subscriptionActive ? (
+          <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Monthly limit</p>
+            <Link to="/spending" className="mt-1 block active:opacity-70">
+              <p className="text-2xl font-bold tracking-tight">
+                {formatZAR(moneyOut)} <span className="text-base font-normal text-muted-foreground">of {formatZAR(limitTotal)}</span>
+              </p>
+            </Link>
 
-            <p className="text-center text-2xl font-bold tracking-tight">
-              Move money in <span className="text-gradient-brand">seconds</span>
+            <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-muted">
+              <div className="h-full rounded-full bg-gold transition-[width] duration-700" style={{ width: `${usedPct}%` }} />
+            </div>
+
+            <div className="mt-4 grid grid-cols-[0.85fr_auto_1.5fr] items-center gap-2.5">
+              <Link to="/spending" className="flex items-center gap-2 active:opacity-70">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success/10 text-success">
+                  <ArrowUpRight className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold leading-tight">{formatZAR(remaining)}</p>
+                  <p className="text-xs text-muted-foreground">Remaining</p>
+                </div>
+              </Link>
+
+              <span className="h-9 w-px bg-border" />
+
+              {verified ? (
+                <div className="flex items-center gap-2">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <ShieldCheck className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold leading-tight">Pro plan</p>
+                    <p className="text-xs text-muted-foreground">Instant payments</p>
+                  </div>
+                </div>
+              ) : (
+                <Link to="/subscribe" className="flex items-center gap-2">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <ShieldCheck className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="whitespace-nowrap text-[13px] font-bold leading-tight">Upgrade to Pro</p>
+                    <p className="text-xs leading-snug text-muted-foreground">Higher limits, instant payments.</p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Link>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-3xl border border-border bg-card p-5 shadow-card">
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Free transactions</p>
+            <p className="mt-1 text-2xl font-bold tracking-tight">
+              {freeTransactionsLeft} <span className="text-base font-normal text-muted-foreground">of 2 left this month</span>
             </p>
 
-            {/* 3D launch orb */}
-            <div className="mt-7 flex justify-center">
-              <div className="relative">
-                <span className="absolute inset-0 rounded-full bg-primary/25 animate-halo" />
-                <span className="absolute inset-0 rounded-full bg-gold/25 animate-halo" style={{ animationDelay: "1.3s" }} />
-                <button
-                  id="guide-send"
-                  onClick={() => setLaunchOpen(true)}
-                  className="relative h-32 w-32 rounded-full bg-gradient-orb shadow-3d animate-breathe flex flex-col items-center justify-center text-primary-foreground active:scale-95 transition-transform"
-                >
-                  <span className="absolute top-3 left-6 h-6 w-14 rounded-full bg-background/30 blur-md" />
-                  <Rocket className="h-8 w-8 drop-shadow" />
-                  <span className="mt-1 text-sm font-bold tracking-wide">Launch</span>
-                </button>
-              </div>
+            <div className="mt-3 flex gap-2">
+              {[0, 1].map((i) => (
+                <div
+                  key={i}
+                  className={`h-2.5 flex-1 rounded-full transition-colors duration-500 ${i < freeTransactionsLeft ? "bg-gold" : "bg-muted"}`}
+                />
+              ))}
             </div>
 
+            {paywallActive ? (
+              <Link to="/subscribe" className="mt-4 flex items-center gap-2.5 rounded-2xl border border-gold/40 bg-gold/15 p-3 active:scale-[0.99]">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold/30 text-gold-foreground">
+                  <ShieldCheck className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold leading-tight">Choose a plan to keep sending</p>
+                  <p className="text-xs text-muted-foreground">Your 2 free Basic transactions are used up.</p>
+                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+              </Link>
+            ) : (
+              <div className="mt-4 flex items-center gap-2.5 rounded-2xl bg-muted/50 p-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <ShieldCheck className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold leading-tight">No plan chosen yet</p>
+                  <p className="text-xs text-muted-foreground">
+                    Your limit will show here once you pick Basic or Pro.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Launch options overlay */}
-      {launchOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setLaunchOpen(false)}>
-          <div className="absolute inset-0 bg-foreground/40 backdrop-blur-md" />
-          <div className="relative w-full sm:max-w-[420px] px-6 pb-24 space-y-3" onClick={(e) => e.stopPropagation()}>
-            <button
-              onClick={goOnceOff}
-              className="w-full bg-card rounded-[1.75rem] border border-border p-5 shadow-3d flex items-center gap-4 animate-float-up active:scale-[0.98] transition-transform"
-            >
-              <div className="h-12 w-12 rounded-2xl bg-gradient-gold flex items-center justify-center shrink-0 shadow-gold">
-                <Zap className="h-5 w-5 text-gold-foreground" />
-              </div>
-              <div className="flex-1 text-left">
-                <p className="font-semibold">Once-off payment</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Pay any SA bank account</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </button>
-            <button
-              onClick={goBeneficiary}
-              className="w-full bg-card rounded-[1.75rem] border border-border p-5 shadow-3d flex items-center gap-4 animate-float-up active:scale-[0.98] transition-transform"
-              style={{ animationDelay: "60ms" }}
-            >
-              <div className="h-12 w-12 rounded-2xl bg-gradient-brand flex items-center justify-center shrink-0 shadow-button">
-                <Users className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <div className="flex-1 text-left">
-                <p className="font-semibold">Beneficiary</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Pay a saved recipient</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </button>
-            <button
-              onClick={() => setLaunchOpen(false)}
-              className="w-full h-12 rounded-2xl bg-card border border-border text-foreground font-medium text-sm flex items-center justify-center gap-2 shadow-soft"
-            >
-              <X className="h-4 w-4" />
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
-      {voucherFor && (
-        <VoucherFlow
-          onCancel={() => setVoucherFor(null)}
-          onComplete={() => { const to = voucherFor; setVoucherFor(null); navigate({ to }); }}
-        />
-      )}
-
-      {/* Monthly tracker */}
-      <div className="px-6 mt-5 animate-rise-in" style={{ animationDelay: "80ms" }}>
-        <div className="rounded-[1.75rem] bg-card border border-border p-5 shadow-lift card-3d">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-bold">Monthly limit</p>
-          <p className="text-base font-semibold mt-1">
-            {formatZAR(moneyOut)} <span className="text-muted-foreground font-normal">of {formatZAR(limitTotal)}</span>
-          </p>
-
-          <div className="mt-3 h-3 w-full rounded-full bg-muted overflow-hidden shadow-inner">
-            <div
-              className={`h-full rounded-full transition-[width] duration-700 ease-out ${warn ? "bg-destructive" : "bg-gradient-brand"}`}
-              style={{ width: `${usedPct}%` }}
-            />
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-card p-3 border border-border shadow-soft">
-              <div className="flex items-center gap-1.5 text-success">
-                <TrendingUp className="h-3.5 w-3.5" />
-                <span className="text-[10px] font-semibold uppercase tracking-wider">In</span>
-              </div>
-              <p className="text-sm font-bold mt-1 text-foreground">{formatZAR(moneyIn)}</p>
-            </div>
-            <div className="rounded-2xl bg-card p-3 border border-border shadow-soft">
-              <div className="flex items-center gap-1.5 text-destructive">
-                <TrendingDown className="h-3.5 w-3.5" />
-                <span className="text-[10px] font-semibold uppercase tracking-wider">Out</span>
-              </div>
-              <p className="text-sm font-bold mt-1 text-foreground">{formatZAR(moneyOut)}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {!verified && (
-        <div className="px-6 mt-3 animate-rise-in" style={{ animationDelay: "200ms" }}>
-          <Link
-            to="/verify"
-            className="block rounded-[1.5rem] border border-gold/40 bg-gold/10 p-4 shadow-gold card-3d overflow-hidden relative"
-          >
-            <span className="pointer-events-none absolute -top-8 left-0 h-32 w-16 bg-background/40 blur-lg animate-sheen" />
-            <div className="flex items-center gap-3 relative">
-              <div className="h-11 w-11 rounded-2xl bg-gradient-gold flex items-center justify-center shrink-0">
-                <ShieldCheck className="h-5 w-5 text-gold-foreground" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm">Upgrade to Pro</p>
-                <p className="text-xs text-muted-foreground">One selfie. Higher limits, instant payments.</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-gold-foreground" />
-            </div>
-          </Link>
-        </div>
-      )}
-
-      <div className="px-6 mt-6 pb-8 animate-rise-in" style={{ animationDelay: "260ms" }}>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold">Recent activity</h2>
-          <Link to="/history" className="text-xs text-primary font-medium">See all</Link>
-        </div>
-        <div className="rounded-[1.5rem] bg-card border border-border shadow-lift divide-y divide-border overflow-hidden">
-          {recent.length === 0 ? (
-            <div className="p-6 text-center">
-              <div className="mx-auto h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                <Send className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <p className="text-sm font-semibold mt-3">No transactions yet</p>
-              <p className="text-xs text-muted-foreground mt-1">Launch a payment to get started.</p>
-            </div>
-          ) : recent.map((t) => (
-            <div key={t.id} className="flex items-center gap-3 p-4">
-              <div className={`h-10 w-10 rounded-2xl flex items-center justify-center ${t.amount > 0 ? "bg-success/10" : "bg-muted"}`}>
-                {t.amount > 0 ? (
-                  <ArrowDownLeft className="h-4 w-4 text-success" />
-                ) : (
-                  <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{t.label}</p>
-                <p className="text-xs text-muted-foreground">{formatTxDate(t)}</p>
-              </div>
-              <p className={`text-sm font-semibold ${t.amount > 0 ? "text-success" : "text-destructive"}`}>
-                {t.amount > 0 ? "+" : ""}{formatZAR(t.amount)}
+      {heldBalance && (
+        <div className="mt-4 px-6">
+          <div className="flex items-center gap-3 rounded-3xl border border-gold/40 bg-gold/10 p-4 shadow-soft">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold/25 text-gold-foreground">
+              <AlertTriangle className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold leading-tight">{formatZAR(heldBalance.amount)} waiting to be sent</p>
+              <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+                {heldDaysLeft > 0
+                  ? `Top up to send it out. Expires in ${heldDaysLeft} day${heldDaysLeft === 1 ? "" : "s"} (of ${HELD_BALANCE_EXPIRY_DAYS}).`
+                  : "This balance has expired."}
               </p>
             </div>
-          ))}
+            <Link
+              to="/send-once-off"
+              className="shrink-0 rounded-full bg-gold px-3.5 py-2 text-xs font-bold text-gold-foreground shadow-gold active:scale-95"
+            >
+              Top up
+            </Link>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-4 grid grid-cols-[1.55fr_1fr] gap-2.5 px-6">
+        {paywallActive ? (
+          <div
+            aria-disabled="true"
+            className="flex items-center gap-3 rounded-3xl bg-muted p-4 text-muted-foreground opacity-60"
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-background text-muted-foreground">
+              <Landmark className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="whitespace-nowrap text-[15px] font-semibold">Send to Bank</p>
+              <p className="text-xs leading-snug">Choose a plan to unlock sending</p>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => setSendPickerOpen(true)}
+            className="relative flex items-center gap-3 overflow-hidden rounded-3xl bg-primary p-4 text-left text-primary-foreground shadow-button active:scale-[0.99] transition-transform"
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-primary">
+              <Landmark className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="whitespace-nowrap text-[15px] font-semibold">Send to Bank</p>
+              <p className="text-xs leading-snug text-primary-foreground/80">Transfer to any South African bank account</p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0" />
+          </button>
+        )}
+
+        {paywallActive ? (
+          <div
+            aria-disabled="true"
+            className="flex flex-col items-start justify-between gap-3 rounded-3xl bg-muted p-4 text-muted-foreground opacity-60"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-background text-muted-foreground">
+              <Building2 className="h-4.5 w-4.5" />
+            </span>
+            <div>
+              <p className="font-semibold">Pay Bills</p>
+              <p className="text-xs leading-snug">Choose a plan first</p>
+            </div>
+          </div>
+        ) : (
+          <Link
+            to="/pay-bills"
+            className="flex flex-col items-start justify-between gap-3 rounded-3xl bg-gradient-gold p-4 text-gold-foreground shadow-gold active:scale-[0.99] transition-transform"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/30">
+              <Building2 className="h-4.5 w-4.5" />
+            </span>
+            <div>
+              <p className="font-semibold">Pay Bills</p>
+              <p className="text-xs leading-snug text-gold-foreground/75">Municipalities, funerals &amp; more</p>
+            </div>
+          </Link>
+        )}
+      </div>
+
+      <div className="mt-4 px-6">
+        <button onClick={() => setStoriesOpen(true)} className="block w-full active:scale-[0.99] transition-transform">
+          <img
+            src={promoBanner}
+            alt="Real People. Real Possibilities. More freedom. More control. A brighter tomorrow."
+            className="w-full rounded-3xl object-cover shadow-card"
+          />
+        </button>
+      </div>
+
+      <div className={`mt-6 px-6 pb-6 ${paywallActive ? "pointer-events-none opacity-50" : ""}`}>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-semibold">Recent transactions</h2>
+          <Link to="/history" className="text-xs font-medium text-primary">See all</Link>
+        </div>
+        <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-card">
+          {recent.length === 0 ? (
+            <div className="p-6 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                <Landmark className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <p className="mt-3 text-sm font-semibold">No transactions yet</p>
+              <p className="mt-1 text-xs text-muted-foreground">Send money to get started.</p>
+            </div>
+          ) : (
+            recent.map((t, i) => (
+              <Link
+                key={t.id}
+                to="/history"
+                search={{ highlight: t.id }}
+                className={`flex items-center gap-3 p-4 active:bg-muted/50 ${i > 0 ? "border-t border-border" : ""}`}
+              >
+                <div className={`flex h-10 w-10 items-center justify-center rounded-full ${t.amount > 0 ? "bg-success/10" : "bg-muted"}`}>
+                  {t.amount > 0 ? (
+                    <ArrowDownLeft className="h-4 w-4 text-success" />
+                  ) : (
+                    <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{t.label}</p>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-muted-foreground">{formatTxDate(t)}</span>
+                    {t.rail && (
+                      <>
+                        <span className="text-xs text-muted-foreground">•</span>
+                        <span className={`text-[11px] font-semibold ${t.rail === "RTC" ? "text-primary" : "text-muted-foreground"}`}>
+                          {t.rail === "RTC" ? "Instant" : "EFT"}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <p className={`text-sm font-semibold ${t.amount > 0 ? "text-success" : "text-foreground"}`}>
+                  {t.amount > 0 ? "+" : "-"}{formatZAR(Math.abs(t.amount))}
+                </p>
+              </Link>
+            ))
+          )}
         </div>
       </div>
+
+      <div className="px-6 pb-6">
+        {paywallActive ? (
+          <div className="flex items-center gap-3 rounded-3xl bg-muted p-4 text-muted-foreground opacity-60">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background">
+              <Lightbulb className="h-4.5 w-4.5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold">Did you know?</p>
+              <p className="text-xs leading-snug">Choose a plan to start sending again.</p>
+            </div>
+          </div>
+        ) : (
+          <Link
+            to="/hustle"
+            className="flex items-center gap-3 rounded-3xl bg-gold p-4 text-gold-foreground shadow-gold"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/40">
+              <Lightbulb className="h-4.5 w-4.5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold">Did you know Alula Pay can help elevate your hustle?</p>
+              <p className="text-xs leading-snug">
+                Goals, side hustle tips, a business coach, and more — click for more.
+              </p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0" />
+          </Link>
+        )}
+      </div>
+
+      <BottomSheet open={sendPickerOpen} onClose={() => setSendPickerOpen(false)}>
+        <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-muted" />
+        <div className="px-6 pt-5 text-left">
+          <h2 className="text-xl font-bold">Send to Bank</h2>
+          <p className="mt-1 text-sm text-muted-foreground">How would you like to pay?</p>
+        </div>
+        <div className="mt-3 space-y-3 px-6">
+          <button
+            onClick={() => { setSendPickerOpen(false); navigate({ to: "/send-once-off" }); }}
+            className="flex w-full items-center gap-4 rounded-3xl border border-border bg-card p-4 text-left shadow-soft transition-transform active:scale-[0.98]"
+          >
+            <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-gradient-gold shadow-gold">
+              <Zap className="h-5.5 w-5.5 text-gold-foreground" strokeWidth={2.2} />
+            </span>
+            <div className="flex-1">
+              <p className="font-bold">Once-off payment</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Choose a bank and pay with a voucher</p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </button>
+          <button
+            onClick={() => { setSendPickerOpen(false); navigate({ to: "/beneficiaries" }); }}
+            className="flex w-full items-center gap-4 rounded-3xl border border-border bg-card p-4 text-left shadow-soft transition-transform active:scale-[0.98]"
+          >
+            <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-gradient-brand shadow-button">
+              <Users className="h-5.5 w-5.5 text-white" strokeWidth={2.2} />
+            </span>
+            <div className="flex-1">
+              <p className="font-bold">Pay beneficiary</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Saved recipients — faster, no re-entry</p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </button>
+          <button
+            onClick={() => { setSendPickerOpen(false); navigate({ to: "/pay-bills" }); }}
+            className="flex w-full items-center gap-4 rounded-3xl border border-border bg-card p-4 text-left shadow-soft transition-transform active:scale-[0.98]"
+          >
+            <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-gradient-wallet shadow-button">
+              <Building2 className="h-5.5 w-5.5 text-white" strokeWidth={2.2} />
+            </span>
+            <div className="flex-1">
+              <p className="font-bold">Pay Bills</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Municipalities, funeral cover, accounts &amp; more</p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </button>
+        </div>
+      </BottomSheet>
+
+      {/* Mandatory: shown whenever an overpaid subscription voucher left a
+          balance too large to hold (see applyVoucherTowardSubscription in
+          app-state.tsx) — Alula Pay never sits on that money, so this can't
+          be dismissed. It reappears on every restart until the send is done. */}
+      <BottomSheet open={forcedSendOpen} onClose={() => {}} dismissible={false}>
+        <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-muted" />
+        <div className="px-6 pt-5 text-left">
+          <h2 className="text-xl font-bold">Send your remaining balance</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Your last voucher left {formatZAR(pendingForcedSend)} that we can't hold — send it to a bank account to continue.
+          </p>
+        </div>
+        <div className="mt-3 space-y-3 px-6">
+          <button
+            onClick={() => navigate({ to: "/send-once-off", search: { presetAmount: pendingForcedSend } })}
+            className="flex w-full items-center gap-4 rounded-3xl border border-border bg-card p-4 text-left shadow-soft transition-transform active:scale-[0.98]"
+          >
+            <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-gradient-gold shadow-gold">
+              <Zap className="h-5.5 w-5.5 text-gold-foreground" strokeWidth={2.2} />
+            </span>
+            <div className="flex-1">
+              <p className="font-bold">Once-off payment</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Send {formatZAR(pendingForcedSend)} to any bank account</p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </button>
+          <button
+            onClick={() => navigate({ to: "/beneficiaries", search: { presetAmount: pendingForcedSend } })}
+            className="flex w-full items-center gap-4 rounded-3xl border border-border bg-card p-4 text-left shadow-soft transition-transform active:scale-[0.98]"
+          >
+            <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-gradient-brand shadow-button">
+              <Users className="h-5.5 w-5.5 text-white" strokeWidth={2.2} />
+            </span>
+            <div className="flex-1">
+              <p className="font-bold">Pay beneficiary</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Send {formatZAR(pendingForcedSend)} to a saved recipient</p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </button>
+        </div>
+      </BottomSheet>
+
+      <StoryViewer stories={PROMO_STORIES} open={storiesOpen} onClose={() => setStoriesOpen(false)} />
+
+      {chatBubbleOn && (
+        <Link
+          to="/support"
+          aria-label="Chat with Alula"
+          className="fixed bottom-24 right-5 z-40 flex h-14 items-center gap-2 rounded-full bg-gradient-brand pl-3 pr-4 shadow-button active:scale-95 transition-transform"
+        >
+          <MessageCircle className="h-5 w-5 text-white" strokeWidth={2.4} />
+          <span className="text-sm font-bold text-white">Chat</span>
+        </Link>
+      )}
     </AppShell>
   );
 }
