@@ -94,7 +94,7 @@ const SECTIONS: Section[] = [
         a: [
           `If the leftover is too small to send on its own (under ${formatZAR(MIN_SEND)}), we hold it for you rather than force a send or let it sit spendable in your wallet.`,
           `You'll see the held amount on Home with a countdown — it expires ${HELD_BALANCE_EXPIRY_DAYS} days after the original transaction if never topped up. You're reminded every 2 days until then.`,
-          "Add any voucher at any time through Add Voucher — once the held amount plus your top-up clears the minimum send, you'll be prompted to send the full amount out.",
+          "Tap Top up on Home at any time to add another voucher — once the held amount plus your top-up clears the minimum send, you'll be prompted to send the full amount out.",
         ],
       },
       {

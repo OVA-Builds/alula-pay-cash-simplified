@@ -9,8 +9,8 @@ const STEPS = [
   {
     letter: "a",
     icon: Boxes,
-    title: "Ingredients, Supplies, or Profit?",
-    body: "Every time you log, choose just one: ingredients cost, supplies cost, or profit. You can log up to two of these a day — say a cost in the morning, your profit in the evening.",
+    title: "Ingredients, Supplies, and Profit",
+    body: "Each time you log, one sheet covers all three — ingredients (food businesses only), supplies, and profit. Add whatever applies; you don't need every section, and you can log as many times as you like.",
   },
   {
     letter: "b",
