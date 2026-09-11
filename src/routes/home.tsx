@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Landmark, Settings, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb, Users, Zap, AlertTriangle } from "lucide-react";
+import { Landmark, Settings, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb, Users, Zap, AlertTriangle, Receipt } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { BottomSheet } from "@/components/BottomSheet";
 import { StoryViewer, type Story } from "@/components/StoryViewer";
@@ -355,6 +355,19 @@ function Home() {
             <div className="flex-1">
               <p className="font-bold">Pay beneficiary</p>
               <p className="mt-0.5 text-xs text-muted-foreground">Saved recipients — faster, no re-entry</p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </button>
+          <button
+            onClick={() => { setSendPickerOpen(false); navigate({ to: "/pay-bills" }); }}
+            className="flex w-full items-center gap-4 rounded-3xl border border-border bg-card p-4 text-left shadow-soft transition-transform active:scale-[0.98]"
+          >
+            <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-gradient-wallet shadow-button">
+              <Receipt className="h-5.5 w-5.5 text-white" strokeWidth={2.2} />
+            </span>
+            <div className="flex-1">
+              <p className="font-bold">Pay Bills</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Municipalities, funeral cover, accounts &amp; more</p>
             </div>
             <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
           </button>

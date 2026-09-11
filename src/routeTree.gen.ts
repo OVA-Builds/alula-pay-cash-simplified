@@ -19,6 +19,7 @@ import { Route as HustleRouteImport } from './routes/hustle'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as PayBillsRouteImport } from './routes/pay-bills'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ResetPinRouteImport } from './routes/reset-pin'
 import { Route as SendOnceOffRouteImport } from './routes/send-once-off'
@@ -36,6 +37,8 @@ import { Route as HustleMineRouteImport } from './routes/hustle.mine'
 import { Route as HustleTipsRouteImport } from './routes/hustle.tips'
 import { Route as MessageIdRouteImport } from './routes/message.$id'
 import { Route as PayBeneficiaryIdRouteImport } from './routes/pay-beneficiary.$id'
+import { Route as PayBillsIndexRouteImport } from './routes/pay-bills.index'
+import { Route as PayBillsIdRouteImport } from './routes/pay-bills.$id'
 import { Route as HustleMineIndexRouteImport } from './routes/hustle.mine.index'
 import { Route as HustleMineIdRouteImport } from './routes/hustle.mine.$id'
 
@@ -87,6 +90,11 @@ const NotificationsRoute = NotificationsRouteImport.update({
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PayBillsRoute = PayBillsRouteImport.update({
+  id: '/pay-bills',
+  path: '/pay-bills',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -174,6 +182,16 @@ const PayBeneficiaryIdRoute = PayBeneficiaryIdRouteImport.update({
   path: '/pay-beneficiary/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PayBillsIndexRoute = PayBillsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PayBillsRoute,
+} as any)
+const PayBillsIdRoute = PayBillsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => PayBillsRoute,
+} as any)
 const HustleMineIndexRoute = HustleMineIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -196,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
+  '/pay-bills': typeof PayBillsRouteWithChildren
   '/profile': typeof ProfileRoute
   '/reset-pin': typeof ResetPinRoute
   '/send-once-off': typeof SendOnceOffRoute
@@ -212,7 +231,9 @@ export interface FileRoutesByFullPath {
   '/hustle/tips': typeof HustleTipsRoute
   '/message/$id': typeof MessageIdRoute
   '/pay-beneficiary/$id': typeof PayBeneficiaryIdRoute
+  '/pay-bills/$id': typeof PayBillsIdRoute
   '/hustle/': typeof HustleIndexRoute
+  '/pay-bills/': typeof PayBillsIndexRoute
   '/hustle/mine/$id': typeof HustleMineIdRoute
   '/hustle/mine/': typeof HustleMineIndexRoute
 }
@@ -241,7 +262,9 @@ export interface FileRoutesByTo {
   '/hustle/tips': typeof HustleTipsRoute
   '/message/$id': typeof MessageIdRoute
   '/pay-beneficiary/$id': typeof PayBeneficiaryIdRoute
+  '/pay-bills/$id': typeof PayBillsIdRoute
   '/hustle': typeof HustleIndexRoute
+  '/pay-bills': typeof PayBillsIndexRoute
   '/hustle/mine/$id': typeof HustleMineIdRoute
   '/hustle/mine': typeof HustleMineIndexRoute
 }
@@ -257,6 +280,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
+  '/pay-bills': typeof PayBillsRouteWithChildren
   '/profile': typeof ProfileRoute
   '/reset-pin': typeof ResetPinRoute
   '/send-once-off': typeof SendOnceOffRoute
@@ -273,7 +297,9 @@ export interface FileRoutesById {
   '/hustle/tips': typeof HustleTipsRoute
   '/message/$id': typeof MessageIdRoute
   '/pay-beneficiary/$id': typeof PayBeneficiaryIdRoute
+  '/pay-bills/$id': typeof PayBillsIdRoute
   '/hustle/': typeof HustleIndexRoute
+  '/pay-bills/': typeof PayBillsIndexRoute
   '/hustle/mine/$id': typeof HustleMineIdRoute
   '/hustle/mine/': typeof HustleMineIndexRoute
 }
@@ -290,6 +316,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/notifications'
     | '/onboarding'
+    | '/pay-bills'
     | '/profile'
     | '/reset-pin'
     | '/send-once-off'
@@ -306,7 +333,9 @@ export interface FileRouteTypes {
     | '/hustle/tips'
     | '/message/$id'
     | '/pay-beneficiary/$id'
+    | '/pay-bills/$id'
     | '/hustle/'
+    | '/pay-bills/'
     | '/hustle/mine/$id'
     | '/hustle/mine/'
   fileRoutesByTo: FileRoutesByTo
@@ -335,7 +364,9 @@ export interface FileRouteTypes {
     | '/hustle/tips'
     | '/message/$id'
     | '/pay-beneficiary/$id'
+    | '/pay-bills/$id'
     | '/hustle'
+    | '/pay-bills'
     | '/hustle/mine/$id'
     | '/hustle/mine'
   id:
@@ -350,6 +381,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/notifications'
     | '/onboarding'
+    | '/pay-bills'
     | '/profile'
     | '/reset-pin'
     | '/send-once-off'
@@ -366,7 +398,9 @@ export interface FileRouteTypes {
     | '/hustle/tips'
     | '/message/$id'
     | '/pay-beneficiary/$id'
+    | '/pay-bills/$id'
     | '/hustle/'
+    | '/pay-bills/'
     | '/hustle/mine/$id'
     | '/hustle/mine/'
   fileRoutesById: FileRoutesById
@@ -382,6 +416,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   NotificationsRoute: typeof NotificationsRoute
   OnboardingRoute: typeof OnboardingRoute
+  PayBillsRoute: typeof PayBillsRouteWithChildren
   ProfileRoute: typeof ProfileRoute
   ResetPinRoute: typeof ResetPinRoute
   SendOnceOffRoute: typeof SendOnceOffRoute
@@ -464,6 +499,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pay-bills': {
+      id: '/pay-bills'
+      path: '/pay-bills'
+      fullPath: '/pay-bills'
+      preLoaderRoute: typeof PayBillsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -585,6 +627,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PayBeneficiaryIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pay-bills/': {
+      id: '/pay-bills/'
+      path: '/'
+      fullPath: '/pay-bills/'
+      preLoaderRoute: typeof PayBillsIndexRouteImport
+      parentRoute: typeof PayBillsRoute
+    }
+    '/pay-bills/$id': {
+      id: '/pay-bills/$id'
+      path: '/$id'
+      fullPath: '/pay-bills/$id'
+      preLoaderRoute: typeof PayBillsIdRouteImport
+      parentRoute: typeof PayBillsRoute
+    }
     '/hustle/mine/': {
       id: '/hustle/mine/'
       path: '/'
@@ -639,6 +695,20 @@ const HustleRouteChildren: HustleRouteChildren = {
 const HustleRouteWithChildren =
   HustleRoute._addFileChildren(HustleRouteChildren)
 
+interface PayBillsRouteChildren {
+  PayBillsIdRoute: typeof PayBillsIdRoute
+  PayBillsIndexRoute: typeof PayBillsIndexRoute
+}
+
+const PayBillsRouteChildren: PayBillsRouteChildren = {
+  PayBillsIdRoute: PayBillsIdRoute,
+  PayBillsIndexRoute: PayBillsIndexRoute,
+}
+
+const PayBillsRouteWithChildren = PayBillsRoute._addFileChildren(
+  PayBillsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AddVoucherRoute: AddVoucherRoute,
@@ -650,6 +720,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   NotificationsRoute: NotificationsRoute,
   OnboardingRoute: OnboardingRoute,
+  PayBillsRoute: PayBillsRouteWithChildren,
   ProfileRoute: ProfileRoute,
   ResetPinRoute: ResetPinRoute,
   SendOnceOffRoute: SendOnceOffRoute,

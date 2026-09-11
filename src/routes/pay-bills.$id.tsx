@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { ArrowLeft, Check, Clock, Zap, Lock } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Check, Clock, Zap, Lock, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,19 +9,12 @@ import { ApprovalPinDialog } from "@/components/ApprovalPinDialog";
 import { SendCelebration, type CelebrationInfo } from "@/components/SendCelebration";
 import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy } from "@/lib/app-state";
 import { useRequireSubscription } from "@/hooks/use-require-subscription";
+import { BILLERS } from "@/lib/billers";
 import voucherBlu from "@/assets/voucher-blu.jpg";
 import voucherOtt from "@/assets/voucher-ott.png";
 import voucher1Voucher from "@/assets/voucher-1voucher.png";
 
-export const Route = createFileRoute("/pay-beneficiary/$id")({
-  component: PayBeneficiary,
-  // A preset amount arrives when this flow is opened to clear a mandatory
-  // forced send (see home.tsx) — the client never loads a voucher for it,
-  // so the voucher/code steps are skipped entirely, straight to confirm.
-  validateSearch: (search: Record<string, unknown>): { presetAmount?: number } => ({
-    presetAmount: typeof search.presetAmount === "number" && search.presetAmount > 0 ? search.presetAmount : undefined,
-  }),
-});
+export const Route = createFileRoute("/pay-bills/$id")({ component: PayBill });
 
 type Step = "voucher" | "code" | "confirm" | "done";
 
@@ -35,25 +28,20 @@ const VOUCHER_BRANDS: VoucherBrand[] = [
   { id: "ott", name: "OTT Voucher", length: 12, logo: voucherOtt, amount: 200 },
 ];
 
-function PayBeneficiary() {
+function PayBill() {
   const navigate = useNavigate();
   const { id } = Route.useParams();
-  const { presetAmount } = Route.useSearch();
-  const { beneficiaries, plan, addTransaction, transactions, challenge, clearPendingForcedSend } = useApp();
-  const bene = beneficiaries.find((b) => b.id === id);
+  const { plan, addTransaction, transactions, challenge } = useApp();
+  const biller = BILLERS.find((b) => b.id === id);
 
-  const [step, setStep] = useState<Step>(presetAmount ? "confirm" : "voucher");
+  const [step, setStep] = useState<Step>("voucher");
   useRequireSubscription({ enabled: step !== "done" });
   const [celebration, setCelebration] = useState<CelebrationInfo>({ firstSend: false, struckDay: null, challengeDays: null });
 
-  // Starts blank rather than reading bene.reference directly — on a fresh
-  // page load, app-state's own localStorage hydration hasn't run yet, so
-  // `beneficiaries` is still its hardcoded default and `bene` (and its
-  // reference) can silently resolve to stale demo data for a render or two.
-  // Sync once the real, hydrated beneficiary is available instead.
+  // Suppliers have no saved reference — the client always types their own
+  // (account number, full name, initials) fresh at payment time.
   const [reference, setReference] = useState("");
   const [refError, setRefError] = useState(false);
-  useEffect(() => { if (bene) setReference(bene.reference ?? ""); }, [bene?.id]);
   const [brand, setBrand] = useState<VoucherBrand | null>(null);
   const [code, setCode] = useState("");
   const [pinOpen, setPinOpen] = useState(false);
@@ -62,19 +50,19 @@ function PayBeneficiary() {
   // the client to choose (see the confirm step below).
   const activeRail: "EFT" | "RTC" = plan === "pro" ? "RTC" : "EFT";
 
-  const voucherAmount = presetAmount ?? brand?.amount ?? 0;
+  const voucherAmount = brand?.amount ?? 0;
   const fee = voucherAmount > 0 ? calcTransferFee(voucherAmount, plan, activeRail) : null;
   const netToBank = Math.max(0, +(voucherAmount - (fee?.fee ?? 0)).toFixed(2));
 
   const digits = code.replace(/\D/g, "");
   const validCode = !!brand && digits.length === brand.length;
 
-  if (!bene) {
+  if (!biller) {
     return (
       <AppShell hideNav>
         <div className="p-6">
-          <p>Beneficiary not found.</p>
-          <Button onClick={() => navigate({ to: "/beneficiaries" })} className="mt-4">Back</Button>
+          <p>Supplier not found.</p>
+          <Button onClick={() => navigate({ to: "/pay-bills" })} className="mt-4">Back</Button>
         </div>
       </AppShell>
     );
@@ -86,7 +74,7 @@ function PayBeneficiary() {
   };
 
   const confirm = () => {
-    if (!brand && !presetAmount) return;
+    if (!brand) return;
     const firstSend = !transactions.some((t) => t.type === "transfer");
     let struckDay: number | null = null;
     if (challenge) {
@@ -95,18 +83,17 @@ function PayBeneficiary() {
     }
     addTransaction({
       id: crypto.randomUUID(), type: "transfer", amount: -voucherAmount,
-      label: `Sent to ${bene.name}`,
+      label: `Paid ${biller.name}`,
       status: fee?.rail === "RTC" ? "Completed" : "Pending",
       date: "Just now",
-      recipientName: bene.name,
-      bankName: bene.bank,
-      accountNumber: bene.account,
+      recipientName: biller.name,
+      bankName: biller.bank,
+      accountNumber: biller.account,
       reference,
       sendAmount: netToBank,
       fee: fee?.fee ?? 0,
       rail: fee?.rail,
     });
-    if (presetAmount) clearPendingForcedSend();
     setCelebration({ firstSend, struckDay, challengeDays: challenge?.days ?? null });
     setStep("done");
   };
@@ -121,13 +108,13 @@ function PayBeneficiary() {
               <Check className="h-12 w-12 text-success-foreground" strokeWidth={3} />
             </div>
           </div>
-          <h1 className="mt-8 text-2xl font-bold">Sent</h1>
-          <p className="mt-2 text-muted-foreground">{formatZAR(netToBank)} sent to {bene.name}.</p>
+          <h1 className="mt-8 text-2xl font-bold">Paid</h1>
+          <p className="mt-2 text-muted-foreground">{formatZAR(netToBank)} paid to {biller.name}.</p>
           <div className="mt-6 w-full rounded-2xl bg-card border border-border p-4 flex items-center gap-3 text-left">
             <Clock className="h-5 w-5 text-muted-foreground" />
             <div>
               <p className="text-sm font-medium">{fee ? railSettleCopy(fee.rail) : ""}</p>
-              <p className="text-xs text-muted-foreground">{fee ? railLabel(fee.rail) : ""} · {bene.bank}</p>
+              <p className="text-xs text-muted-foreground">{fee ? railLabel(fee.rail) : ""} · {biller.bank}</p>
             </div>
           </div>
           <SendCelebration info={celebration} />
@@ -143,17 +130,17 @@ function PayBeneficiary() {
     return (
       <AppShell>
         <div className="p-6">
-          <button onClick={() => navigate({ to: "/beneficiaries" })} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
+          <button onClick={() => navigate({ to: "/pay-bills" })} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
             <ArrowLeft className="h-4 w-4" />
           </button>
 
           <div className="mt-6 flex items-center gap-3">
-            <div className="h-14 w-14 rounded-full bg-gradient-brand text-white font-semibold flex items-center justify-center text-lg">
-              {bene.name.split(" ").map((p) => p[0]).slice(0, 2).join("")}
+            <div className="h-14 w-14 shrink-0 rounded-full bg-gradient-wallet text-white flex items-center justify-center">
+              <Receipt className="h-6 w-6" />
             </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight">{bene.name}</h1>
-              <p className="text-xs text-muted-foreground">{bene.bank} · •••{bene.account.slice(-4)}</p>
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold tracking-tight truncate">{biller.name}</h1>
+              <p className="text-xs text-muted-foreground">{biller.bank} · •••{biller.account.slice(-4)}</p>
             </div>
           </div>
 
@@ -222,23 +209,20 @@ function PayBeneficiary() {
   return (
     <AppShell>
       <div className="p-6">
-        <button
-          onClick={() => (presetAmount ? navigate({ to: "/beneficiaries" }) : setStep("code"))}
-          className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft"
-        >
+        <button onClick={() => setStep("code")} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
           <ArrowLeft className="h-4 w-4" />
         </button>
         <h1 className="mt-6 text-2xl font-bold tracking-tight">Confirm payment</h1>
 
         <div className="mt-5 rounded-2xl bg-card border border-border p-4 space-y-2">
-          <Row label="Name" value={bene.name} muted />
-          <Row label="Bank" value={bene.bank} muted />
-          <Row label="Branch code" value={bene.branch} muted />
-          <Row label="Account" value={bene.account} muted />
+          <Row label="Supplier" value={biller.name} muted />
+          <Row label="Bank" value={biller.bank} muted />
+          <Row label="Branch code" value={biller.branch} muted />
+          <Row label="Account" value={biller.account} muted />
         </div>
 
         <div className="mt-4">
-          <Label>Reference (shown on their statement)</Label>
+          <Label>Reference (shown on your statement)</Label>
           <Input
             value={reference}
             onChange={(e) => { setReference(e.target.value); if (e.target.value.trim()) setRefError(false); }}
@@ -293,7 +277,7 @@ function PayBeneficiary() {
 
         {fee && (
           <div className="mt-5 rounded-2xl bg-card border border-border p-4 space-y-2 animate-float-up">
-            <Row label={presetAmount ? "Amount" : "Voucher value"} value={formatZAR(voucherAmount)} muted />
+            <Row label="Voucher value" value={formatZAR(voucherAmount)} muted />
             <Row label={`Fee (${railLabel(fee.rail)})`} value={`-${formatZAR(fee.fee)}`} muted />
             <div className="border-t border-border pt-2 flex items-center justify-between">
               <span className="text-sm font-medium">Sent to their bank account</span>
@@ -315,7 +299,7 @@ function PayBeneficiary() {
         open={pinOpen}
         onOpenChange={setPinOpen}
         onApprove={confirm}
-        summary={{ recipient: bene.name, amount: voucherAmount, fee: fee?.fee ?? 0, total: netToBank }}
+        summary={{ recipient: biller.name, amount: voucherAmount, fee: fee?.fee ?? 0, total: netToBank }}
       />
     </AppShell>
   );

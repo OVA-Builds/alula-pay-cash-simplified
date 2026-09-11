@@ -203,7 +203,6 @@ function OnceOff() {
                 value={reference}
                 onChange={(e) => { setReference(e.target.value); if (e.target.value.trim()) setRefError(false); }}
                 maxLength={20}
-                placeholder="e.g. Rent"
                 className={`mt-2 h-12 rounded-2xl ${refError ? "border-destructive focus-visible:ring-destructive" : ""}`}
               />
               {refError && <p className="mt-1.5 text-xs text-destructive">Reference is required.</p>}
