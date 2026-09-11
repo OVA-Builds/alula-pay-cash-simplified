@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Check, Clock, Zap, Lock, Receipt } from "lucide-react";
+import { ArrowLeft, Check, Clock, Zap, Lock, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -136,7 +136,7 @@ function PayBill() {
 
           <div className="mt-6 flex items-center gap-3">
             <div className="h-14 w-14 shrink-0 rounded-full bg-gradient-wallet text-white flex items-center justify-center">
-              <Receipt className="h-6 w-6" />
+              <Building2 className="h-6 w-6" />
             </div>
             <div className="min-w-0">
               <h1 className="text-xl font-bold tracking-tight truncate">{biller.name}</h1>

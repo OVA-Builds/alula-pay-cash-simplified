@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Search, ChevronRight, Receipt } from "lucide-react";
+import { ArrowLeft, Search, ChevronRight, Building2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { AppShell } from "@/components/AppShell";
 import { BILLERS } from "@/lib/billers";
@@ -48,7 +48,7 @@ function PayBills() {
               >
                 <div className="flex items-center gap-3">
                   <div className="h-11 w-11 shrink-0 rounded-full bg-gradient-wallet text-white flex items-center justify-center">
-                    <Receipt className="h-4.5 w-4.5" />
+                    <Building2 className="h-4.5 w-4.5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold truncate">{b.name}</p>

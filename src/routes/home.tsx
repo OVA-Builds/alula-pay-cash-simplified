@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Landmark, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb, Users, Zap, AlertTriangle, Receipt } from "lucide-react";
+import { Landmark, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb, Users, Zap, AlertTriangle, Building2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { BottomSheet } from "@/components/BottomSheet";
 import { StoryViewer, type Story } from "@/components/StoryViewer";
@@ -225,7 +225,7 @@ function Home() {
             className="flex flex-col items-start justify-between gap-3 rounded-3xl bg-muted p-4 text-muted-foreground opacity-60"
           >
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-background text-muted-foreground">
-              <Receipt className="h-4.5 w-4.5" />
+              <Building2 className="h-4.5 w-4.5" />
             </span>
             <div>
               <p className="font-semibold">Pay Bills</p>
@@ -235,14 +235,14 @@ function Home() {
         ) : (
           <Link
             to="/pay-bills"
-            className="flex flex-col items-start justify-between gap-3 rounded-3xl border border-border bg-card p-4 shadow-card"
+            className="flex flex-col items-start justify-between gap-3 rounded-3xl bg-gradient-wallet p-4 text-white shadow-button active:scale-[0.99] transition-transform"
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-foreground">
-              <Receipt className="h-4.5 w-4.5" />
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15">
+              <Building2 className="h-4.5 w-4.5" />
             </span>
             <div>
               <p className="font-semibold">Pay Bills</p>
-              <p className="text-xs text-muted-foreground">Municipalities, funerals &amp; more</p>
+              <p className="text-xs leading-snug text-white/75">Municipalities, funerals &amp; more</p>
             </div>
           </Link>
         )}
@@ -378,7 +378,7 @@ function Home() {
             className="flex w-full items-center gap-4 rounded-3xl border border-border bg-card p-4 text-left shadow-soft transition-transform active:scale-[0.98]"
           >
             <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-gradient-wallet shadow-button">
-              <Receipt className="h-5.5 w-5.5 text-white" strokeWidth={2.2} />
+              <Building2 className="h-5.5 w-5.5 text-white" strokeWidth={2.2} />
             </span>
             <div className="flex-1">
               <p className="font-bold">Pay Bills</p>
