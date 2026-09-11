@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Camera, ShieldCheck, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, Camera, ShieldCheck, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/AppShell";
 import { StatusScreen } from "@/components/StatusScreen";
+import { BufferScreen } from "@/components/BufferScreen";
+import { BUFFER_MS, simulateOutcome } from "@/lib/buffer";
 import { useApp, MONTHLY_FEE, formatZAR } from "@/lib/app-state";
 
 export const Route = createFileRoute("/verify")({ component: Verify });
@@ -11,7 +13,7 @@ export const Route = createFileRoute("/verify")({ component: Verify });
 function Verify() {
   const navigate = useNavigate();
   const { setVerified, adjustBalance } = useApp();
-  const [stage, setStage] = useState<"intro" | "capturing" | "checking" | "success">("intro");
+  const [stage, setStage] = useState<"intro" | "capturing" | "checking" | "success" | "failed">("intro");
   const PRO_FEE = MONTHLY_FEE.pro;
   const canUpgrade = true;
 
@@ -20,11 +22,15 @@ function Verify() {
     setStage("capturing");
     setTimeout(() => setStage("checking"), 1400);
     setTimeout(() => {
-      // Charge first month's Pro subscription on upgrade.
-      adjustBalance(-PRO_FEE);
-      setVerified(true);
-      setStage("success");
-    }, 2800);
+      if (simulateOutcome() === "success") {
+        // Charge first month's Pro subscription only once verification succeeds.
+        adjustBalance(-PRO_FEE);
+        setVerified(true);
+        setStage("success");
+      } else {
+        setStage("failed");
+      }
+    }, 1400 + BUFFER_MS);
   };
 
   if (stage === "success") {
@@ -37,6 +43,28 @@ function Verify() {
           buttonLabel="Go to home"
           onButtonClick={() => navigate({ to: "/home" })}
         />
+      </AppShell>
+    );
+  }
+
+  if (stage === "failed") {
+    return (
+      <AppShell hideNav>
+        <StatusScreen
+          variant="error"
+          title="Verification failed"
+          description="We couldn't verify it's you, so you haven't been charged. Make sure you're in good light and try again."
+          buttonLabel="Try again"
+          onButtonClick={() => setStage("intro")}
+        />
+      </AppShell>
+    );
+  }
+
+  if (stage === "checking") {
+    return (
+      <AppShell hideNav>
+        <BufferScreen title="Just checking it's really you…" description="This takes a few seconds." />
       </AppShell>
     );
   }
@@ -83,12 +111,10 @@ function Verify() {
                 <Camera className="h-12 w-12 text-primary" />
               </>
             )}
-            {stage === "checking" && <Loader2 className="h-12 w-12 text-primary animate-spin" />}
           </div>
           <p className="text-center text-sm font-medium mt-4">
             {stage === "intro" && "Tap below to take a selfie"}
             {stage === "capturing" && "Hold still…"}
-            {stage === "checking" && "Just checking it's really you…"}
           </p>
           <p className="text-center text-xs text-muted-foreground mt-1.5">
             🔒 Your photo is safe with us · No ID document needed

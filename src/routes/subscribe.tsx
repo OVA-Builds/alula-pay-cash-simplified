@@ -1,11 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Camera, Check, Clock, Loader2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Camera, Check, Clock, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AppShell } from "@/components/AppShell";
-import { StatusBody } from "@/components/StatusScreen";
+import { StatusBody, StatusScreen } from "@/components/StatusScreen";
+import { BufferScreen } from "@/components/BufferScreen";
+import { BUFFER_MS, simulateOutcome } from "@/lib/buffer";
 import { useApp, formatZAR, MONTHLY_FEE, type Plan } from "@/lib/app-state";
 import voucherBlu from "@/assets/voucher-blu.jpg";
 import voucherOtt from "@/assets/voucher-ott.png";
@@ -37,7 +39,7 @@ const PLAN_FEATURES: Record<Plan, string[]> = {
   ],
 };
 
-type Step = "choose" | "features" | "biometric" | "brand" | "code" | "success";
+type Step = "choose" | "features" | "biometric" | "brand" | "code" | "processing" | "success" | "failed";
 
 function Subscribe() {
   const navigate = useNavigate();
@@ -52,7 +54,7 @@ function Subscribe() {
   const [brand, setBrand] = useState<VoucherBrand | null>(null);
   const [code, setCode] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
-  const [bioStage, setBioStage] = useState<"intro" | "capturing" | "checking">("intro");
+  const [bioStage, setBioStage] = useState<"intro" | "capturing" | "checking" | "failed">("intro");
   const [paidPlan, setPaidPlan] = useState<Plan>("basic");
   const codeInputRef = useRef<HTMLInputElement>(null);
 
@@ -101,28 +103,41 @@ function Subscribe() {
     setBioStage("capturing");
     setTimeout(() => setBioStage("checking"), 1400);
     setTimeout(() => {
-      verifyIdentity();
-      setStep("brand");
-    }, 2800);
+      if (simulateOutcome() === "success") {
+        verifyIdentity();
+        setStep("brand");
+        setBioStage("intro");
+      } else {
+        setBioStage("failed");
+      }
+    }, 1400 + BUFFER_MS);
   };
 
   const submitVoucher = () => {
     if (!brand || !validCode) return;
-    const paidFor = reviewPlan;
-    const result = applyVoucherTowardSubscription(remaining, brand.name);
-    setCode("");
-    setBrand(null);
-    if (result.fullyPaid) {
-      setPaidPlan(paidFor);
-      setNotice(null);
-      setStep("success");
-    } else {
-      setNotice(
-        `${formatZAR(remaining)} applied. ${formatZAR(result.outstanding)} still needed to activate your ` +
-        `${reviewPlan === "pro" ? "Pro" : "Basic"} subscription.`
-      );
-      setStep("brand");
-    }
+    const usedBrand = brand;
+    setStep("processing");
+    setTimeout(() => {
+      if (simulateOutcome() === "error") {
+        setStep("failed");
+        return;
+      }
+      const paidFor = reviewPlan;
+      const result = applyVoucherTowardSubscription(remaining, usedBrand.name);
+      setCode("");
+      setBrand(null);
+      if (result.fullyPaid) {
+        setPaidPlan(paidFor);
+        setNotice(null);
+        setStep("success");
+      } else {
+        setNotice(
+          `${formatZAR(remaining)} applied. ${formatZAR(result.outstanding)} still needed to activate your ` +
+          `${reviewPlan === "pro" ? "Pro" : "Basic"} subscription.`
+        );
+        setStep("brand");
+      }
+    }, BUFFER_MS);
   };
 
   const goBack = () => {
@@ -132,6 +147,50 @@ function Subscribe() {
     else if (step === "features") setStep("choose");
     else navigate({ to: "/home" });
   };
+
+  if (step === "biometric" && bioStage === "checking") {
+    return (
+      <AppShell hideNav>
+        <BufferScreen title="Verifying with DHA…" description="This takes a few seconds." />
+      </AppShell>
+    );
+  }
+
+  if (step === "biometric" && bioStage === "failed") {
+    return (
+      <AppShell hideNav>
+        <StatusScreen
+          variant="error"
+          title="Verification failed"
+          description="We couldn't verify your identity with DHA. Make sure you're in good light and try again."
+          buttonLabel="Try again"
+          onButtonClick={() => setBioStage("intro")}
+        />
+      </AppShell>
+    );
+  }
+
+  if (step === "processing") {
+    return (
+      <AppShell hideNav>
+        <BufferScreen title="Confirming your payment…" description="This takes a few seconds." />
+      </AppShell>
+    );
+  }
+
+  if (step === "failed") {
+    return (
+      <AppShell hideNav>
+        <StatusScreen
+          variant="error"
+          title="Payment didn't go through"
+          description="We couldn't confirm your voucher payment. Your voucher hasn't been used — please try again."
+          buttonLabel="Try again"
+          onButtonClick={() => setStep("code")}
+        />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell hideNav>
@@ -245,12 +304,10 @@ function Subscribe() {
                   <Camera className="h-11 w-11 text-primary" />
                 </>
               )}
-              {bioStage === "checking" && <Loader2 className="h-11 w-11 animate-spin text-primary" />}
             </div>
             <p className="mt-4 text-sm font-medium">
               {bioStage === "intro" && "Tap below to take a selfie"}
               {bioStage === "capturing" && "Hold still…"}
-              {bioStage === "checking" && "Verifying with DHA…"}
             </p>
             <p className="mt-1.5 text-xs text-muted-foreground">🔒 Secure · No documents needed</p>
 

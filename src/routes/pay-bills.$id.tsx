@@ -8,6 +8,8 @@ import { AppShell } from "@/components/AppShell";
 import { ApprovalPinDialog } from "@/components/ApprovalPinDialog";
 import { SendCelebration, type CelebrationInfo } from "@/components/SendCelebration";
 import { StatusScreen } from "@/components/StatusScreen";
+import { BufferScreen } from "@/components/BufferScreen";
+import { BUFFER_MS, simulateOutcome } from "@/lib/buffer";
 import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy } from "@/lib/app-state";
 import { useRequireSubscription } from "@/hooks/use-require-subscription";
 import { BILLERS } from "@/lib/billers";
@@ -17,7 +19,7 @@ import voucher1Voucher from "@/assets/voucher-1voucher.png";
 
 export const Route = createFileRoute("/pay-bills/$id")({ component: PayBill });
 
-type Step = "voucher" | "code" | "confirm" | "done";
+type Step = "voucher" | "code" | "confirm" | "processing" | "done" | "failed";
 
 type VoucherBrand = { id: "blu" | "1voucher" | "ott"; name: string; length: number; logo: string; amount: number };
 
@@ -36,7 +38,7 @@ function PayBill() {
   const biller = BILLERS.find((b) => b.id === id);
 
   const [step, setStep] = useState<Step>("voucher");
-  useRequireSubscription({ enabled: step !== "done" });
+  useRequireSubscription({ enabled: step !== "done" && step !== "processing" && step !== "failed" });
   const [celebration, setCelebration] = useState<CelebrationInfo>({ firstSend: false, struckDay: null, challengeDays: null });
 
   // Suppliers have no saved reference — the client always types their own
@@ -76,28 +78,57 @@ function PayBill() {
 
   const confirm = () => {
     if (!brand) return;
-    const firstSend = !transactions.some((t) => t.type === "transfer");
-    let struckDay: number | null = null;
-    if (challenge) {
-      const dayIndex = Math.floor((Date.now() - challenge.startedAt) / (24 * 60 * 60 * 1000));
-      if (dayIndex >= 0 && dayIndex < challenge.days && !challenge.struck[dayIndex]) struckDay = dayIndex + 1;
-    }
-    addTransaction({
-      id: crypto.randomUUID(), type: "transfer", amount: -voucherAmount,
-      label: `Paid ${biller.name}`,
-      status: fee?.rail === "RTC" ? "Completed" : "Pending",
-      date: "Just now",
-      recipientName: biller.name,
-      bankName: biller.bank,
-      accountNumber: biller.account,
-      reference,
-      sendAmount: netToBank,
-      fee: fee?.fee ?? 0,
-      rail: fee?.rail,
-    });
-    setCelebration({ firstSend, struckDay, challengeDays: challenge?.days ?? null });
-    setStep("done");
+    setStep("processing");
+    setTimeout(() => {
+      if (simulateOutcome() === "error") {
+        setStep("failed");
+        return;
+      }
+      const firstSend = !transactions.some((t) => t.type === "transfer");
+      let struckDay: number | null = null;
+      if (challenge) {
+        const dayIndex = Math.floor((Date.now() - challenge.startedAt) / (24 * 60 * 60 * 1000));
+        if (dayIndex >= 0 && dayIndex < challenge.days && !challenge.struck[dayIndex]) struckDay = dayIndex + 1;
+      }
+      addTransaction({
+        id: crypto.randomUUID(), type: "transfer", amount: -voucherAmount,
+        label: `Paid ${biller.name}`,
+        status: fee?.rail === "RTC" ? "Completed" : "Pending",
+        date: "Just now",
+        recipientName: biller.name,
+        bankName: biller.bank,
+        accountNumber: biller.account,
+        reference,
+        sendAmount: netToBank,
+        fee: fee?.fee ?? 0,
+        rail: fee?.rail,
+      });
+      setCelebration({ firstSend, struckDay, challengeDays: challenge?.days ?? null });
+      setStep("done");
+    }, BUFFER_MS);
   };
+
+  if (step === "processing") {
+    return (
+      <AppShell hideNav>
+        <BufferScreen title="Sending your payment…" description="This takes a few seconds." />
+      </AppShell>
+    );
+  }
+
+  if (step === "failed") {
+    return (
+      <AppShell hideNav>
+        <StatusScreen
+          variant="error"
+          title="Payment didn't go through"
+          description="Something went wrong on our end. Your voucher hasn't been used — please try again."
+          buttonLabel="Try again"
+          onButtonClick={() => setStep("confirm")}
+        />
+      </AppShell>
+    );
+  }
 
   if (step === "done") {
     return (
