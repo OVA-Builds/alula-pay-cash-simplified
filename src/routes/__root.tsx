@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect } from "react";
 import {
   Outlet,
   Link,
@@ -10,6 +11,21 @@ import {
 
 import appCss from "../styles.css?url";
 import { AppProvider, STORAGE_KEY } from "@/lib/app-state";
+
+// Shared with chunkReloadScript below — same guard key, same match rules.
+// A stale tab's dynamic import() can either reject before React ever sees it
+// (caught by the inline script) or get caught by the router's own error
+// boundary instead (caught here) — which one happens depends on exactly
+// where in the router's lazy-loading it fails. Both paths lead to the same
+// single guarded reload, so it's covered either way.
+const CHUNK_RELOAD_KEY = "alula-chunk-reload-once";
+function isChunkLoadErrorMessage(msg: unknown): boolean {
+  return typeof msg === "string" && (
+    msg.indexOf("Failed to fetch dynamically imported module") !== -1 ||
+    msg.indexOf("error loading dynamically imported module") !== -1 ||
+    msg.indexOf("Importing a module script failed") !== -1
+  );
+}
 
 const themeBootScript = `
 try {
@@ -78,6 +94,17 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+
+  // A stale tab's failed chunk load sometimes surfaces here instead of as an
+  // unhandled rejection the inline script can catch — same recovery, same
+  // guard key, so whichever path catches it first is the one that reloads.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!isChunkLoadErrorMessage(error?.message)) return;
+    if (window.sessionStorage.getItem(CHUNK_RELOAD_KEY)) return;
+    window.sessionStorage.setItem(CHUNK_RELOAD_KEY, "1");
+    window.location.reload();
+  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
