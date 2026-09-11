@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ShieldCheck, ChevronRight, HelpCircle, LogOut, BadgeCheck, Moon, Compass, Lock } from "lucide-react";
+import { ShieldCheck, ChevronRight, HelpCircle, MessageCircle, LogOut, BadgeCheck, Moon, Compass, Lock } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Switch } from "@/components/ui/switch";
 import { useApp, MONTHLY_FEE, formatZAR } from "@/lib/app-state";
@@ -8,8 +8,10 @@ export const Route = createFileRoute("/profile")({ component: Profile });
 
 function Profile() {
   const navigate = useNavigate();
-  const { phone, verified, plan, subscriptionActive, alulaOn, setAlulaOn, theme, setTheme, signOut } = useApp();
+  const { phone, firstName, lastName, verified, plan, subscriptionActive, alulaOn, setAlulaOn, theme, setTheme, signOut } = useApp();
   const planLabel = plan === "pro" ? "Pro" : "Basic";
+  const fullName = [firstName, lastName].filter((n) => n?.trim()).join(" ");
+  const initials = `${firstName?.trim()?.[0] ?? ""}${lastName?.trim()?.[0] ?? ""}`.toUpperCase() || "A";
   const handleSignOut = () => { signOut(); navigate({ to: "/onboarding" }); };
 
   return (
@@ -18,15 +20,16 @@ function Profile() {
         <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
 
         <div className="mt-6 bg-card rounded-2xl border border-border p-5 flex items-center gap-4">
-          <div className="h-14 w-14 rounded-full bg-gradient-brand flex items-center justify-center text-white text-lg font-bold">
-            {phone ? phone.slice(-2) : "A"}
+          <div className="h-14 w-14 shrink-0 rounded-full bg-gradient-brand flex items-center justify-center text-white text-lg font-bold">
+            {initials}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold">{phone ? `+27 ${phone.slice(-9)}` : "Alula user"}</p>
+            <p className="font-semibold truncate">{fullName || "Alula user"}</p>
             <div className="flex items-center gap-1.5 mt-1">
-              <BadgeCheck className={`h-3.5 w-3.5 ${verified ? "text-success" : "text-muted-foreground"}`} />
+              <BadgeCheck className={`h-3.5 w-3.5 shrink-0 ${verified ? "text-success" : "text-muted-foreground"}`} />
               <span className="text-xs text-muted-foreground">{planLabel} plan · {formatZAR(MONTHLY_FEE[plan])} / month</span>
             </div>
+            {phone && <p className="mt-1 text-xs text-muted-foreground">+27 {phone.slice(-9)}</p>}
           </div>
         </div>
 
@@ -54,7 +57,8 @@ function Profile() {
         <h2 className="mt-7 mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">Account</h2>
         <div className="bg-card rounded-2xl border border-border divide-y divide-border">
           <LinkRow icon={Lock} label="Change approval PIN" to="/setup-pin" />
-          <LinkRow icon={HelpCircle} label="Help & Support" />
+          <LinkRow icon={HelpCircle} label="Help (FAQs)" to="/help" />
+          <LinkRow icon={MessageCircle} label="Chat with Alula" to="/support" />
           <LinkRow icon={LogOut} label="Sign out" danger onClick={handleSignOut} />
         </div>
 

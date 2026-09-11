@@ -105,6 +105,7 @@ type Ctx = {
   signedIn: boolean;
   phone: string;
   firstName: string;
+  lastName: string;
   balance: number;
   verified: boolean;
   plan: Plan;
@@ -115,7 +116,7 @@ type Ctx = {
   beneficiaries: Beneficiary[];
   setOnboarded: (v: boolean) => void;
   signIn: (phone: string, firstName?: string) => void;
-  signUp: (phone: string, firstName: string) => void;
+  signUp: (phone: string, firstName: string, lastName: string) => void;
   signOut: () => void;
   addTransaction: (t: Transaction) => void;
   adjustBalance: (delta: number) => void;
@@ -221,7 +222,7 @@ const sampleBenes: Beneficiary[] = [
 export const STORAGE_KEY = "alula-pay-state-v2";
 
 type Persisted = {
-  onboarded: boolean; signedIn: boolean; phone: string; firstName: string; balance: number;
+  onboarded: boolean; signedIn: boolean; phone: string; firstName: string; lastName: string; balance: number;
   verified: boolean; plan: Plan; approvalPin: string | null; alulaOn: boolean;
   theme: "light" | "dark"; transactions: Transaction[]; beneficiaries: Beneficiary[];
   freeTransactionsLeft: number; freeTxPeriod: string | null; lastPaidPeriod: string | null;
@@ -306,6 +307,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [signedIn, setSignedIn] = useState(false);
   const [phone, setPhone] = useState("");
   const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [balance, setBalance] = useState(550);
   const [verified, setVerified] = useState(false);
   const [plan, setPlan] = useState<Plan>("basic");
@@ -346,6 +348,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (initial.signedIn !== undefined) setSignedIn(initial.signedIn);
       if (initial.phone !== undefined) setPhone(initial.phone);
       if (initial.firstName !== undefined) setFirstName(initial.firstName);
+      if (initial.lastName !== undefined) setLastName(initial.lastName);
       if (initial.balance !== undefined) setBalance(initial.balance);
       if (initial.verified !== undefined) setVerified(initial.verified);
       if (initial.plan !== undefined) setPlan(initial.plan);
@@ -377,7 +380,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!hydrated) return;
     try {
       const data: Persisted = {
-        onboarded, signedIn, phone, firstName, balance, verified, plan,
+        onboarded, signedIn, phone, firstName, lastName, balance, verified, plan,
         approvalPin, alulaOn, theme, transactions, beneficiaries,
         freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid,
         pendingForcedSend, heldBalance,
@@ -386,7 +389,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch {}
-  }, [hydrated, onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries, freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid, pendingForcedSend, heldBalance, deletedMessageIds, readMessageIds, lastAlertsSeenAt, isNewSignup, goals, sideHustles, challenge]);
+  }, [hydrated, onboarded, signedIn, phone, firstName, lastName, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries, freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid, pendingForcedSend, heldBalance, deletedMessageIds, readMessageIds, lastAlertsSeenAt, isNewSignup, goals, sideHustles, challenge]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -407,10 +410,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setPinLocked(false);
     setIsNewSignup(false);
   }, []);
-  const signUp = useCallback((p: string, name: string) => {
+  const signUp = useCallback((p: string, name: string, surname: string) => {
     // Always start a new signup on the Basic tier, unverified, with a fresh approval PIN flow.
     setPhone(p);
     setFirstName(name.trim());
+    setLastName(surname.trim());
     setSignedIn(true);
     setPlan("basic");
     setVerified(false);
@@ -662,7 +666,7 @@ const addTransaction = useCallback((t: Transaction) => {
   return (
     <AppContext.Provider
       value={{
-        onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme,
+        onboarded, signedIn, phone, firstName, lastName, balance, verified, plan, approvalPin, alulaOn, theme,
         transactions, beneficiaries,
         setOnboarded, signIn, signUp, signOut, addTransaction, adjustBalance,
         setVerified: setVerifiedWithPlan,

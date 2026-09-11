@@ -26,6 +26,7 @@ function SignUp() {
   const { signUp } = useApp();
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [pin, setPin] = useState("");
 
@@ -34,7 +35,7 @@ function SignUp() {
     if (savedEmail) setEmail(savedEmail);
   }, []);
 
-  const canSubmit = firstName.trim().length >= 2 && phone.replace(/\D/g, "").length >= 9 && pin.length === 4;
+  const canSubmit = firstName.trim().length >= 2 && lastName.trim().length >= 2 && phone.replace(/\D/g, "").length >= 9 && pin.length === 4;
 
   return (
     <PhoneFrame>
@@ -78,6 +79,18 @@ function SignUp() {
           </div>
 
           <div className="space-y-1.5">
+            <Label htmlFor="lastName">Last name</Label>
+            <div className="relative">
+              <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="lastName" autoComplete="family-name" placeholder="e.g. Ndlovu"
+                value={lastName} onChange={(e) => setLastName(e.target.value)}
+                className="h-12 rounded-2xl pl-11 text-base shadow-sm"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
             <Label htmlFor="phone">Mobile number</Label>
             <div className="relative">
               <Phone className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -105,7 +118,7 @@ function SignUp() {
 
         <Button
           size="lg" disabled={!canSubmit}
-          onClick={() => { signUp(phone, firstName); navigate({ to: "/setup-pin" }); }}
+          onClick={() => { signUp(phone, firstName, lastName); navigate({ to: "/setup-pin" }); }}
           className="mt-5 h-12 rounded-full text-base shadow-button"
         >
           Continue

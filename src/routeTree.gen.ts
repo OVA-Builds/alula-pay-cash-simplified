@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AddVoucherRouteImport } from './routes/add-voucher'
 import { Route as BeneficiariesRouteImport } from './routes/beneficiaries'
 import { Route as DemoVouchersRouteImport } from './routes/demo-vouchers'
+import { Route as HelpRouteImport } from './routes/help'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as HustleRouteImport } from './routes/hustle'
@@ -27,6 +28,7 @@ import { Route as SetupPinRouteImport } from './routes/setup-pin'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SpendingRouteImport } from './routes/spending'
 import { Route as SubscribeRouteImport } from './routes/subscribe'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as HustleIndexRouteImport } from './routes/hustle.index'
 import { Route as HustleCalculatorRouteImport } from './routes/hustle.calculator'
@@ -60,6 +62,11 @@ const BeneficiariesRoute = BeneficiariesRouteImport.update({
 const DemoVouchersRoute = DemoVouchersRouteImport.update({
   id: '/demo-vouchers',
   path: '/demo-vouchers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HistoryRoute = HistoryRouteImport.update({
@@ -130,6 +137,11 @@ const SpendingRoute = SpendingRouteImport.update({
 const SubscribeRoute = SubscribeRouteImport.update({
   id: '/subscribe',
   path: '/subscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VerifyRoute = VerifyRouteImport.update({
@@ -208,6 +220,7 @@ export interface FileRoutesByFullPath {
   '/add-voucher': typeof AddVoucherRoute
   '/beneficiaries': typeof BeneficiariesRoute
   '/demo-vouchers': typeof DemoVouchersRoute
+  '/help': typeof HelpRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/hustle': typeof HustleRouteWithChildren
@@ -222,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/spending': typeof SpendingRoute
   '/subscribe': typeof SubscribeRoute
+  '/support': typeof SupportRoute
   '/verify': typeof VerifyRoute
   '/hustle/calculator': typeof HustleCalculatorRoute
   '/hustle/challenge': typeof HustleChallengeRoute
@@ -242,6 +256,7 @@ export interface FileRoutesByTo {
   '/add-voucher': typeof AddVoucherRoute
   '/beneficiaries': typeof BeneficiariesRoute
   '/demo-vouchers': typeof DemoVouchersRoute
+  '/help': typeof HelpRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
@@ -254,6 +269,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/spending': typeof SpendingRoute
   '/subscribe': typeof SubscribeRoute
+  '/support': typeof SupportRoute
   '/verify': typeof VerifyRoute
   '/hustle/calculator': typeof HustleCalculatorRoute
   '/hustle/challenge': typeof HustleChallengeRoute
@@ -274,6 +290,7 @@ export interface FileRoutesById {
   '/add-voucher': typeof AddVoucherRoute
   '/beneficiaries': typeof BeneficiariesRoute
   '/demo-vouchers': typeof DemoVouchersRoute
+  '/help': typeof HelpRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
   '/hustle': typeof HustleRouteWithChildren
@@ -288,6 +305,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/spending': typeof SpendingRoute
   '/subscribe': typeof SubscribeRoute
+  '/support': typeof SupportRoute
   '/verify': typeof VerifyRoute
   '/hustle/calculator': typeof HustleCalculatorRoute
   '/hustle/challenge': typeof HustleChallengeRoute
@@ -310,6 +328,7 @@ export interface FileRouteTypes {
     | '/add-voucher'
     | '/beneficiaries'
     | '/demo-vouchers'
+    | '/help'
     | '/history'
     | '/home'
     | '/hustle'
@@ -324,6 +343,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/spending'
     | '/subscribe'
+    | '/support'
     | '/verify'
     | '/hustle/calculator'
     | '/hustle/challenge'
@@ -344,6 +364,7 @@ export interface FileRouteTypes {
     | '/add-voucher'
     | '/beneficiaries'
     | '/demo-vouchers'
+    | '/help'
     | '/history'
     | '/home'
     | '/login'
@@ -356,6 +377,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/spending'
     | '/subscribe'
+    | '/support'
     | '/verify'
     | '/hustle/calculator'
     | '/hustle/challenge'
@@ -375,6 +397,7 @@ export interface FileRouteTypes {
     | '/add-voucher'
     | '/beneficiaries'
     | '/demo-vouchers'
+    | '/help'
     | '/history'
     | '/home'
     | '/hustle'
@@ -389,6 +412,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/spending'
     | '/subscribe'
+    | '/support'
     | '/verify'
     | '/hustle/calculator'
     | '/hustle/challenge'
@@ -410,6 +434,7 @@ export interface RootRouteChildren {
   AddVoucherRoute: typeof AddVoucherRoute
   BeneficiariesRoute: typeof BeneficiariesRoute
   DemoVouchersRoute: typeof DemoVouchersRoute
+  HelpRoute: typeof HelpRoute
   HistoryRoute: typeof HistoryRoute
   HomeRoute: typeof HomeRoute
   HustleRoute: typeof HustleRouteWithChildren
@@ -424,6 +449,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   SpendingRoute: typeof SpendingRoute
   SubscribeRoute: typeof SubscribeRoute
+  SupportRoute: typeof SupportRoute
   VerifyRoute: typeof VerifyRoute
   MessageIdRoute: typeof MessageIdRoute
   PayBeneficiaryIdRoute: typeof PayBeneficiaryIdRoute
@@ -457,6 +483,13 @@ declare module '@tanstack/react-router' {
       path: '/demo-vouchers'
       fullPath: '/demo-vouchers'
       preLoaderRoute: typeof DemoVouchersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/history': {
@@ -555,6 +588,13 @@ declare module '@tanstack/react-router' {
       path: '/subscribe'
       fullPath: '/subscribe'
       preLoaderRoute: typeof SubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/verify': {
@@ -714,6 +754,7 @@ const rootRouteChildren: RootRouteChildren = {
   AddVoucherRoute: AddVoucherRoute,
   BeneficiariesRoute: BeneficiariesRoute,
   DemoVouchersRoute: DemoVouchersRoute,
+  HelpRoute: HelpRoute,
   HistoryRoute: HistoryRoute,
   HomeRoute: HomeRoute,
   HustleRoute: HustleRouteWithChildren,
@@ -728,6 +769,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   SpendingRoute: SpendingRoute,
   SubscribeRoute: SubscribeRoute,
+  SupportRoute: SupportRoute,
   VerifyRoute: VerifyRoute,
   MessageIdRoute: MessageIdRoute,
   PayBeneficiaryIdRoute: PayBeneficiaryIdRoute,
