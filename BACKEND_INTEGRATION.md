@@ -21,7 +21,7 @@ branches on `.ok`.
 |---|---|---|
 | `src/lib/api/payments.ts` (`sendPayout`) | **Ozow** (or equivalent SA payment gateway/PSP) for outbound EFT/Instant EFT payouts | send-once-off, pay-bills/$id, pay-beneficiary/$id |
 | `src/lib/api/identity.ts` (`verifySelfieWithDHA`) | A DHA-integrated KYC vendor for biometric liveness + face-match verification | verify (Pro upgrade), setup-pin, reset-pin, subscribe (biometric step) |
-| `src/lib/api/vouchers.ts` (`redeemVoucher`) | Each voucher brand's own redeem/validate API (Blu Voucher, 1Voucher, OTT Voucher) | add-voucher, subscribe (voucher payment) |
+| `src/lib/api/vouchers.ts` (`redeemVoucher`) | Each voucher brand's own redeem/validate API (Blu Voucher, 1Voucher, OTT Voucher) | send-once-off, pay-bills, pay-beneficiary, subscribe (voucher payment) |
 
 `src/lib/api/mockBackend.ts` is the one place that fakes latency (`BUFFER_MS`,
 currently a flat 4s — see `src/lib/buffer.ts`) and a realistic chance of
@@ -92,7 +92,8 @@ Still needed for real money:
   confirmed/re-computed server-side before authorizing a payout so a
   tampered client can't alter them.
 
-### Vouchers (`add-voucher.tsx`)
+### Vouchers (redeemed inline in `send-once-off.tsx`, `pay-bills.$id.tsx`,
+`pay-beneficiary.$id.tsx`, `subscribe.tsx`)
 Routed through `vouchers.redeemVoucher()`. Still needed: a real adapter
 per brand behind that same function — Blu Voucher, 1Voucher and OTT
 Voucher each have their own redemption API and their own failure modes

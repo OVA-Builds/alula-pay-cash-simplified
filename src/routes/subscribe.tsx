@@ -18,8 +18,8 @@ export const Route = createFileRoute("/subscribe")({ component: Subscribe });
 type VoucherBrand = { id: "ott" | "blu" | "1voucher"; name: string; length: number; logo: string; faceValue: number };
 
 // Real fixed face values, same as every other voucher flow in the app
-// (add-voucher, send-once-off, pay-bills, pay-beneficiary): Blu R10,
-// 1Voucher R50, OTT R200. Paying Pro/Basic with a voucher worth more than
+// (send-once-off, pay-bills, pay-beneficiary): Blu R10, 1Voucher R50,
+// OTT R200. Paying Pro/Basic with a voucher worth more than
 // what's owed leaves a genuine overpay — applyVoucherTowardSubscription
 // routes that straight into a forced send, same as everywhere else.
 const VOUCHER_BRANDS: VoucherBrand[] = [

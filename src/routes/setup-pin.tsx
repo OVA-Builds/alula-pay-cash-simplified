@@ -43,7 +43,7 @@ function SetupPin() {
           setTimeout(() => {
             if (next === first) {
               setApprovalPin(next);
-              navigate({ to: isChange ? "/profile" : "/demo-vouchers" });
+              navigate({ to: isChange ? "/profile" : "/home" });
             } else {
               setError("PINs don't match. Try again.");
               setPin("");

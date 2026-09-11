@@ -179,7 +179,7 @@ function Home() {
               </p>
             </div>
             <Link
-              to="/add-voucher"
+              to="/send-once-off"
               className="shrink-0 rounded-full bg-gold px-3.5 py-2 text-xs font-bold text-gold-foreground shadow-gold active:scale-95"
             >
               Top up

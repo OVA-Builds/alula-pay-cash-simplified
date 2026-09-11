@@ -10,9 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AddVoucherRouteImport } from './routes/add-voucher'
 import { Route as BeneficiariesRouteImport } from './routes/beneficiaries'
-import { Route as DemoVouchersRouteImport } from './routes/demo-vouchers'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as HomeRouteImport } from './routes/home'
@@ -49,19 +47,9 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AddVoucherRoute = AddVoucherRouteImport.update({
-  id: '/add-voucher',
-  path: '/add-voucher',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const BeneficiariesRoute = BeneficiariesRouteImport.update({
   id: '/beneficiaries',
   path: '/beneficiaries',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoVouchersRoute = DemoVouchersRouteImport.update({
-  id: '/demo-vouchers',
-  path: '/demo-vouchers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HelpRoute = HelpRouteImport.update({
@@ -217,9 +205,7 @@ const HustleMineIdRoute = HustleMineIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/add-voucher': typeof AddVoucherRoute
   '/beneficiaries': typeof BeneficiariesRoute
-  '/demo-vouchers': typeof DemoVouchersRoute
   '/help': typeof HelpRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
@@ -253,9 +239,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/add-voucher': typeof AddVoucherRoute
   '/beneficiaries': typeof BeneficiariesRoute
-  '/demo-vouchers': typeof DemoVouchersRoute
   '/help': typeof HelpRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
@@ -287,9 +271,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/add-voucher': typeof AddVoucherRoute
   '/beneficiaries': typeof BeneficiariesRoute
-  '/demo-vouchers': typeof DemoVouchersRoute
   '/help': typeof HelpRoute
   '/history': typeof HistoryRoute
   '/home': typeof HomeRoute
@@ -325,9 +307,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/add-voucher'
     | '/beneficiaries'
-    | '/demo-vouchers'
     | '/help'
     | '/history'
     | '/home'
@@ -361,9 +341,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/add-voucher'
     | '/beneficiaries'
-    | '/demo-vouchers'
     | '/help'
     | '/history'
     | '/home'
@@ -394,9 +372,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/add-voucher'
     | '/beneficiaries'
-    | '/demo-vouchers'
     | '/help'
     | '/history'
     | '/home'
@@ -431,9 +407,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AddVoucherRoute: typeof AddVoucherRoute
   BeneficiariesRoute: typeof BeneficiariesRoute
-  DemoVouchersRoute: typeof DemoVouchersRoute
   HelpRoute: typeof HelpRoute
   HistoryRoute: typeof HistoryRoute
   HomeRoute: typeof HomeRoute
@@ -464,25 +438,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/add-voucher': {
-      id: '/add-voucher'
-      path: '/add-voucher'
-      fullPath: '/add-voucher'
-      preLoaderRoute: typeof AddVoucherRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/beneficiaries': {
       id: '/beneficiaries'
       path: '/beneficiaries'
       fullPath: '/beneficiaries'
       preLoaderRoute: typeof BeneficiariesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo-vouchers': {
-      id: '/demo-vouchers'
-      path: '/demo-vouchers'
-      fullPath: '/demo-vouchers'
-      preLoaderRoute: typeof DemoVouchersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/help': {
@@ -751,9 +711,7 @@ const PayBillsRouteWithChildren = PayBillsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AddVoucherRoute: AddVoucherRoute,
   BeneficiariesRoute: BeneficiariesRoute,
-  DemoVouchersRoute: DemoVouchersRoute,
   HelpRoute: HelpRoute,
   HistoryRoute: HistoryRoute,
   HomeRoute: HomeRoute,
