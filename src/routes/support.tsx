@@ -26,6 +26,8 @@ function providerReplies(): QuickReply[] {
   return VOUCHER_PROVIDER_CONTACTS.map((p) => ({ id: `provider:${p.id}`, label: p.name }));
 }
 
+const MAIN_MENU_REPLY: QuickReply[] = [{ id: "main-menu", label: "Main menu" }];
+
 function Support() {
   const router = useRouter();
   const { transactions } = useApp();
@@ -83,7 +85,7 @@ function Support() {
         : ["You don't have any transactions yet — once you send or load a voucher, they'll show up here and in History."];
       say("bot", lines);
       say("bot", [ASK_MORE]);
-      setQuickReplies(menuReplies());
+      setQuickReplies(MAIN_MENU_REPLY);
       return;
     }
     if (topic.special === "voucher-invalid") {
@@ -93,7 +95,7 @@ function Support() {
     }
     say("bot", topic.answer);
     say("bot", [ASK_MORE]);
-    setQuickReplies(menuReplies());
+    setQuickReplies(MAIN_MENU_REPLY);
   };
 
   const handleQuickReply = (reply: QuickReply) => {
@@ -103,6 +105,11 @@ function Support() {
     setQuickReplies([]);
     setAwaitingFreeText(false);
 
+    if (reply.id === "main-menu") {
+      say("bot", ["Here's the menu again:"]);
+      setQuickReplies(menuReplies());
+      return;
+    }
     if (reply.id === "other") {
       say("bot", ["Sure — can you describe the problem you're facing?"]);
       setAwaitingFreeText(true);
@@ -116,7 +123,7 @@ function Support() {
         say("bot", [`If you need to log a call, ${provider.name} support is on ${provider.landline} or ${provider.email}.`]);
         say("bot", [ASK_MORE]);
       }
-      setQuickReplies(menuReplies());
+      setQuickReplies(MAIN_MENU_REPLY);
       return;
     }
     const topic = SUPPORT_TOPICS.find((t) => t.id === reply.id);
