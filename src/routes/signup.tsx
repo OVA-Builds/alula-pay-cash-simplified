@@ -36,7 +36,7 @@ function SignUp() {
     if (savedEmail) setEmail(savedEmail);
   }, []);
 
-  const canSubmit = firstName.trim().length >= 2 && lastName.trim().length >= 2 && phone.replace(/\D/g, "").length >= 9 && pin.length === 4;
+  const canSubmit = firstName.trim().length >= 2 && lastName.trim().length >= 2 && phone.length === 10 && pin.length === 4;
 
   return (
     <PhoneFrame>
@@ -98,8 +98,8 @@ function SignUp() {
             <div className="relative">
               <Phone className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                id="phone" inputMode="tel" placeholder="082 123 4567"
-                value={phone} onChange={(e) => setPhone(e.target.value)}
+                id="phone" inputMode="tel" maxLength={20} placeholder="0821234567"
+                value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
                 className="h-12 rounded-2xl pl-11 text-base shadow-sm"
               />
             </div>

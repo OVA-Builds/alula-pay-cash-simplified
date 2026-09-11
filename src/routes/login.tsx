@@ -16,7 +16,7 @@ function Login() {
   const [phone, setPhone] = useState(savedPhone || "");
   const [pin, setPin] = useState("");
 
-  const canSubmit = phone.replace(/\D/g, "").length >= 9 && pin.length === 4;
+  const canSubmit = phone.length === 10 && pin.length === 4;
 
   const handleLogin = () => {
     signIn(phone, firstName);
@@ -38,8 +38,8 @@ function Login() {
             <div className="relative">
               <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                id="phone" inputMode="tel" placeholder="082 123 4567"
-                value={phone} onChange={(e) => setPhone(e.target.value)}
+                id="phone" inputMode="tel" maxLength={20} placeholder="0821234567"
+                value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
                 className="h-14 rounded-2xl pl-11 text-base"
                 autoFocus
               />

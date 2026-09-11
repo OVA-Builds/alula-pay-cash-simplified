@@ -69,7 +69,7 @@ function OnceOff() {
 
   const digits = code.replace(/\D/g, "");
   const validCode = !!brand && digits.length === brand.length;
-  const detailsValid = name.trim().length >= 2 && account.length >= 6;
+  const detailsValid = name.trim().length >= 2 && account.length === (bank?.accountLength ?? 0);
 
   const back = () => (router.history.canGoBack() ? router.history.back() : navigate({ to: "/home" }));
 
@@ -185,9 +185,12 @@ function OnceOff() {
             </div>
             <div>
               <Label>Account number</Label>
-              <Input value={account} inputMode="numeric" maxLength={14}
-                onChange={(e) => setAccount(e.target.value.replace(/\D/g, ""))}
-                placeholder="10-digit account" className="mt-2 h-12 rounded-2xl" />
+              <Input value={account} inputMode="numeric" maxLength={20}
+                onChange={(e) => setAccount(e.target.value.replace(/\D/g, "").slice(0, bank?.accountLength ?? 11))}
+                placeholder={bank ? `${bank.accountLength}-digit account` : "Account number"} className="mt-2 h-12 rounded-2xl" />
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                {account.length}/{bank?.accountLength ?? 11} digits
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
