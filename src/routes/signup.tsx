@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { TermsDialog } from "@/components/TermsDialog";
 import { useApp } from "@/lib/app-state";
+import { signupUser } from "@/lib/backend/users";
 import { fixShoutyCase } from "@/lib/utils";
 
 export const Route = createFileRoute("/signup")({
@@ -38,6 +39,8 @@ function SignUp() {
   const [pin, setPin] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   useEffect(() => {
     const savedEmail = window.sessionStorage.getItem("alula-google-email");
@@ -50,7 +53,25 @@ function SignUp() {
     phone.length === 10 &&
     incomeSource !== "" &&
     pin.length === 4 &&
-    agreedToTerms;
+    agreedToTerms &&
+    !submitting;
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    setSubmitError("");
+    const cleanFirst = fixShoutyCase(firstName);
+    const cleanLast = fixShoutyCase(lastName);
+    const result = await signupUser({ data: { phone, firstName: cleanFirst, lastName: cleanLast, pin, email, incomeSource } }).catch(
+      () => ({ ok: false as const, error: "Couldn't reach the server. Check your connection and try again." }),
+    );
+    if (!result.ok) {
+      setSubmitError(result.error);
+      setSubmitting(false);
+      return;
+    }
+    signUp({ phone, firstName: cleanFirst, lastName: cleanLast, pin, email, incomeSource });
+    navigate({ to: "/setup-pin" });
+  };
 
   return (
     <PhoneFrame>
@@ -173,16 +194,15 @@ function SignUp() {
           </span>
         </label>
 
+        {submitError && <p className="mt-4 text-center text-xs text-destructive">{submitError}</p>}
+
         <Button
           size="lg" disabled={!canSubmit}
-          onClick={() => {
-            signUp({ phone, firstName: fixShoutyCase(firstName), lastName: fixShoutyCase(lastName), pin, email, incomeSource });
-            navigate({ to: "/setup-pin" });
-          }}
+          onClick={handleSubmit}
           className="mt-5 h-12 rounded-full text-base shadow-button"
         >
-          Continue
-          <ArrowRight className="h-4 w-4" />
+          {submitting ? "Creating account…" : "Continue"}
+          {!submitting && <ArrowRight className="h-4 w-4" />}
         </Button>
       </div>
 

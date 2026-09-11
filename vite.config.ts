@@ -12,4 +12,13 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
+  // "cloudflare:workers" is a Workers-runtime built-in (used to reach the D1
+  // binding from server functions) — it only exists once deployed/running
+  // under wrangler, so it must never be bundled, only left as an external
+  // import for that runtime to resolve.
+  vite: {
+    build: {
+      rollupOptions: { external: ["cloudflare:workers"] },
+    },
+  },
 });

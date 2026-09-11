@@ -120,7 +120,7 @@ type Ctx = {
   transactions: Transaction[];
   beneficiaries: Beneficiary[];
   setOnboarded: (v: boolean) => void;
-  signIn: (phone: string, firstName?: string) => void;
+  signIn: (details: { phone: string; firstName: string; lastName: string; email: string; incomeSource: string }) => void;
   signUp: (details: { phone: string; firstName: string; lastName: string; pin: string; email: string; incomeSource: string }) => void;
   signOut: () => void;
   addTransaction: (t: Transaction) => void;
@@ -403,9 +403,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [pinAttemptsLeft, setPinAttemptsLeft] = useState(3);
   const [pinLocked, setPinLocked] = useState(false);
 
-  const signIn = useCallback((p: string, name?: string) => {
+  const signIn = useCallback(({ phone: p, firstName: name, lastName: surname, email: e, incomeSource: src }: {
+    phone: string; firstName: string; lastName: string; email: string; incomeSource: string;
+  }) => {
     setPhone(p);
-    if (name !== undefined) setFirstName(name.trim());
+    setFirstName(name.trim());
+    setLastName(surname.trim());
+    setEmail(e);
+    setIncomeSource(src);
     setSignedIn(true);
     setPinAttemptsLeft(3);
     setPinLocked(false);

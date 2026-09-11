@@ -6,29 +6,45 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { useApp } from "@/lib/app-state";
+import { loginUser } from "@/lib/backend/users";
 import logo from "@/assets/alula-logo.png";
 
 export const Route = createFileRoute("/login")({ component: Login });
 
 function Login() {
   const navigate = useNavigate();
-  const { signIn, phone: savedPhone, firstName, appPin } = useApp();
+  const { signIn, phone: savedPhone, firstName, lastName, email, incomeSource, appPin } = useApp();
   const [phone, setPhone] = useState(savedPhone || "");
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = phone.length === 10 && pin.length === 4;
+  const canSubmit = phone.length === 10 && pin.length === 4 && !submitting;
 
-  const handleLogin = () => {
-    // Demo fallback: an account created before this device ever set an app
-    // PIN (or a fresh install with no stored PIN) accepts any 4 digits.
-    const isCorrect = appPin ? pin === appPin : true;
-    if (!isCorrect) {
-      setError("Incorrect PIN. Try again.");
-      setPin("");
+  const handleLogin = async () => {
+    setSubmitting(true);
+    setError("");
+    const result = await loginUser({ data: { phone, pin } }).catch(() => null);
+    if (!result) {
+      // Demo fallback: this device's own last account, for when the server
+      // can't be reached at all — never used when a real check succeeds or
+      // fails cleanly, only when the request itself couldn't complete.
+      if (appPin && pin === appPin && phone === savedPhone) {
+        signIn({ phone, firstName, lastName, email, incomeSource });
+        navigate({ to: "/home" });
+        return;
+      }
+      setError("Couldn't reach the server. Check your connection and try again.");
+      setSubmitting(false);
       return;
     }
-    signIn(phone, firstName);
+    if (!result.ok) {
+      setError(result.error);
+      setPin("");
+      setSubmitting(false);
+      return;
+    }
+    signIn(result.user);
     navigate({ to: "/home" });
   };
 
@@ -73,7 +89,7 @@ function Login() {
           size="lg" disabled={!canSubmit} onClick={handleLogin}
           className="h-14 rounded-2xl text-base shadow-button"
         >
-          Sign in
+          {submitting ? "Signing in…" : "Sign in"}
         </Button>
 
         <p className="mt-5 text-center text-sm text-muted-foreground">
