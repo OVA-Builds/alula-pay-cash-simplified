@@ -35,7 +35,6 @@ function PayBills() {
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search supplier"
             className="h-12 rounded-2xl pl-11"
-            autoFocus
           />
         </div>
 

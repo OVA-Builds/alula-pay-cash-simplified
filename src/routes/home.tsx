@@ -235,14 +235,14 @@ function Home() {
         ) : (
           <Link
             to="/pay-bills"
-            className="flex flex-col items-start justify-between gap-3 rounded-3xl bg-gradient-wallet p-4 text-white shadow-button active:scale-[0.99] transition-transform"
+            className="flex flex-col items-start justify-between gap-3 rounded-3xl bg-gradient-gold p-4 text-gold-foreground shadow-gold active:scale-[0.99] transition-transform"
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/30">
               <Building2 className="h-4.5 w-4.5" />
             </span>
             <div>
               <p className="font-semibold">Pay Bills</p>
-              <p className="text-xs leading-snug text-white/75">Municipalities, funerals &amp; more</p>
+              <p className="text-xs leading-snug text-gold-foreground/75">Municipalities, funerals &amp; more</p>
             </div>
           </Link>
         )}
