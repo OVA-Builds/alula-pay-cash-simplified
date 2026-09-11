@@ -7,7 +7,7 @@ import { useApp } from "@/lib/app-state";
 
 export const Route = createFileRoute("/setup-pin")({ component: SetupPin });
 
-type Stage = "selfie" | "scanning" | "create" | "confirm";
+type Stage = "selfie" | "scanning" | "verified" | "create" | "confirm";
 
 function SetupPin() {
   const navigate = useNavigate();
@@ -22,7 +22,10 @@ function SetupPin() {
 
   const startScan = () => {
     setStage("scanning");
-    setTimeout(() => setStage("create"), 2200);
+    // Always show the outcome before moving on — a silent jump from
+    // "scanning" straight into the PIN keypad reads as broken, not fast.
+    setTimeout(() => setStage("verified"), 2200);
+    setTimeout(() => setStage("create"), 3600);
   };
 
   const press = (d: string) => {
@@ -52,7 +55,7 @@ function SetupPin() {
   };
   const back = () => setPin((p) => p.slice(0, -1));
 
-  if (stage === "selfie" || stage === "scanning") {
+  if (stage === "selfie" || stage === "scanning" || stage === "verified") {
     return (
       <PhoneFrame>
         <div className="flex flex-col h-full overflow-y-auto p-8">
@@ -99,6 +102,21 @@ function SetupPin() {
               <div className="mt-8 flex items-center gap-2 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" /> Verifying your face…
               </div>
+            </div>
+          )}
+
+          {stage === "verified" && (
+            <div className="flex-1 flex flex-col items-center justify-center text-center">
+              <div className="relative">
+                <span className="absolute inset-0 rounded-full bg-success/30 animate-ripple" />
+                <div className="relative h-24 w-24 rounded-full bg-success flex items-center justify-center animate-tick-pop">
+                  <Check className="h-12 w-12 text-success-foreground" strokeWidth={3} />
+                </div>
+              </div>
+              <h2 className="mt-8 text-xl font-bold">Verified</h2>
+              <p className="mt-2 text-sm text-muted-foreground max-w-xs">
+                It's really you. Let's set your new PIN.
+              </p>
             </div>
           )}
         </div>
