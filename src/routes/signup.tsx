@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PhoneFrame } from "@/components/PhoneFrame";
 import { useApp } from "@/lib/app-state";
+import { fixShoutyCase } from "@/lib/utils";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -72,6 +73,7 @@ function SignUp() {
               <Input
                 id="firstName" autoComplete="given-name" placeholder="e.g. Thandi"
                 value={firstName} onChange={(e) => setFirstName(e.target.value)}
+                onBlur={() => setFirstName(fixShoutyCase(firstName))}
                 className="h-12 rounded-2xl pl-11 text-base shadow-sm"
                 autoFocus
               />
@@ -85,6 +87,7 @@ function SignUp() {
               <Input
                 id="lastName" autoComplete="family-name" placeholder="e.g. Ndlovu"
                 value={lastName} onChange={(e) => setLastName(e.target.value)}
+                onBlur={() => setLastName(fixShoutyCase(lastName))}
                 className="h-12 rounded-2xl pl-11 text-base shadow-sm"
               />
             </div>
@@ -118,7 +121,7 @@ function SignUp() {
 
         <Button
           size="lg" disabled={!canSubmit}
-          onClick={() => { signUp(phone, firstName, lastName); navigate({ to: "/setup-pin" }); }}
+          onClick={() => { signUp(phone, fixShoutyCase(firstName), fixShoutyCase(lastName)); navigate({ to: "/setup-pin" }); }}
           className="mt-5 h-12 rounded-full text-base shadow-button"
         >
           Continue

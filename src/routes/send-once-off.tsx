@@ -10,6 +10,7 @@ import { ApprovalPinDialog } from "@/components/ApprovalPinDialog";
 import { SendCelebration, type CelebrationInfo } from "@/components/SendCelebration";
 import { useApp, formatZAR, calcTransferFee, railLabel, railSettleCopy } from "@/lib/app-state";
 import { SA_BANKS, type Bank } from "@/lib/banks";
+import { fixShoutyCase } from "@/lib/utils";
 import { useRequireSubscription } from "@/hooks/use-require-subscription";
 import voucherBlu from "@/assets/voucher-blu.jpg";
 import voucherOtt from "@/assets/voucher-ott.png";
@@ -81,19 +82,20 @@ function OnceOff() {
 
   const confirm = () => {
     if (!bank || (!brand && !presetAmount)) return;
+    const cleanName = fixShoutyCase(name);
     const firstSend = !transactions.some((t) => t.type === "transfer");
     let struckDay: number | null = null;
     if (challenge) {
       const dayIndex = Math.floor((Date.now() - challenge.startedAt) / (24 * 60 * 60 * 1000));
       if (dayIndex >= 0 && dayIndex < challenge.days && !challenge.struck[dayIndex]) struckDay = dayIndex + 1;
     }
-    if (save) addBeneficiary({ name, bank: bank.name, branch: bank.branch, account, reference });
+    if (save) addBeneficiary({ name: cleanName, bank: bank.name, branch: bank.branch, account, reference });
     addTransaction({
       id: crypto.randomUUID(), type: "transfer", amount: -voucherAmount,
-      label: `Sent to ${name}`,
+      label: `Sent to ${cleanName}`,
       status: fee?.rail === "RTC" ? "Completed" : "Pending",
       date: "Just now",
-      recipientName: name,
+      recipientName: cleanName,
       bankName: bank.name,
       accountNumber: account,
       reference,
@@ -178,8 +180,8 @@ function OnceOff() {
           <div className="mt-6 space-y-4">
             <div>
               <Label>Name and surname</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Thandi Nkosi"
-                className="mt-2 h-12 rounded-2xl" autoFocus />
+              <Input value={name} onChange={(e) => setName(e.target.value)} onBlur={() => setName(fixShoutyCase(name))}
+                placeholder="e.g. Thandi Nkosi" className="mt-2 h-12 rounded-2xl" autoFocus />
             </div>
             <div>
               <Label>Account number</Label>

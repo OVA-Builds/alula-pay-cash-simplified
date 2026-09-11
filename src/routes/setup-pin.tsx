@@ -55,32 +55,32 @@ function SetupPin() {
   if (stage === "selfie" || stage === "scanning") {
     return (
       <PhoneFrame>
-        <div className="flex flex-col min-h-screen sm:min-h-[860px] p-8">
-          <button onClick={() => navigate({ to: "/profile" })} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
+        <div className="flex flex-col h-full overflow-y-auto p-8">
+          <button onClick={() => navigate({ to: "/profile" })} className="h-10 w-10 shrink-0 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
             <ArrowLeft className="h-4 w-4" />
           </button>
 
           {stage === "selfie" && (
             <div className="flex-1 flex flex-col">
-              <div className="mx-auto mt-6 h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <ScanFace className="h-7 w-7 text-primary" />
+              <div className="mx-auto mt-5 h-12 w-12 shrink-0 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <ScanFace className="h-6 w-6 text-primary" />
               </div>
-              <h1 className="mt-6 text-2xl font-bold tracking-tight text-center">
+              <h1 className="mt-4 text-2xl font-bold tracking-tight text-center">
                 Verify it's you
               </h1>
               <p className="mt-2 text-muted-foreground text-sm text-center max-w-xs mx-auto">
                 Changing your approval PIN needs a quick selfie first, to keep your account safe.
               </p>
 
-              <div className="mt-10 mx-auto h-56 w-56 rounded-[2rem] border-4 border-dashed border-primary/40 flex items-center justify-center">
-                <ScanFace className="h-24 w-24 text-primary/70" strokeWidth={1.4} />
+              <div className="mt-6 mx-auto h-40 w-40 shrink-0 rounded-[2rem] border-4 border-dashed border-primary/40 flex items-center justify-center">
+                <ScanFace className="h-16 w-16 text-primary/70" strokeWidth={1.4} />
               </div>
 
               <p className="mt-6 text-xs text-muted-foreground text-center max-w-xs mx-auto">
                 Look straight at the camera in good light. Nothing is uploaded in this demo.
               </p>
 
-              <div className="mt-auto pt-8">
+              <div className="mt-8 pb-2">
                 <Button size="lg" onClick={startScan} className="h-14 w-full rounded-2xl shadow-button">
                   Start selfie verification
                 </Button>
@@ -108,7 +108,7 @@ function SetupPin() {
 
   return (
     <PhoneFrame>
-      <div className="flex flex-col min-h-screen sm:min-h-[860px] p-8">
+      <div className="flex flex-col h-full overflow-y-auto p-8">
         {isChange && (
           <button onClick={() => navigate({ to: "/profile" })} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
             <ArrowLeft className="h-4 w-4" />
