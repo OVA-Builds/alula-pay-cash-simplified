@@ -1,6 +1,13 @@
-import { ShieldCheck, Landmark, Megaphone, Newspaper } from "lucide-react";
+import { ShieldCheck, Landmark, Megaphone, Newspaper, AlertTriangle } from "lucide-react";
 import alulaLogo from "@/assets/alula-logo-newsletter.jpg";
 import newsletterPhoto from "@/assets/home-promo-banner.jpg";
+import {
+  formatZAR,
+  heldBalanceDaysLeft,
+  HELD_BALANCE_REMINDER_INTERVAL_DAYS,
+  MIN_SEND,
+  type HeldBalance,
+} from "@/lib/app-state";
 
 export type Message = {
   id: string;
@@ -76,3 +83,35 @@ export const MESSAGES: Message[] = [
     ],
   },
 ];
+
+// A held balance has no server or cron to schedule reminders with, so this
+// derives the "current" reminder purely from elapsed time: a fresh id every
+// HELD_BALANCE_REMINDER_INTERVAL_DAYS days since the balance was created,
+// starting immediately (period 0). Because it plugs into the same
+// read/deleted id tracking as every other message, a client who reads or
+// deletes today's reminder simply sees a new unread one once the next
+// 2-day period starts — no polling, no extra persisted state.
+export function heldBalanceReminderMessage(heldBalance: HeldBalance | null): Message | null {
+  if (!heldBalance) return null;
+  const elapsedDays = Math.floor((Date.now() - heldBalance.startedAt) / (24 * 60 * 60 * 1000));
+  const period = Math.floor(elapsedDays / HELD_BALANCE_REMINDER_INTERVAL_DAYS);
+  const daysLeft = heldBalanceDaysLeft(heldBalance);
+  const needed = Math.max(0, +(MIN_SEND - heldBalance.amount).toFixed(2));
+  return {
+    id: `held-reminder-${period}`,
+    icon: AlertTriangle,
+    title: `${formatZAR(heldBalance.amount)} is waiting to be sent`,
+    body:
+      daysLeft > 0
+        ? `Add a voucher worth at least ${formatZAR(needed)} to send it out. ${daysLeft} day${daysLeft === 1 ? "" : "s"} left before it expires.`
+        : `This balance has expired.`,
+    date: "Reminder",
+    newsletter: [
+      `When your last subscription voucher was worth more than the plan you were paying for, the extra ${formatZAR(heldBalance.amount)} was too small to send on its own — our minimum send is ${formatZAR(MIN_SEND)}.`,
+      `Add any voucher to your balance and, once the two together reach ${formatZAR(MIN_SEND)}, you'll be prompted to send the full amount straight to your bank.`,
+      daysLeft > 0
+        ? `You have ${daysLeft} day${daysLeft === 1 ? "" : "s"} left to top up before this balance expires, 90 days after it was set aside.`
+        : `This balance's 90-day window has passed. See our Terms & Conditions for what happens to an expired balance.`,
+    ],
+  };
+}

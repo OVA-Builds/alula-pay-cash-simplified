@@ -1,10 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Landmark, Settings, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb, Users, Zap } from "lucide-react";
+import { Landmark, Settings, ShieldCheck, ArrowUpRight, ArrowDownLeft, ChevronRight, Lightbulb, Users, Zap, AlertTriangle } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { BottomSheet } from "@/components/BottomSheet";
 import { StoryViewer, type Story } from "@/components/StoryViewer";
-import { useApp, formatZAR, formatTxDate, TIER_LIMITS } from "@/lib/app-state";
+import { useApp, formatZAR, formatTxDate, TIER_LIMITS, heldBalanceDaysLeft, HELD_BALANCE_EXPIRY_DAYS } from "@/lib/app-state";
 import promoBanner from "@/assets/home-promo-banner.jpg";
 import storySlide1 from "@/assets/story-1-street-vendor.jpg";
 import storySlide2 from "@/assets/story-2-market-day.jpg";
@@ -26,10 +26,12 @@ function Home() {
   const navigate = useNavigate();
   const {
     transactions, verified, plan, firstName, subscriptionActive, paywallActive, freeTransactionsLeft,
-    isNewSignup,
+    isNewSignup, pendingForcedSend, heldBalance,
   } = useApp();
   const [sendPickerOpen, setSendPickerOpen] = useState(false);
   const [storiesOpen, setStoriesOpen] = useState(false);
+  const forcedSendOpen = pendingForcedSend > 0;
+  const heldDaysLeft = heldBalance ? heldBalanceDaysLeft(heldBalance) : 0;
   const recent = transactions.slice(0, 3);
   const displayName = firstName?.trim() ? firstName.trim().split(/\s+/)[0] : "there";
 
@@ -157,6 +159,30 @@ function Home() {
           </div>
         )}
       </div>
+
+      {heldBalance && (
+        <div className="mt-4 px-6">
+          <div className="flex items-center gap-3 rounded-3xl border border-gold/40 bg-gold/10 p-4 shadow-soft">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gold/25 text-gold-foreground">
+              <AlertTriangle className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold leading-tight">{formatZAR(heldBalance.amount)} waiting to be sent</p>
+              <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+                {heldDaysLeft > 0
+                  ? `Top up to send it out. Expires in ${heldDaysLeft} day${heldDaysLeft === 1 ? "" : "s"} (of ${HELD_BALANCE_EXPIRY_DAYS}).`
+                  : "This balance has expired."}
+              </p>
+            </div>
+            <Link
+              to="/add-voucher"
+              className="shrink-0 rounded-full bg-gold px-3.5 py-2 text-xs font-bold text-gold-foreground shadow-gold active:scale-95"
+            >
+              Top up
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="mt-4 grid grid-cols-[1.55fr_1fr] gap-2.5 px-6">
         {paywallActive ? (
@@ -325,6 +351,48 @@ function Home() {
             <div className="flex-1">
               <p className="font-bold">Pay beneficiary</p>
               <p className="mt-0.5 text-xs text-muted-foreground">Saved recipients — faster, no re-entry</p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </button>
+        </div>
+      </BottomSheet>
+
+      {/* Mandatory: shown whenever an overpaid subscription voucher left a
+          balance too large to hold (see applyVoucherTowardSubscription in
+          app-state.tsx) — Alula Pay never sits on that money, so this can't
+          be dismissed. It reappears on every restart until the send is done. */}
+      <BottomSheet open={forcedSendOpen} onClose={() => {}} dismissible={false}>
+        <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-muted" />
+        <div className="px-6 pt-5 text-left">
+          <h2 className="text-xl font-bold">Send your remaining balance</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Your last voucher left {formatZAR(pendingForcedSend)} that we can't hold — send it to a bank account to continue.
+          </p>
+        </div>
+        <div className="mt-3 space-y-3 px-6">
+          <button
+            onClick={() => navigate({ to: "/send-once-off", search: { presetAmount: pendingForcedSend } })}
+            className="flex w-full items-center gap-4 rounded-3xl border border-border bg-card p-4 text-left shadow-soft transition-transform active:scale-[0.98]"
+          >
+            <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-gradient-gold shadow-gold">
+              <Zap className="h-5.5 w-5.5 text-gold-foreground" strokeWidth={2.2} />
+            </span>
+            <div className="flex-1">
+              <p className="font-bold">Once-off payment</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Send {formatZAR(pendingForcedSend)} to any bank account</p>
+            </div>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </button>
+          <button
+            onClick={() => navigate({ to: "/beneficiaries", search: { presetAmount: pendingForcedSend } })}
+            className="flex w-full items-center gap-4 rounded-3xl border border-border bg-card p-4 text-left shadow-soft transition-transform active:scale-[0.98]"
+          >
+            <span className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-gradient-brand shadow-button">
+              <Users className="h-5.5 w-5.5 text-white" strokeWidth={2.2} />
+            </span>
+            <div className="flex-1">
+              <p className="font-bold">Pay beneficiary</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Send {formatZAR(pendingForcedSend)} to a saved recipient</p>
             </div>
             <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
           </button>

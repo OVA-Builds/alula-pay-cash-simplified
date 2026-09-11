@@ -5,10 +5,18 @@ import { Input } from "@/components/ui/input";
 import { AppShell } from "@/components/AppShell";
 import { useApp } from "@/lib/app-state";
 
-export const Route = createFileRoute("/beneficiaries")({ component: Beneficiaries });
+export const Route = createFileRoute("/beneficiaries")({
+  component: Beneficiaries,
+  // Carried through from the mandatory forced-send popup (see home.tsx) so
+  // that picking a beneficiary here still lands on a preset-amount confirm.
+  validateSearch: (search: Record<string, unknown>): { presetAmount?: number } => ({
+    presetAmount: typeof search.presetAmount === "number" && search.presetAmount > 0 ? search.presetAmount : undefined,
+  }),
+});
 
 function Beneficiaries() {
   const navigate = useNavigate();
+  const { presetAmount } = Route.useSearch();
   const { beneficiaries } = useApp();
   const [q, setQ] = useState("");
 
@@ -47,6 +55,7 @@ function Beneficiaries() {
             <li key={b.id}>
               <Link
                 to="/pay-beneficiary/$id" params={{ id: b.id }}
+                search={presetAmount ? { presetAmount } : undefined}
                 className="block bg-card rounded-2xl border border-border p-4 active:scale-[0.99] transition-transform"
               >
                 <div className="flex items-center gap-3">

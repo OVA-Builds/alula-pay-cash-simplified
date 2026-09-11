@@ -4,7 +4,7 @@ import { ArrowLeft, ScanLine, Check, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppShell } from "@/components/AppShell";
-import { useApp, formatZAR } from "@/lib/app-state";
+import { useApp, formatZAR, MIN_SEND } from "@/lib/app-state";
 
 export const Route = createFileRoute("/add-voucher")({ component: AddVoucher });
 
@@ -18,10 +18,14 @@ const TYPES: VoucherType[] = [
 
 function AddVoucher() {
   const navigate = useNavigate();
-  const { addTransaction, adjustBalance, stopGuide } = useApp();
+  const { addTransaction, adjustBalance, stopGuide, heldBalance, topUpHeldBalance } = useApp();
   const [type, setType] = useState<VoucherType | null>(null);
   const [code, setCode] = useState("");
   const [done, setDone] = useState<number | null>(null);
+  // Set only when this voucher was applied against a held balance (see
+  // topUpHeldBalance in app-state.tsx) rather than the spendable wallet —
+  // drives the success screen's copy below.
+  const [heldOutcome, setHeldOutcome] = useState<{ forced: boolean; combined: number } | null>(null);
 
   const digits = code.replace(/\D/g, "");
   const valid = type && digits.length === type.length;
@@ -30,11 +34,23 @@ function AddVoucher() {
     if (!valid || !type) return;
     // Mock: derive amount from voucher type for demo. Blu R10, OTT R200, 1Voucher R50.
     const amount = type.id === "ott" ? 200 : type.id === "blu" ? 10 : 50;
-    adjustBalance(amount);
-    addTransaction({
-      id: crypto.randomUUID(), type: "load", amount,
-      label: `${type.name} added`, status: "Completed", date: "Just now",
-    });
+    // A held balance is money Alula Pay already set aside because it was too
+    // small to send alone — a fresh voucher tops that up first, rather than
+    // ever landing in the spendable wallet alongside it.
+    if (heldBalance) {
+      const result = topUpHeldBalance(amount);
+      addTransaction({
+        id: crypto.randomUUID(), type: "load", amount,
+        label: `${type.name} added — held balance top-up`, status: "Completed", date: "Just now",
+      });
+      setHeldOutcome(result);
+    } else {
+      adjustBalance(amount);
+      addTransaction({
+        id: crypto.randomUUID(), type: "load", amount,
+        label: `${type.name} added`, status: "Completed", date: "Just now",
+      });
+    }
     setDone(amount);
   };
 
@@ -48,8 +64,28 @@ function AddVoucher() {
               <Check className="h-12 w-12 text-success-foreground" strokeWidth={3} />
             </div>
           </div>
-          <h1 className="mt-8 text-2xl font-bold">Voucher added</h1>
-          <p className="mt-2 text-muted-foreground">{formatZAR(done)} added to your wallet.</p>
+          {heldOutcome ? (
+            heldOutcome.forced ? (
+              <>
+                <h1 className="mt-8 text-2xl font-bold">Ready to send</h1>
+                <p className="mt-2 text-muted-foreground">
+                  Your held balance now totals {formatZAR(heldOutcome.combined)} — we'll take you straight to sending it out.
+                </p>
+              </>
+            ) : (
+              <>
+                <h1 className="mt-8 text-2xl font-bold">Balance topped up</h1>
+                <p className="mt-2 text-muted-foreground">
+                  {formatZAR(heldOutcome.combined)} held so far — still below our {formatZAR(MIN_SEND)} minimum send. Add another voucher to send it out.
+                </p>
+              </>
+            )
+          ) : (
+            <>
+              <h1 className="mt-8 text-2xl font-bold">Voucher added</h1>
+              <p className="mt-2 text-muted-foreground">{formatZAR(done)} added to your wallet.</p>
+            </>
+          )}
           <Button size="lg" onClick={() => navigate({ to: "/home" })} className="mt-10 h-14 w-full rounded-2xl shadow-button">
             Done
           </Button>

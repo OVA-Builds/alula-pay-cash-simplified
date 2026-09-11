@@ -1,7 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { Home, Bell, Clock, User } from "lucide-react";
 import { useApp } from "@/lib/app-state";
-import { MESSAGES } from "@/lib/messages";
+import { MESSAGES, heldBalanceReminderMessage } from "@/lib/messages";
 
 const tabs = [
   { to: "/home", label: "Home", icon: Home },
@@ -12,11 +12,13 @@ const tabs = [
 
 export function BottomNav() {
   const { pathname } = useLocation();
-  const { transactions, deletedMessageIds, readMessageIds, lastAlertsSeenAt } = useApp();
+  const { transactions, deletedMessageIds, readMessageIds, lastAlertsSeenAt, heldBalance } = useApp();
 
+  const heldReminder = heldBalanceReminderMessage(heldBalance);
   const unreadMessages = MESSAGES.filter((m) => !deletedMessageIds.includes(m.id) && !readMessageIds.includes(m.id)).length;
+  const unreadHeldReminder = heldReminder && !deletedMessageIds.includes(heldReminder.id) && !readMessageIds.includes(heldReminder.id) ? 1 : 0;
   const newTransactions = transactions.filter((t) => (t.createdAt ?? 0) > lastAlertsSeenAt).length;
-  const alertCount = unreadMessages + newTransactions;
+  const alertCount = unreadMessages + unreadHeldReminder + newTransactions;
 
   return (
     <nav className="sticky bottom-0 left-0 right-0 bg-card/95 backdrop-blur border-t border-border px-4 pt-2 pb-4">

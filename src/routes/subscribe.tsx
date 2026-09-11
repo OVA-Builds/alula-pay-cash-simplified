@@ -5,19 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AppShell } from "@/components/AppShell";
-import { useApp, formatZAR, MONTHLY_FEE, type Plan } from "@/lib/app-state";
+import { useApp, formatZAR, MONTHLY_FEE, MIN_SEND, type Plan } from "@/lib/app-state";
 import voucherBlu from "@/assets/voucher-blu.jpg";
 import voucherOtt from "@/assets/voucher-ott.png";
 import voucher1Voucher from "@/assets/voucher-1voucher.png";
 
 export const Route = createFileRoute("/subscribe")({ component: Subscribe });
 
-type VoucherBrand = { id: "ott" | "blu" | "1voucher"; name: string; length: number; logo: string };
+type VoucherBrand = { id: "ott" | "blu" | "1voucher"; name: string; length: number; logo: string; amount: number };
 
+// Fixed mock amount per brand, matching the convention used everywhere else
+// a voucher is loaded (see add-voucher.tsx, send-once-off.tsx). Unlike
+// those flows, a subscription voucher's value may not match what's owed —
+// any leftover after the plan is paid for is handled by
+// applyVoucherTowardSubscription (forced send or held balance).
 const VOUCHER_BRANDS: VoucherBrand[] = [
-  { id: "blu", name: "Blu Voucher", length: 16, logo: voucherBlu },
-  { id: "1voucher", name: "1Voucher", length: 16, logo: voucher1Voucher },
-  { id: "ott", name: "OTT Voucher", length: 12, logo: voucherOtt },
+  { id: "blu", name: "Blu Voucher", length: 16, logo: voucherBlu, amount: 18 },
+  { id: "1voucher", name: "1Voucher", length: 16, logo: voucher1Voucher, amount: 50 },
+  { id: "ott", name: "OTT Voucher", length: 12, logo: voucherOtt, amount: 200 },
 ];
 
 const PLAN_FEATURES: Record<Plan, string[]> = {
@@ -51,6 +56,7 @@ function Subscribe() {
   const [notice, setNotice] = useState<string | null>(null);
   const [bioStage, setBioStage] = useState<"intro" | "capturing" | "checking">("intro");
   const [paidPlan, setPaidPlan] = useState<Plan>("basic");
+  const [leftoverAmount, setLeftoverAmount] = useState(0);
   const codeInputRef = useRef<HTMLInputElement>(null);
 
   // Reaching this step closes the brand-confirm Dialog, which restores focus
@@ -106,16 +112,17 @@ function Subscribe() {
   const submitVoucher = () => {
     if (!brand || !validCode) return;
     const paidFor = reviewPlan;
-    const result = applyVoucherTowardSubscription(remaining, brand.name);
+    const result = applyVoucherTowardSubscription(brand.amount, brand.name);
     setCode("");
     setBrand(null);
     if (result.fullyPaid) {
       setPaidPlan(paidFor);
+      setLeftoverAmount(result.leftover);
       setNotice(null);
       setStep("success");
     } else {
       setNotice(
-        `${formatZAR(remaining)} applied. ${formatZAR(result.outstanding)} still needed to activate your ` +
+        `${formatZAR(brand.amount)} applied. ${formatZAR(result.outstanding)} still needed to activate your ` +
         `${reviewPlan === "pro" ? "Pro" : "Basic"} subscription.`
       );
       setStep("brand");
@@ -265,7 +272,7 @@ function Subscribe() {
             <p className="mt-1 text-sm text-muted-foreground">
               {pendingAmountPaid > 0
                 ? `${formatZAR(pendingAmountPaid)} paid so far — ${formatZAR(remaining)} still needed for your ${reviewPlan === "pro" ? "Pro" : "Basic"} subscription.`
-                : `Load a voucher worth exactly ${formatZAR(remaining)} to activate your ${reviewPlan === "pro" ? "Pro" : "Basic"} subscription.`}
+                : `You need ${formatZAR(remaining)} for your ${reviewPlan === "pro" ? "Pro" : "Basic"} subscription. Choose the brand printed on your voucher slip — worth more than that? We'll send the rest straight to your bank.`}
             </p>
 
             {notice && (
@@ -284,7 +291,7 @@ function Subscribe() {
                   <span className="flex h-14 w-full items-center justify-center rounded-2xl bg-white p-2">
                     <img src={v.logo} alt={v.name} className="h-full w-full object-contain" />
                   </span>
-                  <span className="text-center text-[11px] font-semibold leading-tight">{formatZAR(remaining)}</span>
+                  <span className="text-center text-[11px] font-semibold leading-tight">{formatZAR(v.amount)}</span>
                 </button>
               ))}
             </div>
@@ -318,7 +325,7 @@ function Subscribe() {
               size="lg" disabled={!validCode} onClick={submitVoucher}
               className="mt-6 h-14 w-full rounded-2xl text-base shadow-button"
             >
-              Pay {formatZAR(remaining)}
+              Pay with {formatZAR(brand.amount)}
             </Button>
           </>
         )}
@@ -338,6 +345,13 @@ function Subscribe() {
                 ? "Remember, Basic transfers land in 1–2 working days."
                 : "Enjoy instant payments and higher limits."}
             </p>
+            {leftoverAmount > 0 && (
+              <div className="mt-4 w-full max-w-xs rounded-2xl border border-gold/40 bg-gold/15 p-3.5 text-xs leading-relaxed text-foreground">
+                {leftoverAmount >= MIN_SEND
+                  ? `Your voucher left ${formatZAR(leftoverAmount)} over — we never hold onto extra, so you'll be asked to send it out from Home.`
+                  : `Your voucher left ${formatZAR(leftoverAmount)} over — too small to send alone, so we're holding it. Add another voucher any time to send it out.`}
+              </div>
+            )}
             <Button size="lg" onClick={() => navigate({ to: "/home" })} className="mt-8 h-14 w-full rounded-2xl shadow-button">
               Go to home
             </Button>
@@ -350,8 +364,9 @@ function Subscribe() {
           <DialogHeader>
             <DialogTitle>Confirm {confirmBrand?.name}</DialogTitle>
             <DialogDescription>
-              Load the exact amount you owe (<b>{formatZAR(remaining)}</b>). A voucher worth less than that
-              leaves a balance still outstanding — you'll pick up right where you left off, never from scratch.
+              This voucher is worth <b>{confirmBrand ? formatZAR(confirmBrand.amount) : ""}</b>, applied toward the{" "}
+              <b>{formatZAR(remaining)}</b> you still owe. Worth less? You'll pick up right where you left off,
+              never from scratch. Worth more? We'll send the difference straight to your bank instead of holding it.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

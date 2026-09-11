@@ -3,15 +3,16 @@ import { useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useApp } from "@/lib/app-state";
-import { MESSAGES } from "@/lib/messages";
+import { MESSAGES, heldBalanceReminderMessage } from "@/lib/messages";
 
 export const Route = createFileRoute("/message/$id")({ component: MessageDetail });
 
 function MessageDetail() {
   const router = useRouter();
   const { id } = Route.useParams();
-  const { markMessagesRead } = useApp();
-  const message = MESSAGES.find((m) => m.id === id);
+  const { markMessagesRead, heldBalance } = useApp();
+  const heldReminder = heldBalanceReminderMessage(heldBalance);
+  const message = (heldReminder && heldReminder.id === id ? heldReminder : undefined) ?? MESSAGES.find((m) => m.id === id);
 
   useEffect(() => {
     if (message) markMessagesRead([message.id]);

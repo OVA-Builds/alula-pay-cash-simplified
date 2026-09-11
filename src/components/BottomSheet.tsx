@@ -8,28 +8,33 @@ export function BottomSheet({
   open,
   onClose,
   children,
+  dismissible = true,
 }: {
   open: boolean;
   onClose: () => void;
   children: ReactNode;
+  // When false, the backdrop click and Escape key no longer close the
+  // sheet — used for the mandatory forced-send popup, which the client
+  // can only leave by completing the send it's blocking on.
+  dismissible?: boolean;
 }) {
   useEffect(() => {
     if (!open) return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const onKeyDown = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const onKeyDown = (e: KeyboardEvent) => { if (dismissible && e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKeyDown);
     return () => {
       document.body.style.overflow = prevOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [open, onClose]);
+  }, [open, onClose, dismissible]);
 
   if (typeof document === "undefined" || !open) return null;
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center">
-      <div className="absolute inset-0 animate-backdrop-in bg-black/50" onClick={onClose} />
+      <div className="absolute inset-0 animate-backdrop-in bg-black/50" onClick={dismissible ? onClose : undefined} />
       <div className="relative w-full animate-sheet-in rounded-t-[2rem] bg-card pb-8 shadow-3d sm:max-w-[420px]">
         {children}
       </div>

@@ -20,6 +20,14 @@ export type Transaction = {
   rail?: "EFT" | "RTC";
 };
 
+// A subscription voucher worth more than the plan price leaves a leftover
+// that Alula Pay never just sits on. If the leftover clears MIN_SEND on its
+// own it becomes a forced send immediately; otherwise it's held here — too
+// small to send alone — until a later top-up (see topUpHeldBalance) pushes
+// the combined total over MIN_SEND. startedAt anchors the 90-day expiry
+// countdown to the original transaction and never resets on a top-up.
+export type HeldBalance = { amount: number; startedAt: number };
+
 export type Beneficiary = {
   id: string;
   name: string;
@@ -133,7 +141,20 @@ type Ctx = {
   pendingPlan: Plan | null;
   pendingAmountPaid: number;
   choosePendingPlan: (p: Plan) => void;
-  applyVoucherTowardSubscription: (amount: number, voucherLabel: string) => { fullyPaid: boolean; outstanding: number };
+  applyVoucherTowardSubscription: (
+    voucherAmount: number,
+    voucherLabel: string,
+  ) => { fullyPaid: boolean; outstanding: number; leftover: number };
+  // A leftover from an overpaid subscription voucher that must be sent to
+  // the bank before the client can use the app for anything else — the
+  // popup showing it cannot be dismissed except by completing that send.
+  pendingForcedSend: number;
+  clearPendingForcedSend: () => void;
+  // A leftover too small to send alone (below MIN_SEND). Held until a
+  // top-up (via the Add Voucher flow) brings the combined total to
+  // MIN_SEND or beyond, at which point it becomes a pendingForcedSend.
+  heldBalance: HeldBalance | null;
+  topUpHeldBalance: (amount: number) => { forced: boolean; combined: number };
   // Notifications: static tips/marketing messages the client can dismiss.
   // Transactions are never deletable — only these are.
   deletedMessageIds: string[];
@@ -205,6 +226,7 @@ type Persisted = {
   theme: "light" | "dark"; transactions: Transaction[]; beneficiaries: Beneficiary[];
   freeTransactionsLeft: number; freeTxPeriod: string | null; lastPaidPeriod: string | null;
   pendingPlan: Plan | null; pendingAmountPaid: number;
+  pendingForcedSend: number; heldBalance: HeldBalance | null;
   deletedMessageIds: string[]; readMessageIds: string[];
   lastAlertsSeenAt: number;
   isNewSignup: boolean;
@@ -302,6 +324,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [lastPaidPeriod, setLastPaidPeriod] = useState<string | null>(null);
   const [pendingPlan, setPendingPlan] = useState<Plan | null>(null);
   const [pendingAmountPaid, setPendingAmountPaid] = useState(0);
+  const [pendingForcedSend, setPendingForcedSend] = useState(0);
+  const [heldBalance, setHeldBalance] = useState<HeldBalance | null>(null);
   const [deletedMessageIds, setDeletedMessageIds] = useState<string[]>([]);
   const [readMessageIds, setReadMessageIds] = useState<string[]>([]);
   const [lastAlertsSeenAt, setLastAlertsSeenAt] = useState(0);
@@ -335,6 +359,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (initial.lastPaidPeriod !== undefined) setLastPaidPeriod(initial.lastPaidPeriod);
       if (initial.pendingPlan !== undefined) setPendingPlan(initial.pendingPlan);
       if (initial.pendingAmountPaid !== undefined) setPendingAmountPaid(initial.pendingAmountPaid);
+      if (initial.pendingForcedSend !== undefined) setPendingForcedSend(initial.pendingForcedSend);
+      if (initial.heldBalance !== undefined) setHeldBalance(initial.heldBalance);
       if (initial.deletedMessageIds !== undefined) setDeletedMessageIds(initial.deletedMessageIds);
       if (initial.readMessageIds !== undefined) setReadMessageIds(initial.readMessageIds);
       if (initial.lastAlertsSeenAt !== undefined) setLastAlertsSeenAt(initial.lastAlertsSeenAt);
@@ -354,12 +380,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         onboarded, signedIn, phone, firstName, balance, verified, plan,
         approvalPin, alulaOn, theme, transactions, beneficiaries,
         freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid,
+        pendingForcedSend, heldBalance,
         deletedMessageIds, readMessageIds, lastAlertsSeenAt, isNewSignup,
         goals, sideHustles, challenge,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch {}
-  }, [hydrated, onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries, freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid, deletedMessageIds, readMessageIds, lastAlertsSeenAt, isNewSignup, goals, sideHustles, challenge]);
+  }, [hydrated, onboarded, signedIn, phone, firstName, balance, verified, plan, approvalPin, alulaOn, theme, transactions, beneficiaries, freeTransactionsLeft, freeTxPeriod, lastPaidPeriod, pendingPlan, pendingAmountPaid, pendingForcedSend, heldBalance, deletedMessageIds, readMessageIds, lastAlertsSeenAt, isNewSignup, goals, sideHustles, challenge]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -397,6 +424,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setLastPaidPeriod(null);
     setPendingPlan(null);
     setPendingAmountPaid(0);
+    setPendingForcedSend(0);
+    setHeldBalance(null);
     // Demo convenience: every signup gets the messages fresh again, deleted
     // or read ones included. To be reduced to a one-time reset before the
     // app ships.
@@ -484,35 +513,73 @@ const addTransaction = useCallback((t: Transaction) => {
     setPendingPlan(p);
   }, []);
 
+  // A leftover too small to send alone (below MIN_SEND) combines with any
+  // top-up here rather than landing in the spendable wallet balance —
+  // Alula Pay never just holds spare money once it's big enough to move.
+  // Once the combined total clears MIN_SEND it becomes a forced send.
+  const topUpHeldBalance = useCallback((amount: number) => {
+    let forced = false;
+    let combined = 0;
+    // setPendingForcedSend must stay outside this updater — React may invoke
+    // a functional setState updater more than once (e.g. Strict Mode), and
+    // calling another setState from inside it would double-apply the amount
+    // every extra invocation. Read the outcome here, act on it below instead.
+    setHeldBalance((prev) => {
+      combined = +((prev?.amount ?? 0) + amount).toFixed(2);
+      if (combined >= MIN_SEND) {
+        forced = true;
+        return null;
+      }
+      return { amount: combined, startedAt: prev?.startedAt ?? Date.now() };
+    });
+    if (forced) setPendingForcedSend((p) => +(p + combined).toFixed(2));
+    return { forced, combined };
+  }, []);
+
+  const clearPendingForcedSend = useCallback(() => setPendingForcedSend(0), []);
+
   // Applies a loaded voucher's value toward the outstanding subscription
-  // fee. Vouchers used here are earmarked for the subscription — they don't
-  // add to the spendable wallet balance. Partial payments persist (added to
+  // fee — never more than what's actually still owed. Vouchers used here
+  // are earmarked for the subscription; only the portion applied shows as
+  // a subscription-payment transaction. Partial payments persist (added to
   // pendingAmountPaid) so the user always continues where they left off
-  // rather than losing progress.
-  const applyVoucherTowardSubscription = useCallback((amount: number, voucherLabel: string) => {
+  // rather than losing progress. Any leftover from an overpaid voucher
+  // (only possible once the subscription is fully paid) is never added to
+  // the spendable wallet balance — it's routed straight into a forced send
+  // (pendingForcedSend) if it clears MIN_SEND on its own, or held
+  // (topUpHeldBalance) until a later top-up gets it there.
+  const applyVoucherTowardSubscription = useCallback((voucherAmount: number, voucherLabel: string) => {
     const target = pendingPlan ? MONTHLY_FEE[pendingPlan] : 0;
-    const newPaid = +(pendingAmountPaid + amount).toFixed(2);
+    const stillOwed = Math.max(0, +(target - pendingAmountPaid).toFixed(2));
+    const applied = Math.min(voucherAmount, stillOwed);
+    const leftover = +(voucherAmount - applied).toFixed(2);
+    const newPaid = +(pendingAmountPaid + applied).toFixed(2);
 
     setTransactions((prev) => [{
       id: crypto.randomUUID(),
       type: "load",
-      amount,
+      amount: applied,
       label: `${voucherLabel} — Subscription payment`,
       status: "Completed",
       createdAt: Date.now(),
     }, ...prev]);
 
-    if (pendingPlan && newPaid >= target) {
-      setPlan(pendingPlan);
+    const fullyPaid = !!pendingPlan && newPaid >= target;
+    if (fullyPaid) {
+      setPlan(pendingPlan!);
       if (pendingPlan === "pro") setVerified(true);
       setLastPaidPeriod(getBillingPeriod());
       setPendingAmountPaid(0);
       setPendingPlan(null);
-      return { fullyPaid: true, outstanding: 0 };
+      if (leftover > 0) {
+        if (leftover >= MIN_SEND) setPendingForcedSend((p) => +(p + leftover).toFixed(2));
+        else topUpHeldBalance(leftover);
+      }
+      return { fullyPaid: true, outstanding: 0, leftover };
     }
     setPendingAmountPaid(newPaid);
-    return { fullyPaid: false, outstanding: +(target - newPaid).toFixed(2) };
-  }, [pendingPlan, pendingAmountPaid]);
+    return { fullyPaid: false, outstanding: +(target - newPaid).toFixed(2), leftover: 0 };
+  }, [pendingPlan, pendingAmountPaid, topUpHeldBalance]);
 
   const deleteMessage = useCallback((id: string) => {
     setDeletedMessageIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
@@ -605,6 +672,7 @@ const addTransaction = useCallback((t: Transaction) => {
         guideMode, startGuide, stopGuide,
         freeTransactionsLeft: effectiveFreeTransactionsLeft, subscriptionActive, paywallActive,
         pendingPlan, pendingAmountPaid, choosePendingPlan, applyVoucherTowardSubscription,
+        pendingForcedSend, clearPendingForcedSend, heldBalance, topUpHeldBalance,
         deletedMessageIds, readMessageIds, deleteMessage, markMessagesRead,
         lastAlertsSeenAt, markAlertsSeen,
         isNewSignup,
@@ -680,6 +748,15 @@ export const railSettleCopy = (rail: "EFT" | "RTC") =>
 
 // Minimum single send amount (ZAR) — enforced across all payment flows.
 export const MIN_SEND = 20;
+
+// A held balance (see HeldBalance) expires 90 days after the transaction
+// that created it, and the client is reminded to top it up every 2 days
+// until then.
+export const HELD_BALANCE_EXPIRY_DAYS = 90;
+export const HELD_BALANCE_REMINDER_INTERVAL_DAYS = 2;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+export const heldBalanceDaysLeft = (h: HeldBalance) =>
+  Math.max(0, HELD_BALANCE_EXPIRY_DAYS - Math.floor((Date.now() - h.startedAt) / MS_PER_DAY));
 
 export function calcTransferFee(
   amount: number,

@@ -13,7 +13,15 @@ import voucherBlu from "@/assets/voucher-blu.jpg";
 import voucherOtt from "@/assets/voucher-ott.png";
 import voucher1Voucher from "@/assets/voucher-1voucher.png";
 
-export const Route = createFileRoute("/pay-beneficiary/$id")({ component: PayBeneficiary });
+export const Route = createFileRoute("/pay-beneficiary/$id")({
+  component: PayBeneficiary,
+  // A preset amount arrives when this flow is opened to clear a mandatory
+  // forced send (see home.tsx) — the client never loads a voucher for it,
+  // so the voucher/code steps are skipped entirely, straight to confirm.
+  validateSearch: (search: Record<string, unknown>): { presetAmount?: number } => ({
+    presetAmount: typeof search.presetAmount === "number" && search.presetAmount > 0 ? search.presetAmount : undefined,
+  }),
+});
 
 type Step = "voucher" | "code" | "confirm" | "done";
 
@@ -30,10 +38,11 @@ const VOUCHER_BRANDS: VoucherBrand[] = [
 function PayBeneficiary() {
   const navigate = useNavigate();
   const { id } = Route.useParams();
-  const { beneficiaries, plan, addTransaction, transactions, challenge } = useApp();
+  const { presetAmount } = Route.useSearch();
+  const { beneficiaries, plan, addTransaction, transactions, challenge, clearPendingForcedSend } = useApp();
   const bene = beneficiaries.find((b) => b.id === id);
 
-  const [step, setStep] = useState<Step>("voucher");
+  const [step, setStep] = useState<Step>(presetAmount ? "confirm" : "voucher");
   useRequireSubscription({ enabled: step !== "done" });
   const [celebration, setCelebration] = useState<CelebrationInfo>({ firstSend: false, struckDay: null, challengeDays: null });
 
@@ -53,7 +62,7 @@ function PayBeneficiary() {
   // the client to choose (see the confirm step below).
   const activeRail: "EFT" | "RTC" = plan === "pro" ? "RTC" : "EFT";
 
-  const voucherAmount = brand?.amount ?? 0;
+  const voucherAmount = presetAmount ?? brand?.amount ?? 0;
   const fee = voucherAmount > 0 ? calcTransferFee(voucherAmount, plan, activeRail) : null;
   const netToBank = Math.max(0, +(voucherAmount - (fee?.fee ?? 0)).toFixed(2));
 
@@ -77,7 +86,7 @@ function PayBeneficiary() {
   };
 
   const confirm = () => {
-    if (!brand) return;
+    if (!brand && !presetAmount) return;
     const firstSend = !transactions.some((t) => t.type === "transfer");
     let struckDay: number | null = null;
     if (challenge) {
@@ -97,6 +106,7 @@ function PayBeneficiary() {
       fee: fee?.fee ?? 0,
       rail: fee?.rail,
     });
+    if (presetAmount) clearPendingForcedSend();
     setCelebration({ firstSend, struckDay, challengeDays: challenge?.days ?? null });
     setStep("done");
   };
@@ -212,7 +222,10 @@ function PayBeneficiary() {
   return (
     <AppShell>
       <div className="p-6">
-        <button onClick={() => setStep("code")} className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft">
+        <button
+          onClick={() => (presetAmount ? navigate({ to: "/beneficiaries" }) : setStep("code"))}
+          className="h-10 w-10 rounded-full bg-card border border-border flex items-center justify-center shadow-soft"
+        >
           <ArrowLeft className="h-4 w-4" />
         </button>
         <h1 className="mt-6 text-2xl font-bold tracking-tight">Confirm payment</h1>
@@ -281,7 +294,7 @@ function PayBeneficiary() {
 
         {fee && (
           <div className="mt-5 rounded-2xl bg-card border border-border p-4 space-y-2 animate-float-up">
-            <Row label="Voucher value" value={formatZAR(voucherAmount)} muted />
+            <Row label={presetAmount ? "Amount" : "Voucher value"} value={formatZAR(voucherAmount)} muted />
             <Row label={`Fee (${railLabel(fee.rail)})`} value={`-${formatZAR(fee.fee)}`} muted />
             <div className="border-t border-border pt-2 flex items-center justify-between">
               <span className="text-sm font-medium">Sent to their bank account</span>
