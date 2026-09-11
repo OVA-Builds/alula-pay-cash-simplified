@@ -8,21 +8,24 @@ import { AppShell } from "@/components/AppShell";
 import { StatusBody, StatusScreen } from "@/components/StatusScreen";
 import { BufferScreen } from "@/components/BufferScreen";
 import { identity, vouchers } from "@/lib/api";
-import { useApp, formatZAR, MONTHLY_FEE, type Plan } from "@/lib/app-state";
+import { useApp, formatZAR, MONTHLY_FEE, MIN_SEND, type Plan } from "@/lib/app-state";
 import voucherBlu from "@/assets/voucher-blu.jpg";
 import voucherOtt from "@/assets/voucher-ott.png";
 import voucher1Voucher from "@/assets/voucher-1voucher.png";
 
 export const Route = createFileRoute("/subscribe")({ component: Subscribe });
 
-type VoucherBrand = { id: "ott" | "blu" | "1voucher"; name: string; length: number; logo: string };
+type VoucherBrand = { id: "ott" | "blu" | "1voucher"; name: string; length: number; logo: string; faceValue: number };
 
-// A subscription voucher is always loaded for exactly what's owed — brand
-// only decides pin length here, not value (see remaining below).
+// Real fixed face values, same as every other voucher flow in the app
+// (add-voucher, send-once-off, pay-bills, pay-beneficiary): Blu R10,
+// 1Voucher R50, OTT R200. Paying Pro/Basic with a voucher worth more than
+// what's owed leaves a genuine overpay — applyVoucherTowardSubscription
+// routes that straight into a forced send, same as everywhere else.
 const VOUCHER_BRANDS: VoucherBrand[] = [
-  { id: "blu", name: "Blu Voucher", length: 16, logo: voucherBlu },
-  { id: "1voucher", name: "1Voucher", length: 16, logo: voucher1Voucher },
-  { id: "ott", name: "OTT Voucher", length: 12, logo: voucherOtt },
+  { id: "blu", name: "Blu Voucher", length: 16, logo: voucherBlu, faceValue: 10 },
+  { id: "1voucher", name: "1Voucher", length: 16, logo: voucher1Voucher, faceValue: 50 },
+  { id: "ott", name: "OTT Voucher", length: 12, logo: voucherOtt, faceValue: 200 },
 ];
 
 const PLAN_FEATURES: Record<Plan, string[]> = {
@@ -56,6 +59,7 @@ function Subscribe() {
   const [notice, setNotice] = useState<string | null>(null);
   const [bioStage, setBioStage] = useState<"intro" | "capturing" | "checking" | "failed">("intro");
   const [paidPlan, setPaidPlan] = useState<Plan>("basic");
+  const [leftoverPaid, setLeftoverPaid] = useState(0);
   const codeInputRef = useRef<HTMLInputElement>(null);
 
   // Reaching this step closes the brand-confirm Dialog, which restores focus
@@ -118,7 +122,7 @@ function Subscribe() {
     if (!brand || !validCode) return;
     const usedBrand = brand;
     setStep("processing");
-    const result = await vouchers.redeemVoucher(usedBrand.id, code, remaining);
+    const result = await vouchers.redeemVoucher(usedBrand.id, code, usedBrand.faceValue);
     if (!result.ok) {
       setStep("failed");
       return;
@@ -129,6 +133,7 @@ function Subscribe() {
     setBrand(null);
     if (applied.fullyPaid) {
       setPaidPlan(paidFor);
+      setLeftoverPaid(applied.leftover);
       setNotice(null);
       setStep("success");
     } else {
@@ -392,6 +397,12 @@ function Subscribe() {
                 paidPlan === "basic"
                   ? "Remember, Basic transfers land in 1–2 working days."
                   : "Enjoy instant payments and higher limits."
+              }${
+                leftoverPaid > 0
+                  ? leftoverPaid >= MIN_SEND
+                    ? ` Your voucher covered more than the subscription — we'll help you send the extra ${formatZAR(leftoverPaid)} to a bank account next.`
+                    : ` Your voucher covered more than the subscription — the extra ${formatZAR(leftoverPaid)} is held until it grows into a full send.`
+                  : ""
               }`}
               buttonLabel="Go to home"
               onButtonClick={() => navigate({ to: "/home" })}
@@ -405,8 +416,9 @@ function Subscribe() {
           <DialogHeader>
             <DialogTitle>Confirm {confirmBrand?.name}</DialogTitle>
             <DialogDescription>
-              Load the exact amount you owe (<b>{formatZAR(remaining)}</b>). A voucher worth less than that
-              leaves a balance still outstanding — you'll pick up right where you left off, never from scratch.
+              You need at least <b>{formatZAR(remaining)}</b> to activate your plan. A voucher worth less than
+              that leaves a balance still outstanding — you'll pick up right where you left off, never from
+              scratch. Worth more, and we'll help you send the extra straight to a bank account.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

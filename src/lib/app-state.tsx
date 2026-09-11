@@ -651,8 +651,8 @@ const addTransaction = useCallback((t: Transaction) => {
   // splash until hydration finishes instead of ever showing that data.
   if (!hydrated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <img src={logo} alt="Alula Pay" className="h-16 w-16 animate-pulse" />
+      <div className="flex min-h-screen items-center justify-center bg-gradient-brand">
+        <img src={logo} alt="Alula Pay" className="h-28 w-28 animate-pulse drop-shadow-2xl" />
       </div>
     );
   }
